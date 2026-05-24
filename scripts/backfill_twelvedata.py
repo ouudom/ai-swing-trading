@@ -1,0 +1,150 @@
+"""
+Backfill OHLC history from Twelve Data. Walks BACKWARD from now → since.
+Resume-safe via manifest earliest_dt. Rate-limit safe (8 req/min).
+
+Storage: data/twelvedata/{symbol_no_slash}/{tf}.csv  +  _manifest.json
+
+Usage:
+  .venv/bin/python scripts/backfill_twelvedata.py --tf 15min
+  .venv/bin/python scripts/backfill_twelvedata.py --tf 15min --since 2020-01-01
+  .venv/bin/python scripts/backfill_twelvedata.py --tf 15min --forward-only
+  .venv/bin/python scripts/backfill_twelvedata.py --tf 1day --since 2005-01-01 --max-calls 5
+"""
+import os
+import sys
+import time
+import argparse
+import requests
+import pandas as pd
+from datetime import datetime, timezone
+from dotenv import load_dotenv
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib.ohlc_store import upsert, load_manifest
+
+load_dotenv()
+KEY    = os.getenv("TWELVE_DATA_KEY")
+SOURCE = "twelvedata"
+
+PAGE      = 5000
+THROTTLE  = 8.0    # seconds between calls (free tier: 8/min)
+MAX_CALLS = 500    # global safety brake
+
+# Approximate bars per day per TF (for chunk sizing)
+BARS_PER_DAY = {"1min":1440,"5min":288,"15min":96,"30min":48,"1h":24,"4h":6,"1day":1,"1week":0.2}
+
+
+def fetch_page(symbol: str, interval: str, start: str, end: str) -> pd.DataFrame:
+    r = requests.get("https://api.twelvedata.com/time_series", params={
+        "symbol":    symbol,
+        "interval":  interval,
+        "start_date": start,
+        "end_date":   end,
+        "outputsize": PAGE,
+        "order":      "ASC",
+        "apikey":     KEY,
+        "format":     "JSON",
+        "timezone":   "UTC",
+    }, timeout=30)
+    j = r.json()
+    if isinstance(j, dict) and j.get("status") == "error":
+        raise RuntimeError(j.get("message", str(j)))
+    vals = j.get("values", []) if isinstance(j, dict) else []
+    if not vals:
+        return pd.DataFrame(columns=["datetime","open","high","low","close","volume"])
+    df = pd.DataFrame(vals)
+    if "volume" not in df.columns:
+        df["volume"] = 0
+    return df
+
+
+def backfill(symbol: str, tf: str, since: str, forward_only: bool, max_calls: int):
+    sym_clean = symbol.replace("/", "").lower()
+    mf  = load_manifest(SOURCE, symbol).get(tf, {})
+    now = pd.Timestamp(datetime.now(timezone.utc).replace(tzinfo=None))
+    since_ts = pd.Timestamp(since)
+    calls = 0
+
+    # ── FORWARD-ONLY: fill gap from last_dt → now ─────────────────────────────
+    if forward_only:
+        if not mf.get("last_dt"):
+            print(f"[{tf}] no manifest, run full backfill first"); return
+        start = pd.Timestamp(mf["last_dt"]) - pd.Timedelta(minutes=1)
+        end   = now
+        print(f"[{tf}] forward-only {start} → {end}")
+        while start < end and calls < max_calls:
+            df = fetch_page(symbol, tf, start.strftime("%Y-%m-%d %H:%M:%S"), end.strftime("%Y-%m-%d %H:%M:%S"))
+            calls += 1
+            if df.empty: break
+            info = upsert(SOURCE, symbol, tf, df)
+            new_last = pd.Timestamp(info["last_dt"])
+            print(f"  call {calls}: +{len(df)} rows  last_dt={new_last}  total={info['rows']}")
+            if new_last <= start: break
+            start = new_last + pd.Timedelta(seconds=1)
+            if start < end: time.sleep(THROTTLE)
+        print(f"[{tf}] forward done. calls={calls}")
+        return
+
+    # ── BACKWARD WALK: from now back to since ─────────────────────────────────
+    # If partial backfill exists, resume from earliest_dt
+    if mf.get("first_dt"):
+        end = pd.Timestamp(mf["first_dt"]) + pd.Timedelta(seconds=1)
+        print(f"[{tf}] resuming backward from manifest first_dt={mf['first_dt']}")
+    else:
+        end = now
+        print(f"[{tf}] fresh backfill backward from {end} → {since_ts}")
+
+    bpd  = BARS_PER_DAY.get(tf, 24)
+    chunk_days = max(3, int(PAGE / bpd)) if bpd > 0 else 365
+    total_added = 0
+
+    while end > since_ts and calls < max_calls:
+        start = max(end - pd.Timedelta(days=chunk_days), since_ts)
+        s_str = start.strftime("%Y-%m-%d %H:%M:%S")
+        e_str = end.strftime("%Y-%m-%d %H:%M:%S")
+        print(f"  call {calls+1:3d}: {s_str} → {e_str}", end="  ", flush=True)
+        try:
+            df = fetch_page(symbol, tf, s_str, e_str)
+        except RuntimeError as e:
+            print(f"STOP: {e}"); break
+        calls += 1
+        if df.empty:
+            print("empty → done")
+            end = start - pd.Timedelta(seconds=1)
+            time.sleep(THROTTLE)
+            continue
+        info = upsert(SOURCE, symbol, tf, df)
+        added = len(df)
+        total_added += added
+        earliest = pd.Timestamp(info["first_dt"])
+        print(f"+{added} rows  first={earliest}  total={info['rows']}")
+        end = earliest - pd.Timedelta(seconds=1)
+        if end > since_ts:
+            time.sleep(THROTTLE)
+
+    if calls >= max_calls:
+        print(f"[{tf}] ⚠ hit max_calls={max_calls}. Re-run to continue (will resume from manifest).")
+    else:
+        print(f"[{tf}] done. calls={calls}  added={total_added}")
+
+    # Fill forward gap: manifest first_dt → now (close any gap if resuming)
+    mf2 = load_manifest(SOURCE, symbol).get(tf, {})
+    if mf2.get("last_dt"):
+        gap_start = pd.Timestamp(mf2["last_dt"])
+        if (now - gap_start).total_seconds() > 900:
+            print(f"[{tf}] closing forward gap {gap_start} → {now}")
+            backfill(symbol, tf, since, forward_only=True, max_calls=10)
+
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--symbol",       default="XAU/USD")
+    ap.add_argument("--tf",           default="15min",
+        help="Interval: 1min 5min 15min 30min 1h 4h 1day 1week")
+    ap.add_argument("--since",        default="2015-01-01")
+    ap.add_argument("--forward-only", action="store_true")
+    ap.add_argument("--max-calls",    type=int, default=MAX_CALLS)
+    args = ap.parse_args()
+    if not KEY:
+        sys.exit("TWELVE_DATA_KEY missing in .env")
+    backfill(args.symbol, args.tf, args.since, args.forward_only, args.max_calls)

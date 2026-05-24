@@ -1,0 +1,36 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Data — regenerable raw pulls
+data
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.next/
+frontend/data.json
+
+# Claude local (keep commands/ shared)
+.claude
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/data/ohlc/XAUUSD_M1_2018_2026.csv
+data/ohlc/xauusd/XAUUSD_M1.csv

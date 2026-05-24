@@ -11,7 +11,7 @@ None
 - **Setup B** [6.25/10]: SELL limit $4627.80 zone $4606–$4640 | SL $4660.32 | TP $4530 (3.00R) | 0.61 lots
 - Setup C: NONE — counter score 4.0 below 7.5 floor (only S1+S3 hit)
 
-`risk_unit = min(H4 ATR, 0.5×Daily ATR)` = $32.52. `buffer = 0.10 × risk_unit` = $3.25 per missing weight unit. Tiered 10.0 scale. Recalc daily via /validate.
+`stop_distance = max(structural_pivot_dist, 0.5×H4_ATR14)` (offset base, same as stop). `buffer = 0.10 × stop_distance` per missing weight unit. Tiered 10.0 scale. Offset recomputed every /validate (07:30 UTC) — never frozen from /weekly.
 
 ## Week Status
 - Week: 2026-W21

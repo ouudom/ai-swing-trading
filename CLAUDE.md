@@ -12,15 +12,15 @@ Context resets each session. Load state from these files in order:
 ```
 1. _HOT.md                          — active forecast, open trades, pending actions
 2. _INDEX.md                        — all file locations and current state
-3. wiki/research/findings.md        — ALL backtest/research findings (read before any analysis)
+3. wiki/research/xauusd/findings.md — ALL backtest/research findings (read before any analysis)
 4. wiki/system/constitution.md      — risk rules, entry rules, stop formula
 5. wiki/system/confluence_criteria.md — pre-screen gates + scoring
 ```
 
-**Before starting any research or backtest:** Read `wiki/research/findings.md` first.
+**Before starting any research or backtest:** Read `wiki/research/xauusd/findings.md` first.
 Do not re-derive what is already proven. Build on existing findings.
 
-**After completing any research or backtest:** Update `wiki/research/findings.md` with new results.
+**After completing any research or backtest:** Update `wiki/research/xauusd/findings.md` with new results.
 Never store findings only in chat — context will be lost.
 
 ## Session Start Protocol
@@ -66,7 +66,7 @@ week risk used, pending actions from _HOT.md.
 - One concept per wiki page. Cross-link with [[filename]] when referencing.
 - After creating or significantly updating any file: update _INDEX.md.
 - End of every session: update _HOT.md.
-- End of every research session: update wiki/research/findings.md.
+- End of every research session: update wiki/research/xauusd/findings.md.
 
 ## Frontmatter Schema
 Every wiki page:
@@ -87,10 +87,10 @@ type: weekly_forecast
 week: YYYY-WNN
 generated: YYYY-MM-DD
 macro_bias: BULLISH | BEARISH | NEUTRAL
-macro_confidence: HIGH | MEDIUM | LOW
+macro_confidence: HIGH | MEDIUM-HIGH | MEDIUM | MEDIUM-LOW | LOW
 mtf_alignment: ALIGNED | MIXED | OPPOSING
 best_setup: A | B | NONE
-conviction: HIGH | MEDIUM | LOW
+conviction: HIGH | MEDIUM-HIGH | MEDIUM | MEDIUM-LOW | LOW
 ---
 ```
 

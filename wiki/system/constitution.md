@@ -170,7 +170,7 @@ A setup is cancelled when:
 | B — Secondary | With weekly bias | 5.5 | Alternative price path, distinct zone |
 | C — Counter | Against weekly bias | 7.5 | Signal 3 mandatory; macro must be LOW/MEDIUM confidence only; cap 40% zone width |
 
-Max 4 setups per week. If no valid setup for a slot → NONE (never force).
+Max 3 setups per week. If no valid setup for a slot → NONE (never force).
 Trades executed bounded by $4000 weekly risk cap, not by setup count.
 Priority A → B → C only governs entry preference if multiple fill same day. Independent setups may fill across the week.
 

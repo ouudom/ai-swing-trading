@@ -162,15 +162,3 @@ wiki/
         session-timing.md        — hour-of-day, day-of-week, session effects
 ```
 
-## Research Wiki — findings.md Entry Schema
-
-```markdown
-## Finding N — <Name>
-- **Date**: YYYY-MM-DD
-- **Data**: source, TF, date range, N bars/rows
-- **Method**: brief description
-- **Result**: quantitative result (table if multiple)
-- **Confidence**: high | medium | low
-- **Actionable**: what system rule this supports or changes
-- **Script**: scripts/[script name]
-```

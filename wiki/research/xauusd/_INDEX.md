@@ -10,7 +10,6 @@ tags: [index, xauusd]
 
 | File | What's in it |
 |---|---|
-| `findings.md` | Master findings log — read first every session before any analysis |
 | `concepts/mtf-market-structure.md` | H4+H1 swing structure win rates, pivot detection method |
 | `concepts/stop-loss.md` | Structural vs ATR stop: MAE survival rates, recommended formula |
 | `concepts/macro-regime.md` | DFII10 slope regime split, DXY correlation, VIX buckets |
@@ -49,9 +48,8 @@ tags: [index, xauusd]
 - Always report: N, TP%, edge in pp, EV in R, trades/yr
 - Random baseline (next-24H up): **~54.1%** (gold secular uptrend 2020–2026)
 - Breakeven at 3R: **25.0%** TP hit rate
-- Sample every 5th–10th H4 bar for heavy loops — note step in findings
+- Sample every 5th–10th H4 bar for heavy loops — note step
 - Test both long AND short for each hypothesis
-- After any backtest: update `findings.md` with new entry
 
 ## Common Pitfalls
 

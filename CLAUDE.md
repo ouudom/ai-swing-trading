@@ -12,25 +12,16 @@ Context resets each session. Load state from these files in order:
 ```
 1. _HOT.md                          — active forecast, open trades, pending actions
 2. _INDEX.md                        — all file locations and current state
-3. wiki/research/xauusd/findings.md — ALL backtest/research findings (read before any analysis)
-4. wiki/system/constitution.md      — risk rules, entry rules, stop formula
-5. wiki/system/confluence_criteria.md — pre-screen gates + scoring
+3. wiki/system/constitution.md      — risk rules, entry rules, stop formula
+4. wiki/system/confluence_criteria.md — pre-screen gates + scoring
 ```
-
-**Before starting any research or backtest:** Read `wiki/research/xauusd/findings.md` first.
-Do not re-derive what is already proven. Build on existing findings.
-
-**After completing any research or backtest:** Update `wiki/research/xauusd/findings.md` with new results.
-Never store findings only in chat — context will be lost.
 
 ## Session Start Protocol
 1. Read `_HOT.md` — check active forecast and pending actions
 2. Read `_INDEX.md` — orient to current file state
-3. Read `wiki/research/xauusd/findings.md` — load all proven research before doing any analysis
-   → Also read `wiki/research/xauusd/_INDEX.md` for data sources + pending work
+3. Read `wiki/research/xauusd/_INDEX.md` for data sources + pending work
 4. Never create duplicate pages — update existing ones in place
 5. End of session: update `_HOT.md` with what changed and what is pending
-6. End of session: if any research/backtest done, update `wiki/research/findings.md`
 
 ## Commands
 
@@ -66,7 +57,6 @@ week risk used, pending actions from _HOT.md.
 - One concept per wiki page. Cross-link with [[filename]] when referencing.
 - After creating or significantly updating any file: update _INDEX.md.
 - End of every session: update _HOT.md.
-- End of every research session: update wiki/research/xauusd/findings.md.
 
 ## Frontmatter Schema
 Every wiki page:
@@ -163,7 +153,6 @@ wiki/
   research/                      — all quantitative research
     xauusd/
       _INDEX.md                  — data sources, scripts, standards, pending research
-      findings.md                — MASTER: all proven findings, read first every session
       concepts/
         mtf-market-structure.md  — swing trend alignment (HH/HL pivot detection)
         stop-loss.md             — stop placement: structural vs ATR

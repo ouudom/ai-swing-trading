@@ -19,7 +19,7 @@ Context resets each session. Load state from these files in order:
 ## Session Start Protocol
 1. Read `_HOT.md` — check active forecast and pending actions
 2. Read `_INDEX.md` — orient to current file state
-3. Read `wiki/research/xauusd/_INDEX.md` for data sources + pending work
+3. Read `wiki/system/macro/yield_environment.md` — load current macro baseline
 4. Never create duplicate pages — update existing ones in place
 5. End of session: update `_HOT.md` with what changed and what is pending
 
@@ -81,6 +81,13 @@ macro_confidence: HIGH | MEDIUM-HIGH | MEDIUM | MEDIUM-LOW | LOW
 mtf_alignment: ALIGNED | MIXED | OPPOSING
 best_setup: A | B | NONE
 conviction: HIGH | MEDIUM-HIGH | MEDIUM | MEDIUM-LOW | LOW
+baseline_dfii10: x.xx
+baseline_dxy: xxx.xxx
+weekend_gap_pct: x.xxx
+cot_mm_net: ±xxxxx
+cot_mm_net_chg: ±xxxxx
+etf_gld_tonnes: xxxx.xx
+etf_gld_wk_chg: ±xx.xx
 ---
 ```
 

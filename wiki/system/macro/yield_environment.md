@@ -1,7 +1,7 @@
 ---
 type: macro
-updated: 2026-05-21
-confidence: medium
+updated: 2026-05-25
+confidence: medium-high
 tags: [macro, yields, fed, dxy]
 related: [xauusd_profile, constitution]
 ---
@@ -10,38 +10,41 @@ related: [xauusd_profile, constitution]
 *Living page. Rewritten every Sunday via /macro command. Never duplicated.*
 
 ## Current Snapshot
-*W21 — 2026-05-21*
+*W22 — 2026-05-25*
 
 | Factor | Value | 1W Change | Direction | Gold Implication |
 |---|---|---|---|---|
-| Real Yield (DFII10 10Y) | 2.18% | +0.19% | ↑ RISING | BEARISH — rising opportunity cost |
-| Nominal Yield (DGS10) | 4.67% | — | — | BEARISH — near 1Y high |
-| 5Y Breakeven | 2.59% | stable | → Flat | Neutral — inflation expectations contained |
-| Fed Funds Rate | 3.62% | — | Hold | BEARISH — no cuts; market pricing >55% chance of HIKE in 2026 |
-| DXY | 119.282 | +1.04% | ↑ RISING | BEARISH — strong dollar = expensive gold |
+| Real Yield (DFII10 10Y) | 2.18% | +0.18% | ↑ RISING | BEARISH — rising opportunity cost |
+| Nominal Yield (DGS10) | 4.57% | −0.10% | ↓ slight easing | Context — real yield rising faster |
+| 5Y Breakeven | 2.54% | stable | → Flat | Neutral — near-term inflation contained |
+| Fed Funds Rate | 3.62% | hold | Hold (hawkish) | BEARISH — no cuts; >60% chance Dec HIKE |
+| DXY | 119.282 | +1.05% | ↑ RISING | BEARISH — strong dollar, expensive gold |
+| VIX | 16.76 | — | Calm | Muted safe-haven demand |
 
 ## Combined Bias
-**BEARISH — MEDIUM confidence**
+**BEARISH — MEDIUM-HIGH confidence**
 
-Real yields rising + DXY strengthening + Fed flipping hawkish. Narrative has shifted from "cuts incoming, hold gold" to "hikes possible, exit gold." WGC Q1 2026 data: total demand -10.13% vs Q4, jewelry -31.41%. FOMC minutes (May 20) confirmed hawkish tone.
+Real yields rising + DXY strengthening + Warsh hawkish regime now in control. Kevin Warsh officially became Fed Chair on 2026-05-22 with explicit stance: sustain high rates long-term, accelerate balance sheet reduction, 2026 rate hike not ruled out. Market pricing >60% probability of 25bp hike at December FOMC. Wildcard: US-Iran Strait of Hormuz risk → oil/inflation → prevents BEARISH from reaching HIGH.
 
-Wildcard: US-Iran conflict + Strait of Hormuz closure → oil rising → inflation risk → prevents BEARISH confidence reaching HIGH.
+DFII10 20d slope: +0.013%/day (multi-week rising trend). Breakeven inflation stable at 2.54%. Real yield trajectory clearly higher.
 
 ## Fed Posture
-**HAWKISH (shifting)**
+**HAWKISH (Warsh era, accelerating)**
 - Fed Funds: 3.62% (target range 3.50–3.75%)
-- June FOMC: 97.4% probability of hold
-- 2026 outlook: >55% chance of at least 1 hike — significant flip from prior cut consensus
-- FOMC minutes released May 20 — hawkish tone confirmed by yield/DXY moves
+- Chair: Kevin Warsh (confirmed 2026-05-22) — "sustain high rates, accelerate QT, not ruling out hikes"
+- June FOMC 2026-06-16/17: ~97% probability hold
+- December FOMC: >60% probability of 25bp hike
+- Balance sheet reduction accelerating
 
 ## Key Levels to Watch
-- Real yield above 2.25% = further gold headwinds
+- Real yield above 2.25% = further gold headwinds (currently approaching)
 - Real yield below 2.00% = bias softens toward NEUTRAL
-- DXY above 120 = additional bearish pressure
+- DXY above 120 = additional bearish pressure (approaching)
 - DXY below 118 = pressure relieves
-- 200 EMA gold ($4,529) as macro threshold proxy — break = macro confirmed in control
+- EMA200 daily ($4,541.88) as near-term macro threshold — price already below
 
 ## Belief Log
 | Date | Bias | Real Yield | DXY | Trigger |
 |---|---|---|---|---|
-| 2026-05-21 | BEARISH/MEDIUM | 2.18% (+0.19%) | 119.282 (+1.04%) | W21 retest data pull; real yields near 1Y high, Fed hawkish flip, FOMC minutes hawkish, gold demand destruction confirmed |
+| 2026-05-21 | BEARISH/MEDIUM | 2.18% (+0.18%) | 119.282 (+1.04%) | W21 pull; real yields near 1Y high, Fed hawkish flip, FOMC minutes hawkish, gold demand destruction confirmed |
+| 2026-05-25 | BEARISH/MEDIUM-HIGH | 2.18% (20d slope +0.013%/day) | 119.282 (+1.05%) | W22: Warsh confirmed as Fed Chair with stronger hawkish posture. Dec hike probability >60%. Real yield trend intact. Upgrading confidence to MEDIUM-HIGH. |

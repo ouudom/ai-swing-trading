@@ -25,7 +25,7 @@ from io import StringIO
 from dotenv import load_dotenv
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
-from ohlc_store import upsert, last_dt as manifest_last_dt
+from ohlc_store import upsert, last_dt as manifest_last_dt, filter_trading_session
 
 load_dotenv()
 
@@ -349,7 +349,7 @@ def run(force=False):
     print("Computing indicators...")
     gold_d       = load_ohlc(TD_DIR / "1day.csv")
     gold_h4_full = load_ohlc(TD_DIR / "4h.csv")
-    gold_h4      = gold_h4_full[gold_h4_full.index.dayofweek < 5]  # trading days only
+    gold_h4      = filter_trading_session(gold_h4_full.reset_index(), "4h").set_index("datetime")
 
     # 4. External fetches
     print("  → Volume Profile (yfinance GC=F)...")

@@ -9,6 +9,7 @@ from pathlib import Path
 from functools import lru_cache
 from time import time
 
+import sys
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,11 +17,14 @@ from fastapi.middleware.cors import CORSMiddleware
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data" / "twelvedata" / "xauusd"
 
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+from ohlc_store import filter_trading_session  # noqa: E402
+
 TF_FILES = {
-    "15m": "15min.csv",
-    "1h": "1h.csv",
-    "4h": "4h.csv",
-    "1d": "1day.csv",
+    "15m": ("15min.csv", "15m"),
+    "1h":  ("1h.csv",    "1h"),
+    "4h":  ("4h.csv",    "4h"),
+    "1d":  ("1day.csv",  "1d"),
 }
 
 app = FastAPI(title="Trading Brain API")
@@ -38,9 +42,10 @@ CACHE_TTL = 60.0
 
 
 def _load_candles(tf: str, limit: int) -> list[dict]:
-    fname = TF_FILES.get(tf)
-    if not fname:
+    entry = TF_FILES.get(tf)
+    if not entry:
         raise HTTPException(400, f"unknown tf '{tf}'. allowed: {list(TF_FILES)}")
+    fname, store_tf = entry
     path = DATA_DIR / fname
     if not path.exists():
         raise HTTPException(500, f"missing data file: {path}")
@@ -52,6 +57,7 @@ def _load_candles(tf: str, limit: int) -> list[dict]:
         return cached[1]
 
     df = pd.read_csv(path, parse_dates=["datetime"])
+    df = filter_trading_session(df, store_tf)
     df = df.sort_values("datetime").tail(limit)
     out = [
         {

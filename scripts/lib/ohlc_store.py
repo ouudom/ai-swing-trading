@@ -12,6 +12,42 @@ from datetime import datetime, timezone
 
 OHLC_COLS = ["datetime", "open", "high", "low", "close", "volume"]
 
+# FX session (UTC): Sun 22:00 reopen → Fri 22:00 close. Sat closed.
+# Daily TF: collapse to Mon-Fri only.
+INTRADAY_TFS = {"15min", "15m", "1h", "60min", "1hour", "4h", "240min"}
+DAILY_TFS    = {"1d", "1day", "daily", "D"}
+
+
+def filter_trading_session(df: pd.DataFrame, tf: str, dt_col: str = "datetime") -> pd.DataFrame:
+    """
+    Drop bars outside the FX trading session. Always keep bars with volume > 0.
+
+    Intraday: Mon-Thu all, Fri < 22:00 UTC, Sun >= 22:00 UTC (Globex reopen). No Sat.
+    Daily: Mon-Fri only.
+    Unknown TF: no filter (passthrough).
+    """
+    if df.empty:
+        return df
+    out = df.copy()
+    ts  = pd.to_datetime(out[dt_col])
+    dow = ts.dt.dayofweek
+    hr  = ts.dt.hour
+    vol = pd.to_numeric(out.get("volume", 0), errors="coerce").fillna(0)
+
+    if tf in DAILY_TFS:
+        keep = dow < 5
+    elif tf in INTRADAY_TFS:
+        keep = (
+            (dow < 4)
+            | ((dow == 4) & (hr < 22))
+            | ((dow == 6) & (hr >= 22))
+        )
+    else:
+        return out
+
+    keep = keep | (vol > 0)
+    return out[keep].reset_index(drop=True)
+
 # Known source timezones. All TD data pulled with timezone=UTC → stored as UTC.
 SOURCE_TZ = {
     "twelvedata": "UTC",
@@ -97,6 +133,7 @@ def upsert(source: str, symbol: str, tf: str, df: pd.DataFrame) -> dict:
             df[c] = 0.0
         df[c] = pd.to_numeric(df[c], errors="coerce")
     df = df[OHLC_COLS].dropna(subset=["datetime", "close"])
+    df = filter_trading_session(df, tf)
 
     p = _paths(source, symbol, tf)
     if os.path.exists(p["csv"]):
@@ -109,6 +146,7 @@ def upsert(source: str, symbol: str, tf: str, df: pd.DataFrame) -> dict:
               .sort_values("datetime")
               .reset_index(drop=True)
     )
+    merged = filter_trading_session(merged, tf)
 
     tmp = p["csv"] + ".tmp"
     merged.to_csv(tmp, index=False)

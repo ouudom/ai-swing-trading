@@ -35,20 +35,24 @@ Multiple trades same week allowed if (a) each setup independently passes /valida
 ```
 structural_dist = entry − last_pivot_low (long) | last_pivot_high − entry (short)
                   last pivot within 20 H4 bars
-atr_floor       = 0.5 × H4 ATR(14)
-stop_distance   = max(structural_dist, atr_floor)
-                  fallback: min(H4_ATR14, 0.5×D1_ATR14) if no pivot found within 20 bars
-cap: if structural_dist > 3 × H4 ATR(14) → skip trade (R:R collapses)
+
+H4_ATR14        = ATR(14) computed on TRADING-DAY H4 bars only
+                  (filter: bar range >= $1; excludes weekend/holiday flatline)
+D1_ATR14        = ATR(14) on D1 bars
+
+stop_distance   = avg(0.5 × D1_ATR14, H4_ATR14, structural_dist)   ← arithmetic mean of three
+cap: if structural_dist > 3 × H4_ATR14 → skip trade (R:R collapses)
+fallback: if no structural pivot within 20 H4 bars → avg(0.5 × D1_ATR14, H4_ATR14)
 
 lots = $2000 / (stop_distance × 100), round DOWN
 Minimum: 0.01 lots (micro)
 
-Example: H4_ATR=$20, last pivot low $50 below entry → structural_dist=$50 > 3×$20=$60? No → valid
-stop_distance = max($50, 0.5×$20=$10) = $50
-lots = 2000/(50×100) = 0.40 → 0.40 lots
+Example: D1_ATR=$70 → 0.5×D1=$35. H4_ATR (trading)=$31. structural pivot $50 below entry → structural_dist=$50.
+stop_distance = avg($35, $31, $50) = $38.67
+lots = 2000/(38.67×100) = 0.51 lots
 ```
 
-Stop distance and entry-offset buffer both use `stop_distance` as the base unit — see Entry Rules below.
+Stop distance is the base unit for sizing AND for order-limit offset — see Entry Rules.
 
 ## Entry Rules — Order Limit with Daily Validation Gate
 
@@ -80,21 +84,24 @@ Daily workflow (runs 07:30 UTC, before London open):
   5. Order expires 21:00 UTC — re-validate next morning, never carry forward.
 ```
 
-**Order limit price formula (tiered 10.0 scale):**
+**Order limit placement — outward offset beyond zone extreme:**
 ```
-stop_distance     = max(structural_dist, atr_floor)        ← same value as Position Sizing
-buffer_per_unit   = 0.10 × stop_distance                  ← per missing weight unit
-missing_weight    = 10.0 - confluence_score
-entry_offset      = missing_weight × buffer_per_unit
-                  = (10 - score) × 0.10 × stop_distance
+entry_offset = (10 − confluence_score) × 0.2 × stop_distance
 
-Short: limit_price = zone_top    - entry_offset
-Long:  limit_price = zone_bottom + entry_offset
+Short: limit_price = zone_top    + entry_offset    ← offset OUTWARD (above zone)
+Long:  limit_price = zone_bottom − entry_offset    ← offset OUTWARD (below zone)
 
-Hard cap: offset ≤ 50% of zone width (40% for counter). Exceeded → no trade.
+Direction: offset pushes limit AWAY from current spot, BEYOND zone extreme.
+Lower confluence → bigger offset → price must overshoot zone further before fill.
+Higher confluence → smaller offset → limit closer to zone extreme.
+
+At score 10: offset = 0 → limit at zone extreme exactly.
+At score 5.5: offset = 0.9 × stop_distance → limit 0.9 stop-units past extreme.
 ```
 
-Stop distance and offset buffer share the same `stop_distance` value — one structural change moves both consistently.
+Rationale: offset = BUFFER. Forces price to commit OUTWARD (through zone extreme) before triggering. Earlier inward-offset (toward spot) produced premature fills on confirmed-rejection trades. Outward offset = strong-commitment filter — fewer fills, higher-quality entries.
+
+Stop distance drives sizing AND offset — see Position Sizing.
 
 Minimum score to place order: **5.5/10**. Below 5.5 = no order placed, ever.
 Counter (Setup C): **7.5/10** floor.
@@ -107,22 +114,25 @@ Trigger present → output **ORDER LIMIT** (place the limit). Trigger is the fin
 
 ## Stop Placement
 
-**Formula (updated 2026-05-24, data-backed):**
+**Formula (updated 2026-05-25, triple-max):**
 ```
 structural_dist = distance from entry to last pivot low below entry zone (long)
                   distance from entry to last pivot high above entry zone (short)
                   → use last pivot within 20 H4 bars before entry
 
-atr_floor       = 0.5 × H4 ATR(14)    ← hard minimum, never go tighter
+H4_ATR14        = ATR(14) on trading-day H4 bars only (range >= $1 filter)
+D1_ATR14        = ATR(14) on D1 bars
 
-stop_distance   = max(structural_dist, atr_floor)
+stop_distance   = avg(0.5 × D1_ATR14, H4_ATR14, structural_dist)   ← arithmetic mean
 lots            = $2000 / (stop_distance × 100), round DOWN
 ```
 
-**Why structural > ATR:** Backtested on 10,454 H4 bars. ATR stop (old formula) exceeded by price within 10 bars 96.9% of the time — it was not protective. Structural stop (pivot low/high) exceeded only 64% of the time — sits beyond noise. Structural stop is wider than ATR stop ~79% of the time; lot size adjusts accordingly.
+**Why arithmetic-mean of three:** Balances the three volatility/structure dimensions: intraday noise (H4 ATR), daily volatility (0.5×D1 ATR), and structural level (pivot). Single max-dominant or min-dominant approaches over- or under-shoot any one dimension. Average smooths regime extremes — stop never collapses to one signal alone.
 
-**Cap:** If structural_dist > 3 × H4 ATR(14) → zone too wide, skip the trade (structural level is too far, R:R collapses).
-**Legacy formula** `min(H4_ATR14, 0.5×D1_ATR14)` retained as fallback if no valid pivot found within 20 bars.
+**Trading-day filter for H4 ATR:** Weekend/holiday flatline bars (~$0.27 range) destroy the rolling ATR. Filter to bars with range >= $1.00 before computing — uses real movement only.
+
+**Cap:** If structural_dist > 3 × H4_ATR14 → zone too wide, skip the trade (R:R collapses).
+**Fallback:** No structural pivot within 20 H4 bars → stop_distance = avg(0.5 × D1_ATR14, H4_ATR14).
 
 ## No-Trade Rules
 - No new entries 2 hours before any red-folder Forex Factory event

@@ -63,8 +63,8 @@ etf_gld_wk_chg: ±xx.xx
 | H4 structure | HH+HL / LH+LL / ranging | last swing ref |
 | H1 structure | same | |
 | D1 ATR(14) | $xx.xx | compressed? vs 20d median $xx.xx |
-| H4 ATR(14) | $xx.xx | |
-| risk_unit | $xx.xx | = min(H4_ATR, 0.5×D1_ATR) |
+| H4 ATR(14) trading-only | $xx.xx | range>=$1 filter (excl weekend/holiday) |
+| 0.5 × D1_ATR14 | $xx.xx | volatility floor for stop |
 
 **Key resistance:** $xxxx–$xxxx (<confluence>), $xxxx–$xxxx, $xxxx–$xxxx
 **Key support:** $xxxx–$xxxx (<confluence>), $xxxx–$xxxx, $xxxx–$xxxx
@@ -99,9 +99,10 @@ etf_gld_wk_chg: ±xx.xx
 | Zone | $xxxx – $xxxx |
 | Signals | ✅ S1 Structural / ✅ S6 Fundamental / ✅ S7 Vol Profile / ❌ S3 RSI div / ✅ S2 Fib / ❌ S4 EMA / ❌ S5 Pivot |
 | Score | n.n / 10.0 |
-| Offset | (10 − n.n) × 0.10 × $xx.xx = $xx.xx (cap: 50% × $xx = $xx.xx ✅/❌) |
-| Limit | $xxxx.xx |
-| Stop | $xxxx.xx (structural: last pivot $xxxx / ATR floor $xx.xx) |
+| Stop calc | structural_dist $xx.xx, H4_ATR $xx.xx, 0.5×D1_ATR $xx.xx → stop_distance = avg() = $xx.xx |
+| Offset | (10 − n.n) × 0.2 × $xx.xx = $xx.xx (OUTWARD) |
+| Limit | $xxxx.xx (zone_top + offset for short / zone_bottom − offset for long) |
+| Stop | $xxxx.xx (limit ± stop_distance) |
 | TP | $xxxx.xx @ <structural anchor> (= x.xR) |
 | Lots | $2000 / ($xx.xx × 100) = x.xx → **x.xx lots** |
 | Invalidation | D1 close <above/below> $xxxx |

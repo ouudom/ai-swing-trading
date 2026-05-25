@@ -121,43 +121,43 @@ Weekly POC, VAH, or VAL from CME Gold futures (GC) within $8 of setup zone.
 Source: TradingView → symbol `COMEX:GC1!` → Volume Profile (VPVR), set to Weekly.
 POC + VAH/VAL both at zone = still 1 signal.
 
-## Scoring → Conviction + Entry Offset
+## Scoring → Conviction + Order Limit
 
 H1 trigger patterns (pin bar, engulfing, break-and-retest) are NOT a confluence signal.
 They are entry confirmation observed at /validate time only — see [[constitution]].
 
-**Offset is computed at /validate time** using that day's H4 ATR + structural pivot — never frozen from /weekly. Recompute every morning.
+**Stop + offset are computed at /validate time** using that day's H4 ATR (trading-day filter), D1 ATR, and structural pivot — never frozen from /weekly. Recompute every morning.
 
 ```
 structural_dist   = entry → last pivot low (long) | last pivot high → entry (short), within 20 H4 bars
-atr_floor         = 0.5 × H4 ATR(14)
-stop_distance     = max(structural_dist, atr_floor)        ← same as Position Sizing
-                    fallback: min(H4_ATR14, 0.5×D1_ATR14) if no pivot within 20 bars
-buffer_per_unit   = 0.10 × stop_distance                   ← per missing weight unit
-missing_weight    = 10.0 - score
-entry_offset      = missing_weight × buffer_per_unit
-                  = (10 - score) × 0.10 × stop_distance
+H4_ATR14          = ATR(14) on trading-day H4 bars only (filter: range >= $1)
+D1_ATR14          = ATR(14) on D1 bars
+stop_distance     = avg(0.5 × D1_ATR14, H4_ATR14, structural_dist)   ← arithmetic mean
+                    fallback: avg(0.5 × D1_ATR14, H4_ATR14) if no pivot within 20 bars
+cap: structural_dist > 3 × H4_ATR14 → NO TRADE
 
-Short: limit_price = zone_top    - entry_offset
-Long:  limit_price = zone_bottom + entry_offset
+Order limit (offset OUTWARD beyond zone extreme):
+  entry_offset = (10 − confluence_score) × 0.2 × stop_distance
+  Short: limit_price = zone_top    + entry_offset    ← above zone
+  Long:  limit_price = zone_bottom − entry_offset    ← below zone
 
-Hard cap: entry_offset must not exceed 50% of zone width (40% for Setup C).
-If offset > 50% zone width → NO TRADE (zone too thin for conviction level).
+Direction: offset pushes limit AWAY from spot, BEYOND zone extreme. Lower score = bigger
+overshoot required before fill. Confluence score gates GO/WATCH/NO-TRADE AND scales offset.
 ```
 
-| Score | Conviction | Missing Weight | Offset (× risk_unit) | Risk |
-| --- | --- | --- | --- | --- |
-| 10.0 | HIGH | 0 | 0× | $2000 |
-| 7.5–9.5 | MEDIUM-HIGH | 0.5–2.5 | 0.05–0.25× | $2000 |
-| 5.5–7.0 | MEDIUM | 3.0–4.5 | 0.30–0.45× | $2000 |
-| < 5.5 | LOW | — | NO TRADE | — |
+| Score | Conviction | Offset (× stop_distance) | Risk |
+| --- | --- | --- | --- |
+| 10.0 | HIGH | 0 (limit at zone extreme) | $2000 |
+| 7.5–9.5 | MEDIUM-HIGH | 0.10–0.50× | $2000 |
+| 5.5–7.0 | MEDIUM | 0.60–0.90× | $2000 |
+| < 5.5 | LOW | — NO TRADE | — |
 
-**Example:** Zone $4,660–$4,700 (width $40), score 7.0/10 (Signals 1+6+4+5+7 = 2.5+2.5+0.75+0.5+1.5 = 7.75 → call it 7.5 conservative), H4 ATR = $32.52 → atr_floor $16.26, last structural pivot $35 above entry → structural_dist $35. stop_distance = max($35, $16.26) = $35.
+**Example:** Zone $4,660–$4,700, score 7.5/10. D1 ATR=$70 → 0.5×D1=$35. H4 ATR (trading) = $31. structural_dist = $35. stop_distance = avg($35, $31, $35) = $33.67.
 ```
-missing     = 10.0 - 7.5    = 2.5
-offset      = 2.5 × 0.10 × $35 = $8.75
-limit_price = $4,700 - $8.75    = $4,691.25
-cap check   = $8.75 < 50% × $40 = $20 → VALID
+offset      = (10 − 7.5) × 0.2 × $33.67 = 2.5 × 0.2 × $33.67 = $16.84
+limit_price = zone_top + offset = $4,700 + $16.84 = $4,716.84   (short)
+SL          = $4,716.84 + $33.67 = $4,750.51
+lots        = $2000 / ($33.67 × 100) = 0.59 lots
 ```
 
 ## Counter-Trend Setup (Setup C) — Additional Rules

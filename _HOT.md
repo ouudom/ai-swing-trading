@@ -5,32 +5,37 @@
 None
 
 ## Active Forecast
-[2026-W21](forecasts/weekly/2026-W21.md) — BEARISH / MEDIUM macro, ALIGNED MTF, conviction MEDIUM-HIGH (mid-week rewrite).
+[2026-W22](forecasts/weekly/2026-W22.md) — BEARISH / MEDIUM-HIGH macro, ALIGNED MTF, conviction MEDIUM-HIGH.
 
-- **Setup A** [7.0/10]: SELL limit $4690.24 zone $4660–$4700 | SL $4722.76 | TP $4584 (3.27R) | 0.61 lots
-- **Setup B** [6.25/10]: SELL limit $4627.80 zone $4606–$4640 | SL $4660.32 | TP $4530 (3.00R) | 0.61 lots
-- Setup C: NONE — counter score 4.0 below 7.5 floor (only S1+S3 hit)
+- **Setup A** [8.0/10]: SELL limit **$4586.32** ($4575 + $11.32 OUTWARD) zone $4530–$4575 | SL **$4614.62** | TP $4501.11 (**3.01R**) | **0.70 lots** — **WATCH** (val 6.5/10, no H1 trigger. Spot $4563.16 inside zone)
+- **Setup B** [5.5/10]: SELL limit **$4749.91** ($4720 + $29.91 OUTWARD) zone $4690–$4720 | SL **$4783.14** | TP $4607.50 (**4.29R**) | **0.60 lots** — **WATCH** (zone unreachable, 187pt above spot)
+- **Setup C**: NONE — macro MEDIUM-HIGH disqualifies; no RSI divergence
 
-`stop_distance = max(structural_pivot_dist, 0.5×H4_ATR14)` (offset base, same as stop). `buffer = 0.10 × stop_distance` per missing weight unit. Tiered 10.0 scale. Offset recomputed every /validate (07:30 UTC) — never frozen from /weekly.
+`stop_distance = avg(0.5 × D1_ATR14, H4_ATR14_trading, structural_dist)` (mean of three). D1_ATR $70.49 → 0.5×D1 $35.24. H4_ATR trading-only $31.21. Setup A: structural $18.46, stop = avg($35.24, $31.21, $18.46) = $28.30. Setup B: fallback avg($35.24, $31.21) = $33.23. `entry_offset = (10−score) × 0.2 × stop_distance` applied OUTWARD (above zone_top for short).
 
 ## Week Status
-- Week: 2026-W21
-- Trades taken: 0/∞ (bounded by $4000 risk cap)
+- Week: 2026-W22
+- Trades taken: 0/∞ (bounded by $4000 weekly risk cap)
 - Risk used: $0 / $4000 cap
 
 ## Pending Actions
-- Run /validate Fri 2026-05-22 — recompute offsets with that day's risk_unit
-- PCE print Thu 2026-05-28 14:30 UTC — hard block, cancel live limits 2hrs prior
-- Watch real yield: above 2.25% strengthens BEARISH; below 2.00% softens
-- Repair COT + GLD fetch in `scripts/weekly_pull.py` (failed this pull)
+- Re-validate at 08:00 UTC post-London open — H1 tape will resume, check H1 pin/engulfing/B&R inside $4530–$4575 (Setup A). Trigger window 08:00–17:00 UTC.
+- **HARD BLOCK Thu 2026-05-28 12:30 UTC**: PCE Deflator + GDP 2nd Release — cancel any live limits by 10:30 UTC
+- Mon 2026-05-25: US Memorial Day — reduced CME liquidity, wider spreads expected
+- Watch DFII10: above 2.25% = strengthens BEARISH; below 2.00% = softens
+- Watch DXY: above 120 = additional pressure; below 118 = relief
+- Repair COT + GLD fetch in `scripts/weekly_pull.py` (failed again — CFTC API empty, SPDR returning PDF)
+- Repair `scripts/weekly_pull.py` rate limiting: script uses 9 Twelve Data credits/minute, plan limit is 8 — add sleep/batching
 
 ## Last Session
-2026-05-21 — Removed prior W21 file, regenerated mid-week with refreshed data (price $4520.72, RSI 39.4, ADX 33.1 trending). Tiered 10.0 confluence applied: Setup A $4690.24 (7.0/10, S1+S6+S2+S4+S5), Setup B $4627.80 (6.25/10, S1+S6+S2+S5). Counter NONE (4.0/10). risk_unit held at $32.52 (no widening per constitution). COT/GLD fetch failed — flagged for script repair.
+2026-05-25 (/validate formula update v2) — Stop formula now `avg(0.5×D1_ATR14, H4_ATR14_trading, structural_dist)` (arithmetic mean). Entry offset reinstated as `(10−score) × 0.2 × stop_distance` applied OUTWARD (above zone_top for short, below zone_bottom for long). Setup A: stop $28.30, offset $11.32, limit $4586.32, SL $4614.62, 0.70 lots, 3.01R. Setup B: stop $33.23, offset $29.91, limit $4749.91, SL $4783.14, 0.60 lots, 4.29R. Both WATCH. Decision D012 logged.
 
-2026-05-21 (late) — Built `scripts/backtest.py`: synthetic walk-forward backtest engine using real 1m OHLC 2018-2026. Auto-generates setups from price structure (swings, EMAs, pivots); randomizes macro bias, validation gates, and confluence signals. Full constitution execution: limit orders, daily validation, H4 ATR recalc, SL/TP tracking on 1m bars, weekly $4k cap, monthly $10k cap, drawdown breaker. Supports `--runs N` Monte Carlo. Tested on 2018-2020 (5-run MC: 100% profit probability, mean Sharpe 2.14, mean max DD 3.7%). Full 8-year single run: 12 trades, 58% WR, 3.16 PF, 1.23 Sharpe, final balance $121,556 from $100k. Trade frequency is low (~1.5/year) — synthetic zones often too far to fill within the week. Tuning knobs exposed in DEFAULTS config block.
+2026-05-25 (/validate formula update v1) — Stop formula `max(0.5×D1_ATR14, H4_ATR14_trading, structural_dist)`. H4 ATR computed on trading-day bars only (range>=$1 filter, drops weekend/holiday flatline). Order limit at zone extreme (no inward offset). Setup A: limit $4575 / SL $4610.24 / 0.56 lots / 2.10R. Setup B: limit $4720 / SL $4755.24 / 0.56 lots / 3.19R. Both WATCH. Constitution + confluence_criteria + validate.md + weekly.md + templates + stop-loss research doc + CLAUDE.md all updated.
 
-2026-05-22 — Added `scripts/split_timeframes.py` + `data/ohlc/xauusd/` folder. Master 1m CSV split into M1/M5/M15/M30/H1/H4/D1 pre-computed files. Updated `backtest.py` to load from split files instead of resampling on-the-fly. Cleaner data architecture, slightly faster loads.
+2026-05-25 (/validate re-run with fresh Twelve Data pull) — Spot $4563.16 (was stale $4505.72 in earlier pull). Sun-CME +1.46% gap-up (Fri $4505.73 → Mon open $4571.57) put price inside Setup A zone pre-confirmation. G1 broken: H1 = bullish breakout/consolidation, not LH+LL. Score downgraded to 6.5/10 (G1 ❌, G3/G2/V2 ✅). V1 still intact (D1 close $4568.58 inside zone, today wick $4577.53 closed back to $4563.16). Setup A → WATCH pending bearish H1 trigger. Setup B unreachable. INVALIDATION line: D1 close > $4593.46.
 
-2026-05-22 — Removed weekly ($4k) and monthly ($10k) risk caps from `backtest.py`. Only remaining risk guard: drawdown circuit breaker (5% → $1k/trade) and same-direction stacking prevention.
+2026-05-25 (/validate, stale data) — Both setups WATCH. Validation 10.0/10 (G1 H4 LH+LL ✅, G3 DFII10 slope +0.290 ✅, G2 D1 ATR compressed ✅, V2 drift 0.000 ✅). Hard blocks all pass (V1 D1 close $4505.72 below zones, V3 Memorial Day no news, G4 session). H1 trigger absent — tape frozen since Sat 22:00 UTC through Memorial Day. H4 ATR live calc $5.42 distorted by flatline weekend bars → used $27.51 from last active period. Setup A limit $4570.38 / 0.86 lots / SL $4593.46 / TP $4501.11 ready to place on H1 trigger. Setup B zone unreachable ($200 above spot). Re-validate 08:00 UTC.
+
+2026-05-25 (automated /weekly re-run) — Forecast file was missing (deleted). Re-ran full 5-agent analysis. Pull successful: price $4505.72, RSI 39.6 (no div), ADX 26.3 (trending), D1 ATR compressed ($72.46 < median $75.58), EMA200 $4541.88 above price, weekend gap −0.001% (noise). COT/GLD fetch both failed again. Core PCE Q1 +4.3% YoY confirmed via web search — materially above Fed 2% target, strengthens Warsh hike case. Setup A recalculated: limit $4570.38, SL $4593.46 (structural), stop_dist $23.08, TP $4501.11 (2.89R). Setup B unchanged. Forecast saved to forecasts/weekly/2026-W22.md.
 
 2026-05-22 — Major speed optimization on `backtest.py` (4-5× faster). Replaced pandas datetime slicing with numpy `searchsorted` + boolean arrays in `ExecutionEngine`. Per-week M1 slicing instead of scanning full 2.8M-row dataframe. Weekend gap check also vectorized. 2-year backtest: ~20s → ~5s. 8-year backtest: ~5.5min → ~1.5min expected.

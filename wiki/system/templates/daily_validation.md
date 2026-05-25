@@ -9,7 +9,7 @@ related: [constitution, weekly_forecast]
 # Daily Validation Template
 
 File: `forecasts/daily/YYYY-MM-DD.md` — one per day, append-style.
-Runs 07:30 UTC before London open. Setup params (zone/score/SL/TP) never change — only limit price recomputes.
+Runs 07:30 UTC before London open. Setup params (zone/score/TP anchor) never change — stop_distance + entry_offset + limit_price + SL + lots recompute daily.
 
 ---
 
@@ -34,8 +34,8 @@ validation_score: 0.0            # max 10.0
 # Entry
 h1_trigger_present: true | false
 weekly_confluence_score: 0.0
-stop_distance: 0.00
-stop_type: structural | atr_fallback
+stop_distance: 0.00      # avg of three
+entry_offset: 0.00       # (10 − score) × 0.2 × stop_distance, OUTWARD
 order_limit: PLACED | WATCH | NO_TRADE | INVALIDATED
 limit_price: 0000.00
 limit_direction: BUY | SELL | N/A
@@ -94,15 +94,15 @@ _(Confirmation only — does not change weekly score or offset)_
 ## Order Limit Calc _(only if score ≥ 6.0)_
 
 ```
-structural stop = last pivot low/high within 20 H4 bars = $xxxx.xx
-stop_distance   = max($xx.xx structural, $xx.xx ATR floor) = $xx.xx  [type: structural|atr_fallback]
-cap check       = $xx.xx < 3 × $xx.xx H4_ATR? ✅/❌
+structural_dist = last pivot low/high within 20 H4 bars = $xx.xx
+H4_ATR14        = $xx.xx (trading-day filter: range>=$1)
+0.5 × D1_ATR14  = $xx.xx
+stop_distance   = avg(0.5×D1_ATR, H4_ATR, structural_dist) = $xx.xx     ← arithmetic mean
+cap check       = structural_dist $xx.xx < 3 × H4_ATR $xx.xx? ✅/❌
 
-entry_offset    = (10 − n.n) × 0.10 × $xx.xx = $xx.xx
-zone cap (50%)  = $xx.xx → offset ≤ cap? ✅/❌
-
-limit_price     = $xxxx.xx
-SL              = $xxxx.xx (limit ± stop_distance)
+entry_offset    = (10 − score) × 0.2 × stop_distance = $xx.xx
+limit_price     = zone_top + offset (short) | zone_bottom − offset (long)   ← OUTWARD
+SL              = limit_price ± stop_distance = $xxxx.xx
 TP              = $xxxx.xx (locked from weekly — = x.xR)
 lots            = $2000 / ($xx.xx × 100) = x.xx → x.xx lots
 ```
@@ -113,7 +113,7 @@ lots            = $2000 / ($xx.xx × 100) = x.xx → x.xx lots
 ```
 ORDER LIMIT: BUY/SELL $xxxx.xx | x.xx lots | SL $xxxx.xx | TP $xxxx.xx | expires 21:00 UTC
 Validation: x.x/10  (G1:✅ G2:✅ G3:✅ V2:✅) | H1 trigger: ✅
-Stop: $xx.xx [structural/atr_fallback] | Risk: $2,000 | R:R 3:1
+Stop: $xx.xx [structural / d1_floor / h4_floor / fallback] | Risk: $2,000 | R:R x.xx
 "If price reaches $xxxx.xx, order triggers. Cancel if not hit by 21:00 UTC."
 ```
 
@@ -135,6 +135,6 @@ NO TRADE — [hard block / score x.x < 6.0]: <specific reason>
 ## Rules
 - First gate/check fail → stop, output NO TRADE, note which gate
 - V1 fail = setup invalidated → remove from _HOT.md (not just HOLD)
-- Limit price recomputes daily; zone/score/SL anchor/TP never change
+- Limit price = zone_extreme + outward_offset (recomputed daily via (10−score)×0.2×stop_distance). stop_distance/SL/lots recompute daily. TP anchor never changes.
 - Order expires 21:00 UTC — never carry forward
 - Multiple setups: validate independently, observe $4000/week cap

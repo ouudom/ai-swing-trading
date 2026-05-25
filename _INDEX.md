@@ -34,8 +34,12 @@
 
 ## Forecasts
 - `forecasts/weekly/2026-W21.md` — BEARISH/MEDIUM (mid-week rewrite). A sell $4690.24 (7.0/10, SL $4722.76, TP $4584, 0.61 lots). B sell $4627.80 (6.25/10, TP $4530). C NONE.
+- `forecasts/weekly/2026-W22.md` — BEARISH/MEDIUM-HIGH (Warsh hawkish, ALIGNED). A sell $4570.38 (8.0/10, SL $4593.46, TP $4501.11 [D1 swing low 2.89R], 0.86 lots). B sell $4707.62 (5.5/10, TP $4607.50 [PP 3.64R], 0.72 lots). C NONE.
+
+## Data Pulls
+- `data/weekly_pull/weekly_pull_2026_W22.txt` — W22 pull (Twelve Data 1 call ok; COT/GLD failed)
 
 ## Scripts
-- `scripts/weekly_pull.py` — Twelve Data + FRED data fetch. Output → data/weekly_pull/weekly_pull_{YEAR}_W{WEEK_NUM}.txt
+- `scripts/weekly_pull.py` — Single entry point. Fetches 15M from Twelve Data (1 API call), resamples to 1h/4h/1day, updates FRED CSVs, computes all indicators (ATR/ADX/EMA/RSI/MACD/pivots/fibs/swings), fetches VP+COT+GLD. Output → data/weekly_pull/weekly_pull_{YEAR}_W{WEEK_NUM}.txt
 - `scripts/split_timeframes.py` — splits master 1m CSV into M1/M5/M15/M30/H1/H4/D1 files under data/ohlc/xauusd/
 - `scripts/backtest.py` — synthetic walk-forward backtest engine. Reads pre-split timeframes from data/ohlc/xauusd/. 1m execution, Monte Carlo mode, full constitution rule enforcement. Output → results/

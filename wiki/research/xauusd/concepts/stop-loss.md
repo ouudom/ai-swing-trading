@@ -35,19 +35,23 @@ Two stop types computed per bar:
 3. Structural stop is wider 79% of the time — lot size adjusts, but stop quality improves dramatically
 4. The `min()` formula was undersizing stop distance; structural `max()` formula is correct
 
-## Recommended Formula (in constitution.md)
+## Recommended Formula (updated 2026-05-25, in constitution.md)
 
 ```
 structural_dist = entry − last_pivot_low (long) | last_pivot_high − entry (short)
                   last pivot within 20 H4 bars
 
-atr_floor       = 0.5 × H4_ATR14  ← never go tighter than this
+H4_ATR14        = ATR(14) on trading-day H4 bars only (filter: bar range >= $1
+                  — drops weekend/holiday flatline that collapses ATR)
+D1_ATR14        = ATR(14) on D1 bars
 
-stop_distance   = max(structural_dist, atr_floor)
+stop_distance   = avg(0.5 × D1_ATR14, H4_ATR14, structural_dist)   ← arithmetic mean
 
 cap: if structural_dist > 3 × H4_ATR14 → skip trade (R:R collapses)
-fallback: min(H4_ATR14, 0.5×D1_ATR14) if no pivot found within 20 bars
+fallback: avg(0.5 × D1_ATR14, H4_ATR14) if no pivot within 20 bars
 ```
+
+**Why arithmetic-mean of three:** Single-max gave too-wide stops on high-structural setups (lot size shrunk excessively); single-min gave too-tight stops in low-vol regimes. Mean balances volatility (H4 + 0.5×D1) and structure (pivot) — stop never pinned to one extreme. Lot size scales smoothly.
 
 ## Open Questions
 

@@ -125,6 +125,32 @@ When a decision changes, add a new belief_log entry — never delete old ones.
 
 ---
 
+## D012 — Stop = avg of three; outward offset reinstated at 0.2 coefficient
+**Decision:** Stop formula switched from triple-max to arithmetic mean: `stop_distance = avg(0.5 × D1_ATR14, H4_ATR14, structural_dist)`. Entry offset reinstated but reversed: `entry_offset = (10 − score) × 0.2 × stop_distance`, applied OUTWARD beyond zone extreme. Short: `limit_price = zone_top + entry_offset`. Long: `limit_price = zone_bottom − entry_offset`. Coefficient bumped from 0.1 → 0.2 to make offset meaningful on tighter stops.
+**Rationale:** (a) Triple-max produced very wide stops when any one dimension was large, shrinking lots aggressively. Mean smooths regime extremes — each dimension contributes equally. (b) Outward offset = pure buffer from spot; price must overshoot zone extreme by offset amount before triggering. Low-confluence setups demand bigger overshoot (price has to commit harder). High-confluence setups fill near zone extreme. Earlier inward-offset (D010) gave premature fills; D011 zone-extreme placement gave no graduation by score. New rule restores score-scaled buffer in correct direction.
+**belief_log:**
+- date: 2026-05-25
+  belief: "Triple-max stop + zero offset (limit at zone extreme)"
+  trigger: "D011 — fix inward-offset early-fill problem"
+- date: 2026-05-25
+  belief: "Arithmetic-mean stop + outward score-scaled offset"
+  trigger: "Triple-max collapsed lot sizing when structural pivot was far; zero-offset wasted confluence signal as fill-aggression gradient. User-directed change: mean for balance, outward offset for graduated commitment filter"
+
+---
+
+## D011 — Stop = triple-max; H4 ATR trading-day only; limit at zone extreme
+**Decision:** Stop formula upgraded to `stop_distance = max(0.5 × D1_ATR14, H4_ATR14, structural_dist)`. H4 ATR computed only on trading-day H4 bars (filter: bar range >= $1.00, drops weekend/holiday flatline). Order limit placed AT zone extreme (zone_top for short, zone_bottom for long) — `(10−score) × 0.10 × stop_distance` inward offset deprecated.
+**Rationale:** (a) Triple-max ensures stop clears both intraday (H4 ATR) and daily (0.5×D1 ATR) volatility floors plus structural level — earlier `max(structural, 0.5×H4_ATR)` collapsed when H4 ATR was small. (b) Weekend/holiday H4 bars are flatline (~$0.27 range) — they destroyed rolling ATR(14) when included (computed $7.22 vs true $31.21 on 2026-05-25). Range≥$1 filter restores real-volatility ATR. (c) Inward offset pulled limit toward current spot, reducing buffer from spot and giving worse fill on confirmed-rejection trades. Limit at zone extreme = max buffer, requires price to commit to the extreme before triggering.
+**belief_log:**
+- date: 2026-05-25
+  belief: "stop floor at 0.5×H4_ATR sufficient + (10−score) inward offset gives best fill"
+  trigger: "Original system design"
+- date: 2026-05-25
+  belief: "Triple-max stop + trading-day-only H4 ATR + limit at zone extreme — buffer matters more than fill aggression"
+  trigger: "Sun-CME +1.46% gap exposed: (a) H4 ATR collapsed to $7.22 due to weekend flatline bars making atr_floor meaningless, (b) inward offset placed limit $4570.38 only $7 above spot $4563.16 with rejection target at zone_top $4575 — fill probability good but stop $23.08 too tight vs $35.24 D1-implied volatility floor"
+
+---
+
 ## D004 — No ICT/SMC Concepts
 **Decision:** System uses market structure, S/R, RSI, EMA, Fibonacci, ATR. No order blocks, FVGs, liquidity grabs.
 **Rationale:** Zero peer-reviewed validation. Cultish community dynamics. Same underlying concepts expressible with classical TA vocabulary that has partial empirical support.

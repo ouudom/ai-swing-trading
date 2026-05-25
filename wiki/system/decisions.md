@@ -125,6 +125,19 @@ When a decision changes, add a new belief_log entry — never delete old ones.
 
 ---
 
+## D013 — Outward offset coefficient 0.2 → 0.3
+**Decision:** `entry_offset = (10 − score) × 0.3 × stop_distance` (was 0.2). Higher coefficient amplifies overshoot demand on lower-confluence setups.
+**Rationale:** At 0.2, score-5.5 setup offset = 0.9×stop ≈ same as stop. At 0.3, score-5.5 offset = 1.35×stop — stronger commitment filter on weak setups, near-zero impact on high-confluence (score 8+ → 0.6×stop offset). Steeper score-to-overshoot gradient.
+**belief_log:**
+- date: 2026-05-25
+  belief: "0.2 coefficient — moderate score-scaled overshoot buffer"
+  trigger: "D012 initial outward-offset reinstatement"
+- date: 2026-05-25
+  belief: "0.3 coefficient — steeper gradient, stronger filter on low-confluence"
+  trigger: "User-directed tightening"
+
+---
+
 ## D012 — Stop = avg of three; outward offset reinstated at 0.2 coefficient
 **Decision:** Stop formula switched from triple-max to arithmetic mean: `stop_distance = avg(0.5 × D1_ATR14, H4_ATR14, structural_dist)`. Entry offset reinstated but reversed: `entry_offset = (10 − score) × 0.2 × stop_distance`, applied OUTWARD beyond zone extreme. Short: `limit_price = zone_top + entry_offset`. Long: `limit_price = zone_bottom − entry_offset`. Coefficient bumped from 0.1 → 0.2 to make offset meaningful on tighter stops.
 **Rationale:** (a) Triple-max produced very wide stops when any one dimension was large, shrinking lots aggressively. Mean smooths regime extremes — each dimension contributes equally. (b) Outward offset = pure buffer from spot; price must overshoot zone extreme by offset amount before triggering. Low-confluence setups demand bigger overshoot (price has to commit harder). High-confluence setups fill near zone extreme. Earlier inward-offset (D010) gave premature fills; D011 zone-extreme placement gave no graduation by score. New rule restores score-scaled buffer in correct direction.

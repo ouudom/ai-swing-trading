@@ -7,11 +7,11 @@ None
 ## Active Forecast
 [2026-W22](forecasts/weekly/2026-W22.md) — BEARISH / MEDIUM-HIGH macro, ALIGNED MTF, conviction MEDIUM-HIGH.
 
-- **Setup A** [8.0/10]: SELL limit **$4586.32** ($4575 + $11.32 OUTWARD) zone $4530–$4575 | SL **$4614.62** | TP $4501.11 (**3.01R**) | **0.70 lots** — **WATCH** (val 6.5/10, no H1 trigger. Spot $4563.16 inside zone)
-- **Setup B** [5.5/10]: SELL limit **$4749.91** ($4720 + $29.91 OUTWARD) zone $4690–$4720 | SL **$4783.14** | TP $4607.50 (**4.29R**) | **0.60 lots** — **WATCH** (zone unreachable, 187pt above spot)
+- **Setup A** [8.0/10]: SELL limit **$4591.98** ($4575 + $16.98 OUTWARD) zone $4530–$4575 | SL **$4620.28** | TP $4501.11 (**3.21R**) | **0.70 lots** — **WATCH** (val 6.5/10, no H1 trigger. Spot $4563.16 inside zone)
+- **Setup B** [5.5/10]: SELL limit **$4764.86** ($4720 + $44.86 OUTWARD) zone $4690–$4720 | SL **$4798.09** | TP $4607.50 (**4.74R**) | **0.60 lots** — **WATCH** (zone unreachable, 202pt above spot)
 - **Setup C**: NONE — macro MEDIUM-HIGH disqualifies; no RSI divergence
 
-`stop_distance = avg(0.5 × D1_ATR14, H4_ATR14_trading, structural_dist)` (mean of three). D1_ATR $70.49 → 0.5×D1 $35.24. H4_ATR trading-only $31.21. Setup A: structural $18.46, stop = avg($35.24, $31.21, $18.46) = $28.30. Setup B: fallback avg($35.24, $31.21) = $33.23. `entry_offset = (10−score) × 0.2 × stop_distance` applied OUTWARD (above zone_top for short).
+`stop_distance = avg(0.5 × D1_ATR14, H4_ATR14_trading, structural_dist)` (mean of three). D1_ATR $70.49 → 0.5×D1 $35.24. H4_ATR trading-only $31.21. Setup A: structural $18.46, stop = avg($35.24, $31.21, $18.46) = $28.30. Setup B: fallback avg($35.24, $31.21) = $33.23. `entry_offset = (10−score) × 0.3 × stop_distance` applied OUTWARD (above zone_top for short).
 
 ## Week Status
 - Week: 2026-W22
@@ -28,7 +28,9 @@ None
 - Repair `scripts/weekly_pull.py` rate limiting: script uses 9 Twelve Data credits/minute, plan limit is 8 — add sleep/batching
 
 ## Last Session
-2026-05-25 (/validate formula update v2) — Stop formula now `avg(0.5×D1_ATR14, H4_ATR14_trading, structural_dist)` (arithmetic mean). Entry offset reinstated as `(10−score) × 0.2 × stop_distance` applied OUTWARD (above zone_top for short, below zone_bottom for long). Setup A: stop $28.30, offset $11.32, limit $4586.32, SL $4614.62, 0.70 lots, 3.01R. Setup B: stop $33.23, offset $29.91, limit $4749.91, SL $4783.14, 0.60 lots, 4.29R. Both WATCH. Decision D012 logged.
+2026-05-25 (/validate formula update v3) — Offset coefficient 0.2 → 0.3. Setup A: offset $16.98, limit $4591.98, SL $4620.28, 0.70 lots, 3.21R. Setup B: offset $44.86, limit $4764.86, SL $4798.09, 0.60 lots, 4.74R. Both WATCH. D013 logged.
+
+2026-05-25 (/validate formula update v2) — Stop formula `avg(...)` arithmetic mean. Offset reinstated outward at 0.2 coef. D012 logged.
 
 2026-05-25 (/validate formula update v1) — Stop formula `max(0.5×D1_ATR14, H4_ATR14_trading, structural_dist)`. H4 ATR computed on trading-day bars only (range>=$1 filter, drops weekend/holiday flatline). Order limit at zone extreme (no inward offset). Setup A: limit $4575 / SL $4610.24 / 0.56 lots / 2.10R. Setup B: limit $4720 / SL $4755.24 / 0.56 lots / 3.19R. Both WATCH. Constitution + confluence_criteria + validate.md + weekly.md + templates + stop-loss research doc + CLAUDE.md all updated.
 

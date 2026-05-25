@@ -137,7 +137,7 @@ stop_distance     = avg(0.5 × D1_ATR14, H4_ATR14, structural_dist)   ← arithm
 cap: structural_dist > 3 × H4_ATR14 → NO TRADE
 
 Order limit (offset OUTWARD beyond zone extreme):
-  entry_offset = (10 − confluence_score) × 0.2 × stop_distance
+  entry_offset = (10 − confluence_score) × 0.3 × stop_distance
   Short: limit_price = zone_top    + entry_offset    ← above zone
   Long:  limit_price = zone_bottom − entry_offset    ← below zone
 
@@ -148,15 +148,15 @@ overshoot required before fill. Confluence score gates GO/WATCH/NO-TRADE AND sca
 | Score | Conviction | Offset (× stop_distance) | Risk |
 | --- | --- | --- | --- |
 | 10.0 | HIGH | 0 (limit at zone extreme) | $2000 |
-| 7.5–9.5 | MEDIUM-HIGH | 0.10–0.50× | $2000 |
-| 5.5–7.0 | MEDIUM | 0.60–0.90× | $2000 |
+| 7.5–9.5 | MEDIUM-HIGH | 0.15–0.75× | $2000 |
+| 5.5–7.0 | MEDIUM | 0.90–1.35× | $2000 |
 | < 5.5 | LOW | — NO TRADE | — |
 
 **Example:** Zone $4,660–$4,700, score 7.5/10. D1 ATR=$70 → 0.5×D1=$35. H4 ATR (trading) = $31. structural_dist = $35. stop_distance = avg($35, $31, $35) = $33.67.
 ```
-offset      = (10 − 7.5) × 0.2 × $33.67 = 2.5 × 0.2 × $33.67 = $16.84
-limit_price = zone_top + offset = $4,700 + $16.84 = $4,716.84   (short)
-SL          = $4,716.84 + $33.67 = $4,750.51
+offset      = (10 − 7.5) × 0.3 × $33.67 = 2.5 × 0.3 × $33.67 = $25.25
+limit_price = zone_top + offset = $4,700 + $25.25 = $4,725.25   (short)
+SL          = $4,725.25 + $33.67 = $4,758.92
 lots        = $2000 / ($33.67 × 100) = 0.59 lots
 ```
 

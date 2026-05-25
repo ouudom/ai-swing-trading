@@ -86,7 +86,7 @@ Daily workflow (runs 07:30 UTC, before London open):
 
 **Order limit placement — outward offset beyond zone extreme:**
 ```
-entry_offset = (10 − confluence_score) × 0.2 × stop_distance
+entry_offset = (10 − confluence_score) × 0.3 × stop_distance
 
 Short: limit_price = zone_top    + entry_offset    ← offset OUTWARD (above zone)
 Long:  limit_price = zone_bottom − entry_offset    ← offset OUTWARD (below zone)
@@ -96,7 +96,7 @@ Lower confluence → bigger offset → price must overshoot zone further before 
 Higher confluence → smaller offset → limit closer to zone extreme.
 
 At score 10: offset = 0 → limit at zone extreme exactly.
-At score 5.5: offset = 0.9 × stop_distance → limit 0.9 stop-units past extreme.
+At score 5.5: offset = 1.35 × stop_distance → limit 1.35 stop-units past extreme.
 ```
 
 Rationale: offset = BUFFER. Forces price to commit OUTWARD (through zone extreme) before triggering. Earlier inward-offset (toward spot) produced premature fills on confirmed-rejection trades. Outward offset = strong-commitment filter — fewer fills, higher-quality entries.

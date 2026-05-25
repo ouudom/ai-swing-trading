@@ -100,7 +100,7 @@ etf_gld_wk_chg: ±xx.xx
 | Signals | ✅ S1 Structural / ✅ S6 Fundamental / ✅ S7 Vol Profile / ❌ S3 RSI div / ✅ S2 Fib / ❌ S4 EMA / ❌ S5 Pivot |
 | Score | n.n / 10.0 |
 | Stop calc | structural_dist $xx.xx, H4_ATR $xx.xx, 0.5×D1_ATR $xx.xx → stop_distance = avg() = $xx.xx |
-| Offset | (10 − n.n) × 0.2 × $xx.xx = $xx.xx (OUTWARD) |
+| Offset | (10 − n.n) × 0.3 × $xx.xx = $xx.xx (OUTWARD) |
 | Limit | $xxxx.xx (zone_top + offset for short / zone_bottom − offset for long) |
 | Stop | $xxxx.xx (limit ± stop_distance) |
 | TP | $xxxx.xx @ <structural anchor> (= x.xR) |

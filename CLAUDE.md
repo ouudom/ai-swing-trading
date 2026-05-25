@@ -32,7 +32,7 @@ Summary: pull data → 5-agent analysis (macro / technical / confluence / scenar
 save `forecasts/weekly/[YEAR]-W[WW].md` → update `wiki/system/macro/yield_environment.md` →
 update `_HOT.md` (setups PENDING) → update `_INDEX.md`.
 Agent 4 applies pre-screen gates G1–G3 before building each setup.
-Stop formula: `avg(0.5×D1_ATR14, H4_ATR14, structural_pivot_dist)` (arithmetic mean) where H4_ATR14 uses trading-day bars only (range>=$1, drops weekend/holiday flatline). Order limit offset OUTWARD: `(10−score)×0.2×stop_distance`, applied beyond zone extreme (limit ABOVE zone_top for short, BELOW zone_bottom for long).
+Stop formula: `avg(0.5×D1_ATR14, H4_ATR14, structural_pivot_dist)` (arithmetic mean) where H4_ATR14 uses trading-day bars only (range>=$1, drops weekend/holiday flatline). Order limit offset OUTWARD: `(10−score)×0.3×stop_distance`, applied beyond zone extreme (limit ABOVE zone_top for short, BELOW zone_bottom for long).
 
 ### /validate [date]
 Run daily validation (07:30 UTC, before London open). Full steps in `.claude/commands/validate.md`.

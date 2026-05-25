@@ -35,7 +35,7 @@ validation_score: 0.0            # max 10.0
 h1_trigger_present: true | false
 weekly_confluence_score: 0.0
 stop_distance: 0.00      # avg of three
-entry_offset: 0.00       # (10 − score) × 0.2 × stop_distance, OUTWARD
+entry_offset: 0.00       # (10 − score) × 0.3 × stop_distance, OUTWARD
 order_limit: PLACED | WATCH | NO_TRADE | INVALIDATED
 limit_price: 0000.00
 limit_direction: BUY | SELL | N/A
@@ -100,7 +100,7 @@ H4_ATR14        = $xx.xx (trading-day filter: range>=$1)
 stop_distance   = avg(0.5×D1_ATR, H4_ATR, structural_dist) = $xx.xx     ← arithmetic mean
 cap check       = structural_dist $xx.xx < 3 × H4_ATR $xx.xx? ✅/❌
 
-entry_offset    = (10 − score) × 0.2 × stop_distance = $xx.xx
+entry_offset    = (10 − score) × 0.3 × stop_distance = $xx.xx
 limit_price     = zone_top + offset (short) | zone_bottom − offset (long)   ← OUTWARD
 SL              = limit_price ± stop_distance = $xxxx.xx
 TP              = $xxxx.xx (locked from weekly — = x.xR)
@@ -135,6 +135,6 @@ NO TRADE — [hard block / score x.x < 6.0]: <specific reason>
 ## Rules
 - First gate/check fail → stop, output NO TRADE, note which gate
 - V1 fail = setup invalidated → remove from _HOT.md (not just HOLD)
-- Limit price = zone_extreme + outward_offset (recomputed daily via (10−score)×0.2×stop_distance). stop_distance/SL/lots recompute daily. TP anchor never changes.
+- Limit price = zone_extreme + outward_offset (recomputed daily via (10−score)×0.3×stop_distance). stop_distance/SL/lots recompute daily. TP anchor never changes.
 - Order expires 21:00 UTC — never carry forward
 - Multiple setups: validate independently, observe $4000/week cap

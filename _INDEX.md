@@ -40,6 +40,8 @@
 - `data/weekly_pull/weekly_pull_2026_W22.txt` — W22 pull (Twelve Data 1 call ok; COT/GLD failed)
 
 ## Scripts
-- `scripts/weekly_pull.py` — Single entry point. Fetches 15M from Twelve Data (1 API call), resamples to 1h/4h/1day, updates FRED CSVs, computes all indicators (ATR/ADX/EMA/RSI/MACD/pivots/fibs/swings), fetches VP+COT+GLD. Output → data/weekly_pull/weekly_pull_{YEAR}_W{WEEK_NUM}.txt
+- `scripts/weekly_pull.py` — Pipeline orchestrator. Cache gate (skip if <15min OR market closed) → fetch → compute. Output → data/weekly_pull/weekly_pull_{YEAR}_W{WEEK_NUM}.txt. Hosts all pipeline library functions.
+- `scripts/fetch.py` — Network only: TD 15M (1 API call) + FRED → CSVs. Honors cache. Use to refresh data without rebuilding snapshot.
+- `scripts/compute.py` — Indicators + snapshot rebuild from existing CSVs. No TD/FRED network (aux VP/COT/GLD only). Use when formulas change.
 - `scripts/split_timeframes.py` — splits master 1m CSV into M1/M5/M15/M30/H1/H4/D1 files under data/ohlc/xauusd/
 - `scripts/backtest.py` — synthetic walk-forward backtest engine. Reads pre-split timeframes from data/ohlc/xauusd/. 1m execution, Monte Carlo mode, full constitution rule enforcement. Output → results/

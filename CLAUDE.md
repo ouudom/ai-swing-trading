@@ -139,7 +139,7 @@ When macro bias conflicts with technical structure:
 - Setup pattern library: wiki/system/setup_library.md
 - Macro environment (current): wiki/system/macro/yield_environment.md
 - Templates: wiki/system/templates/weekly_forecast.md, daily_validation.md
-- Data fetch script: scripts/weekly_pull.py (requires API keys)
+- Data pipeline: scripts/weekly_pull.py (orchestrator), scripts/fetch.py (network only), scripts/compute.py (indicators only) — see weekly_pull.py docstring
 
 ## Wiki Folder Structure
 

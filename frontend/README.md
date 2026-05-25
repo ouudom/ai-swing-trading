@@ -20,7 +20,7 @@ npm run dev
 Open http://localhost:5173. Vite proxies `/api/*` → backend.
 
 ## Data refresh
-Run `python scripts/weekly_pull.py` to fetch fresh bars from Twelve Data. Backend reads CSVs with 60s in-memory cache.
+Run `python scripts/weekly_pull.py` (orchestrator) or `python scripts/fetch.py` (network only) to refresh bars from Twelve Data. Backend reads CSVs with 60s in-memory cache.
 
 ## Endpoints
 - `GET /api/candles?tf={15m|1h|4h|1d}&limit=N`

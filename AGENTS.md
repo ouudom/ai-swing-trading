@@ -40,4 +40,4 @@ Claude Code uses custom slash commands stored in `.claude/commands/`. When a Kim
 - `wiki/system/constitution.md` — risk management, entry/stop/TP rules
 - `wiki/system/xauusd_profile.md` — gold macro drivers, sessions, ATR ranges
 - `wiki/system/confluence_criteria.md` — 7-signal scoring rubric
-- `scripts/weekly_pull.py` — data fetch (requires API keys in `.env`)
+- `scripts/weekly_pull.py` — pipeline orchestrator (cache gate → fetch → compute). Splits: `scripts/fetch.py` (TD + FRED network only), `scripts/compute.py` (indicators + snapshot, no TD/FRED). API keys in `.env`.

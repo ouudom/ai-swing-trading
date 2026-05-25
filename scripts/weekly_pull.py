@@ -1,10 +1,14 @@
 """
-XAUUSD Weekly Data Pull — single entry point
-Fetches, resamples, updates FRED, computes all indicators, writes pull file.
+XAUUSD Data Pipeline — orchestrator (fetch + compute + snapshot write).
 
 Usage:
-    .venv/bin/python scripts/weekly_pull.py           # normal run
+    .venv/bin/python scripts/weekly_pull.py           # honors cache, fetch+compute
     .venv/bin/python scripts/weekly_pull.py --force   # re-fetch full history
+
+Split entry points (preferred for granular control):
+    scripts/fetch.py    — network IO only (TD 15M + FRED)            → CSVs
+    scripts/compute.py  — indicators + snapshot, no TD/FRED network  → pull file
+    scripts/weekly_pull.py — this file: cache gate → fetch → compute (back-compat)
 
 Pipeline:
     TD 15M fetch (1 API call) → append 15min.csv → resample → 1h/4h/1day.csv
@@ -13,16 +17,34 @@ Pipeline:
     Fetch VP (yfinance), COT (CFTC), GLD (SPDR)  — no API key required
     Write data/weekly_pull/weekly_pull_{YEAR}_W{WW}.txt
 
+Cache policy: refetch unless (a) snapshot <15min old OR (b) market closed
+(CME Globex Fri 22:00 → Sun 22:00 UTC) AND snapshot exists. --force bypasses.
+
 Requirements: pip install requests pandas numpy yfinance python-dotenv
 """
 
-import os, sys, json, argparse
+import os, sys, json, argparse, time
 import requests, pandas as pd, numpy as np
 import yfinance as yf
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from io import StringIO
 from dotenv import load_dotenv
+
+# Cache policy: skip refetch only if file <15min old OR market closed (weekend) with existing data
+CACHE_FRESH_SECONDS = 15 * 60   # 15 minutes
+
+def is_market_closed_utc(now=None):
+    """CME Globex: closes Fri 22:00 UTC, reopens Sun 22:00 UTC."""
+    now = now or datetime.now(timezone.utc)
+    wd = now.weekday()  # Mon=0 ... Sun=6
+    if wd == 5:                       # Saturday: closed all day
+        return True
+    if wd == 4 and now.hour >= 22:    # Fri >= 22:00 UTC
+        return True
+    if wd == 6 and now.hour < 22:     # Sun < 22:00 UTC
+        return True
+    return False
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 from ohlc_store import upsert, last_dt as manifest_last_dt, filter_trading_session
@@ -333,19 +355,45 @@ def fetch_and_update(force=False):
     return info_15m
 
 
-def run(force=False):
+def cache_check(force=False):
+    """Returns (out_path, cache_hit_bool). Encapsulates cache-policy gate."""
     out_path = PULL_DIR / f"weekly_pull_{YEAR}_W{WEEK_NUM:02d}.txt"
     if out_path.exists() and not force:
-        size  = out_path.stat().st_size
+        age_s = time.time() - out_path.stat().st_mtime
         mtime = datetime.fromtimestamp(out_path.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
-        print(f"✅ Cache hit: {out_path} ({size} bytes, generated {mtime})")
-        print("   Skipping fetch. Use --force to refetch.")
+        size  = out_path.stat().st_size
+        if age_s < CACHE_FRESH_SECONDS:
+            print(f"✅ Cache hit: {out_path} ({size} bytes, generated {mtime}, age {int(age_s)}s < {CACHE_FRESH_SECONDS}s)")
+            print(f"   Skipping fetch (fresh). Use --force to refetch.")
+            return out_path, True
+        if is_market_closed_utc():
+            print(f"✅ Cache hit: {out_path} ({size} bytes, generated {mtime}, age {int(age_s/60)}min)")
+            print(f"   Skipping fetch (market closed — weekend). Use --force to refetch.")
+            return out_path, True
+        print(f"⚠️  Cache stale ({int(age_s/60)}min old, market open) — refetching.")
+    return out_path, False
+
+
+def build_snapshot():
+    """Read CSVs (no network), compute indicators, write pull snapshot file. Returns path."""
+    out_path = PULL_DIR / f"weekly_pull_{YEAR}_W{WEEK_NUM:02d}.txt"
+    return _compute_and_write(out_path)
+
+
+def run(force=False):
+    out_path, hit = cache_check(force=force)
+    if hit:
         return str(out_path)
 
     # 1. Fetch + resample + FRED
     fetch_and_update(force=force)
 
-    # 2. Load local data
+    # 2. Compute + write
+    return _compute_and_write(out_path)
+
+
+def _compute_and_write(out_path):
+    # Load local data
     print("Computing indicators...")
     gold_d       = load_ohlc(TD_DIR / "1day.csv")
     gold_h4_full = load_ohlc(TD_DIR / "4h.csv")

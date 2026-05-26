@@ -166,6 +166,19 @@ def load_fred_local(sid):
 
 # ── STEP 4: INDICATORS ────────────────────────────────────────────────────────
 
+def _drop_open_bar(df, freq_hours: float) -> pd.DataFrame:
+    """Drop last row if its candle period hasn't closed yet (bar still forming).
+
+    Uses UTC now vs (last_bar_open + freq_hours). Safe during weekends: the last
+    bar of a closed session is always a completed candle, so nothing is dropped.
+    """
+    now = pd.Timestamp.utcnow().tz_localize(None)
+    last_ts = df.index[-1] if isinstance(df.index, pd.DatetimeIndex) else pd.Timestamp(df.index[-1])
+    if now < last_ts + pd.Timedelta(hours=freq_hours):
+        return df.iloc[:-1]
+    return df
+
+
 def calc_atr(df, p=14):
     h, l, c = df["high"], df["low"], df["close"]
     tr = pd.concat([(h-l), (h-c.shift()).abs(), (l-c.shift()).abs()], axis=1).max(axis=1)
@@ -466,6 +479,10 @@ def _compute_and_write(out_path):
     gold_h4_full = load_ohlc(TD_DIR / "4h.csv")
     gold_h4      = filter_trading_session(gold_h4_full.reset_index(), "4h").set_index("datetime")
 
+    # Drop open (still-forming) candle before ATR calcs — fully closed bars only
+    gold_d_closed  = _drop_open_bar(gold_d,  24)   # D1 bar closes 24h after open
+    gold_h4_closed = _drop_open_bar(gold_h4,  4)   # H4 bar closes 4h after open
+
     # 4. External fetches
     print("  → Volume Profile (yfinance GC=F)...")
     vp  = volume_profile()
@@ -475,12 +492,12 @@ def _compute_and_write(out_path):
     gld = fetch_gld_flows()
 
     # 5. Indicators
-    atr_d  = calc_atr(gold_d)
-    atr_h4 = calc_atr(gold_h4)
+    atr_d  = calc_atr(gold_d_closed)
+    atr_h4 = calc_atr(gold_h4_closed)
 
-    d1_atr_s   = calc_atr_series(gold_d)
+    d1_atr_s   = calc_atr_series(gold_d_closed)
     atr_d_now  = round(float(d1_atr_s.iloc[-1]), 2)
-    atr_d_med  = round(float(d1_atr_s.iloc[-21:-1].median()), 2)
+    atr_d_med  = round(float(d1_atr_s.iloc[-20:].median()), 2)
     compressed = atr_d_now < atr_d_med
 
     adx_val   = calc_adx(gold_d)

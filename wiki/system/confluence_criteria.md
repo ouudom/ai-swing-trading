@@ -129,11 +129,11 @@ They are entry confirmation observed at /validate time only — see [[constituti
 **Stop + offset are computed at /validate time** using that day's H4 ATR (trading-day filter), D1 ATR, and structural pivot — never frozen from /weekly. Recompute every morning.
 
 ```
-structural_dist   = entry → last pivot low (long) | last pivot high → entry (short), within 20 H4 bars
+structural_dist   = entry → last pivot low (long) | last pivot high → entry (short), within last 5 trading days (~30 H4 bars)
 H4_ATR14          = ATR(14) on trading-day H4 bars only (filter: range >= $1)
 D1_ATR14          = ATR(14) on D1 bars
 stop_distance     = avg(0.5 × D1_ATR14, H4_ATR14, structural_dist)   ← arithmetic mean
-                    fallback: avg(0.5 × D1_ATR14, H4_ATR14) if no pivot within 20 bars
+                    fallback: avg(0.5 × D1_ATR14, H4_ATR14) if no pivot within last 5 trading days
 cap: structural_dist > 3 × H4_ATR14 → NO TRADE
 
 Order limit (offset OUTWARD beyond zone extreme):

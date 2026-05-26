@@ -34,7 +34,7 @@ Multiple trades same week allowed if (a) each setup independently passes /valida
 ## Position Sizing
 ```
 structural_dist = entry − last_pivot_low (long) | last_pivot_high − entry (short)
-                  last pivot within 20 H4 bars
+                  last pivot within last 5 trading days (~30 H4 bars)
 
 H4_ATR14        = ATR(14) computed on TRADING-DAY H4 bars only
                   (filter: bar range >= $1; excludes weekend/holiday flatline)
@@ -42,7 +42,7 @@ D1_ATR14        = ATR(14) on D1 bars
 
 stop_distance   = avg(0.5 × D1_ATR14, H4_ATR14, structural_dist)   ← arithmetic mean of three
 cap: if structural_dist > 3 × H4_ATR14 → skip trade (R:R collapses)
-fallback: if no structural pivot within 20 H4 bars → avg(0.5 × D1_ATR14, H4_ATR14)
+fallback: if no structural pivot within last 5 trading days (~30 H4 bars) → avg(0.5 × D1_ATR14, H4_ATR14)
 
 lots = $2000 / (stop_distance × 100), round DOWN
 Minimum: 0.01 lots (micro)
@@ -118,7 +118,7 @@ Trigger present → output **ORDER LIMIT** (place the limit). Trigger is the fin
 ```
 structural_dist = distance from entry to last pivot low below entry zone (long)
                   distance from entry to last pivot high above entry zone (short)
-                  → use last pivot within 20 H4 bars before entry
+                  → use last pivot within last 5 trading days (~30 H4 bars) before entry
 
 H4_ATR14        = ATR(14) on trading-day H4 bars only (range >= $1 filter)
 D1_ATR14        = ATR(14) on D1 bars
@@ -132,7 +132,7 @@ lots            = $2000 / (stop_distance × 100), round DOWN
 **Trading-day filter for H4 ATR:** Weekend/holiday flatline bars (~$0.27 range) destroy the rolling ATR. Filter to bars with range >= $1.00 before computing — uses real movement only.
 
 **Cap:** If structural_dist > 3 × H4_ATR14 → zone too wide, skip the trade (R:R collapses).
-**Fallback:** No structural pivot within 20 H4 bars → stop_distance = avg(0.5 × D1_ATR14, H4_ATR14).
+**Fallback:** No structural pivot within last 5 trading days (~30 H4 bars) → stop_distance = avg(0.5 × D1_ATR14, H4_ATR14).
 
 ## No-Trade Rules
 - No new entries 2 hours before any red-folder Forex Factory event
@@ -166,11 +166,12 @@ Daily DFII10 vs baseline:
 
 ## Invalidation
 A setup is cancelled when:
-- Price closes beyond the setup zone on Daily
+- **V1 — Daily close beyond zone:** any D1 close outside zone extreme → cancel.
+- **V1b — Intraday H4 invalidation (added 2026-05-26):** TWO consecutive H4 closes beyond zone (>$5 past extreme) → cancel live limit, remove from `_HOT.md`. Check at each H4 boundary (00, 04, 08, 12, 16, 20 UTC). Catches breakouts before D1 close confirms.
 - Macro bias reverses (real yields spike against trade direction)
 - Weekly structure breaks (trend structure violated)
 
-> **Liquidity Sweep Exception:** A wick penetration of the setup zone that closes back inside (same candle or next) is NOT invalidation — it's a Wyckoff Spring / stop hunt. Require a Daily *close* beyond the zone before cancelling. A sweep followed by a strong rejection candle is a higher-conviction entry signal, not an exit.
+> **Liquidity Sweep Exception:** A wick penetration of the setup zone that closes back inside (same candle or next) is NOT invalidation — it's a Wyckoff Spring / stop hunt. Require either (a) D1 *close* beyond zone OR (b) TWO consecutive H4 closes beyond zone (V1b) before cancelling. A single H4 wick + close-back-inside = sweep, not invalidation.
 
 ## Setup Types
 

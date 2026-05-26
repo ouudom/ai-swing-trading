@@ -7,27 +7,32 @@ None
 ## Active Forecast
 [2026-W22](forecasts/weekly/2026-W22.md) — BEARISH / MEDIUM-HIGH macro, ALIGNED MTF, conviction MEDIUM-HIGH.
 
-- **Setup A** [8.0/10]: SELL limit **$4591.98** ($4575 + $16.98 OUTWARD) zone $4530–$4575 | SL **$4620.28** | TP $4501.11 (**3.21R**) | **0.70 lots** — **WATCH** (val 6.5/10, no H1 trigger. Spot $4563.16 inside zone)
-- **Setup B** [5.5/10]: SELL limit **$4764.86** ($4720 + $44.86 OUTWARD) zone $4690–$4720 | SL **$4798.09** | TP $4607.50 (**4.74R**) | **0.60 lots** — **WATCH** (zone unreachable, 202pt above spot)
+- **Setup A** [8.0/10]: SELL limit **$4590.24** ($4575 + $15.24 OUTWARD) zone $4530–$4575 | SL **$4615.64** | TP $4501.11 (**3.51R**) | **0.78 lots** — ✅ **ORDER LIMIT PLACED** (val 10.0/10, H1 bearish engulfing 2026-05-25 23:00). Expires 2026-05-26 21:00 UTC.
+- **Setup B** [5.5/10]: SELL zone $4690–$4720 | TP $4607.50 — **WATCH** (val 10.0/10 but zone unreachable, spot $4536 = ~$154 below)
 - **Setup C**: NONE — macro MEDIUM-HIGH disqualifies; no RSI divergence
 
-`stop_distance = avg(0.5 × D1_ATR14, H4_ATR14_trading, structural_dist)` (mean of three). D1_ATR $70.49 → 0.5×D1 $35.24. H4_ATR trading-only $31.21. Setup A: structural $18.46, stop = avg($35.24, $31.21, $18.46) = $28.30. Setup B: fallback avg($35.24, $31.21) = $33.23. `entry_offset = (10−score) × 0.3 × stop_distance` applied OUTWARD (above zone_top for short).
+`stop_distance = avg(0.5×D1_ATR14, H4_ATR14_trading, structural_dist)`. Today: D1_ATR $88.77 → 0.5×D1 $44.38. H4_ATR trading-only $25.87. Setup A structural $5.94 (pivot $4580.94 May 25 20:00). avg($44.38, $25.87, $5.94) = $25.40. Offset (10−8)×0.3×25.40 = $15.24.
 
 ## Week Status
 - Week: 2026-W22
-- Trades taken: 0/∞ (bounded by $4000 weekly risk cap)
-- Risk used: $0 / $4000 cap
+- Trades taken: 0 filled / 1 live limit (Setup A)
+- Risk allocated: $2000 / $4000 cap (Setup A active)
 
 ## Pending Actions
-- Re-validate at 08:00 UTC post-London open — H1 tape will resume, check H1 pin/engulfing/B&R inside $4530–$4575 (Setup A). Trigger window 08:00–17:00 UTC.
+- Monitor Setup A live limit at $4590.24. Cancel if not hit by 21:00 UTC today.
+- Setup B WATCH — no action unless price rallies $154+ into $4690–$4720 zone.
 - **HARD BLOCK Thu 2026-05-28 12:30 UTC**: PCE Deflator + GDP 2nd Release — cancel any live limits by 10:30 UTC
 - Mon 2026-05-25: US Memorial Day — reduced CME liquidity, wider spreads expected
 - Watch DFII10: above 2.25% = strengthens BEARISH; below 2.00% = softens
 - Watch DXY: above 120 = additional pressure; below 118 = relief
-- Repair COT + GLD fetch in `scripts/weekly_pull.py` (failed again — CFTC API empty, SPDR returning PDF)
-- Repair `scripts/weekly_pull.py` rate limiting: script uses 9 Twelve Data credits/minute, plan limit is 8 — add sleep/batching
+- ~~Repair COT + GLD fetch~~ ✅ Fixed 2026-05-26: COT via CFTC yearly zip (`deahistfo{year}.zip`), GLD via yfinance totalAssets + spot → tonnes, history accumulated in `data/gld_holdings.csv`.
+- ~~Repair TD rate limit~~ ✅ Verified 2026-05-26: only 1 TD call per pull (15M, resampled locally). Original "9 credits/min" claim was stale/wrong.
 
 ## Last Session
+2026-05-26 (system improvements) — Implemented: (1) COT fetch via CFTC yearly zip `deahistfo{year}.zip` → working, latest 2026-05-19 spec net +148,660 BULLISH (conflicts BEARISH thesis — investigate). (2) GLD fetch via yfinance totalAssets + spot → 1052t, AUM $153.5B, history in `data/gld_holdings.csv`. (3) DXY migrated to ICE via yfinance `DX-Y.NYB` → 99.239. Dropped FRED DTWEXBGS. (4) Pivot window widened 20 H4 bars → 5 trading days (~30 H4 bars). (5) V1b mid-day H4 invalidation rule + `scripts/check_v1b.py`. (6) H1 trigger recency cap ≤8 bars. (7) New backtest strategy `s_weekly_swing_v1` mirrors live formula — 22 trades 2020-2026, +$18k from $100k. (8) `scripts/log_trade.py` + `data/trades_log.csv`. (9) Stale TD rate-limit pending action removed (verified 1 call/pull). #10 backtest divergence resolved.
+
+2026-05-26 (/validate) — Spot $4536.27 inside Setup A zone. Validation 10.0/10 (G1 H4+H1 LH+LL ✅, G3 DFII slope +0.29 ✅, G2 D1 ATR 88.77<97.40 ✅, V2 drift 0.000 ✅). H1 trigger ✅ bearish engulfing at 2026-05-25 23:00 (body $13.91 engulfs prior $4.32 bullish, closes inside zone). Stop $25.40, offset $15.24, limit $4590.24, SL $4615.64, TP $4501.11, 3.51R, 0.78 lots. **ORDER LIMIT PLACED**. Setup B WATCH (zone unreachable). D014 logged.
+
 2026-05-25 (/validate formula update v3) — Offset coefficient 0.2 → 0.3. Setup A: offset $16.98, limit $4591.98, SL $4620.28, 0.70 lots, 3.21R. Setup B: offset $44.86, limit $4764.86, SL $4798.09, 0.60 lots, 4.74R. Both WATCH. D013 logged.
 
 2026-05-25 (/validate formula update v2) — Stop formula `avg(...)` arithmetic mean. Offset reinstated outward at 0.2 coef. D012 logged.

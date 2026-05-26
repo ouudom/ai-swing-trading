@@ -39,8 +39,19 @@
 ## Data Pulls
 - `data/weekly_pull/weekly_pull_2026_W22.txt` — W22 pull (Twelve Data 1 call ok; COT/GLD failed)
 
+## Daily Validations
+- `forecasts/daily/2026-05-26.md` — Setup A ORDER LIMIT SELL $4590.24 / SL $4615.64 / TP $4501.11 / 0.78 lots / 3.51R, val 10.0/10, H1 bearish engulfing
+
 ## Scripts
 - `scripts/weekly_pull.py` — Pipeline orchestrator. Cache gate (skip if <15min OR market closed) → fetch → compute. Output → data/weekly_pull/weekly_pull_{YEAR}_W{WEEK_NUM}.txt. Hosts all pipeline library functions.
 - `scripts/fetch.py` — Network only: TD 15M (1 API call) + FRED → CSVs. Honors cache. Use to refresh data without rebuilding snapshot.
 - `scripts/compute.py` — Indicators + snapshot rebuild from existing CSVs. No TD/FRED network (aux VP/COT/GLD only). Use when formulas change.
-- `scripts/backtest/` — walk-forward backtest engine (cli.py, engine.py, strategies.py, data.py). Reads from data/ohlc/xauusd/. Run via `python -m scripts.backtest`. Output → results/
+- `scripts/backtest/` — walk-forward backtest engine (cli.py, engine.py, strategies.py, data.py). Reads from data/ohlc/xauusd/. Run via `python -m scripts.backtest`. Output → results/. Includes `s_weekly_swing_v1` (live formula).
+- `scripts/check_v1b.py` — V1b intraday H4 invalidation checker. Reads `_HOT.md` zones, last 2 H4 closes. Run at each H4 boundary.
+- `scripts/log_trade.py` — append fills/exits to `data/trades_log.csv`. Subcommands: `fill`, `exit`.
+
+## Trades
+- `data/trades_log.csv` — schema: date,week,setup,direction,entry,sl,tp,lots,stop_dist,r_planned,fill_time,exit_time,exit_px,exit_reason,r_actual,mfe,mae,notes
+- `data/gld_holdings.csv` — daily GLD ETF tonnage snapshot (auto-appended by weekly_pull)
+- `data/yahoo/DXY.csv` — ICE DXY daily (DX-Y.NYB via yfinance)
+- `data/cftc/deahistfo{year}.zip` — CFTC COT yearly cache (24h refresh)

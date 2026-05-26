@@ -94,7 +94,7 @@ _(Confirmation only — does not change weekly score or offset)_
 ## Order Limit Calc _(only if score ≥ 6.0)_
 
 ```
-structural_dist = last pivot low/high within 20 H4 bars = $xx.xx
+structural_dist = last pivot low/high within last 5 trading days (~30 H4 bars) = $xx.xx
 H4_ATR14        = $xx.xx (trading-day filter: range>=$1)
 0.5 × D1_ATR14  = $xx.xx
 stop_distance   = avg(0.5×D1_ATR, H4_ATR, structural_dist) = $xx.xx     ← arithmetic mean

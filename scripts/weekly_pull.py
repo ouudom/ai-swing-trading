@@ -64,7 +64,11 @@ TD_DIR    = Path(f"data/twelvedata/{SYM_CLEAN}")
 FRED_DIR  = Path("data/fred")
 PULL_DIR  = Path("data/weekly_pull")
 
-FRED_SERIES = ["DFII10", "DGS10", "T5YIE", "DFF", "DTWEXBGS", "VIXCLS"]
+FRED_SERIES = ["DFII10", "DGS10", "T5YIE", "DFF", "VIXCLS"]
+# DXY: ICE 6-currency index via yfinance DX-Y.NYB (not FRED DTWEXBGS which is 26-currency)
+DXY_CSV       = Path("data/yahoo/DXY.csv")
+GLD_HOLD_CSV  = Path("data/gld_holdings.csv")
+COT_CACHE_DIR = Path("data/cftc")
 TF_RESAMPLE = {"1h": "1h", "4h": "4h", "1day": "1D"}
 
 # ── STEP 1: FETCH 15M + RESAMPLE ─────────────────────────────────────────────
@@ -284,52 +288,108 @@ def volume_profile(ticker="GC=F", period="3mo", bins=50):
         return {"error": str(e)}
 
 def fetch_cot():
+    """CFTC Legacy report (non-commercial long/short). Source: cftc.gov yearly zip.
+    Caches deahistfo{YEAR}.zip in data/cftc/. Returns latest two weekly reports for GOLD-COMEX.
+    """
+    import zipfile, io
     try:
-        url = ("https://publicreporting.cftc.gov/resource/6dca-aqww.json"
-               "?$where=cftc_commodity_code='088691'"
-               "&$order=report_date_as_yyyy_mm_dd DESC&$limit=4")
-        rows = requests.get(url, timeout=15).json()
-        if not rows:
-            return None
-        latest = rows[0]; prev = rows[1] if len(rows) > 1 else None
-        net_now  = int(latest.get("noncomm_positions_long_all",0)) - int(latest.get("noncomm_positions_short_all",0))
-        net_prev = (int(prev.get("noncomm_positions_long_all",0)) - int(prev.get("noncomm_positions_short_all",0))) if prev else None
-        return {"date": latest.get("report_date_as_yyyy_mm_dd","")[:10],
-                "long": int(latest.get("noncomm_positions_long_all",0)),
-                "short": int(latest.get("noncomm_positions_short_all",0)),
+        COT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        year = datetime.utcnow().year
+        zip_path = COT_CACHE_DIR / f"deahistfo{year}.zip"
+        # refetch if older than 24h or missing
+        stale = (not zip_path.exists() or
+                 (time.time() - zip_path.stat().st_mtime) > 24*3600)
+        if stale:
+            r = requests.get(f"https://www.cftc.gov/files/dea/history/deahistfo{year}.zip",
+                             timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+            r.raise_for_status()
+            zip_path.write_bytes(r.content)
+        z = zipfile.ZipFile(zip_path)
+        df = pd.read_csv(z.open(z.namelist()[0]), low_memory=False)
+        mask = df["Market and Exchange Names"].astype(str).str.contains("GOLD - COMMODITY EXCHANGE", case=False, na=False)
+        g = df[mask].copy()
+        g["date"] = pd.to_datetime(g["As of Date in Form YYYY-MM-DD"], errors="coerce")
+        g = g.dropna(subset=["date"]).sort_values("date").reset_index(drop=True)
+        if g.empty:
+            return {"error": "no GOLD-COMEX rows in zip"}
+        long_col  = "Noncommercial Positions-Long (All)"
+        short_col = "Noncommercial Positions-Short (All)"
+        latest = g.iloc[-1]; prev = g.iloc[-2] if len(g) >= 2 else None
+        net_now  = int(latest[long_col]) - int(latest[short_col])
+        net_prev = (int(prev[long_col]) - int(prev[short_col])) if prev is not None else None
+        return {"date": latest["date"].strftime("%Y-%m-%d"),
+                "long": int(latest[long_col]),
+                "short": int(latest[short_col]),
                 "net": net_now, "net_prev": net_prev,
                 "net_chg": (net_now-net_prev) if net_prev is not None else None}
     except Exception as e:
         return {"error": str(e)}
 
 def fetch_gld_flows():
+    """GLD ETF holdings via yfinance totalAssets + spot gold → tonnes.
+    Stores daily snapshot in data/gld_holdings.csv to compute wk/mo deltas.
+    """
     try:
-        r = requests.get("https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv",
-                         timeout=20, headers={"User-Agent": "Mozilla/5.0"})
-        r.raise_for_status()
-        lines = r.text.splitlines()
-        hidx = next((i for i, ln in enumerate(lines)
-                     if "date" in ln.lower() and ("tonne" in ln.lower() or "ounce" in ln.lower())), None)
-        if hidx is None:
-            return {"error": "header not found"}
-        df = pd.read_csv(StringIO("\n".join(lines[hidx:])))
-        dcol = next(c for c in df.columns if "date"  in c.lower())
-        tcol = next((c for c in df.columns if "tonne" in c.lower()), None)
-        if tcol is None:
-            return {"error": "tonnes column not found"}
-        df[dcol] = pd.to_datetime(df[dcol], errors="coerce")
-        df[tcol] = pd.to_numeric(df[tcol].astype(str).str.replace(",",""), errors="coerce")
-        df = df.dropna(subset=[dcol,tcol]).sort_values(dcol).reset_index(drop=True)
-        if df.empty:
-            return {"error": "empty after parse"}
-        lat = df.iloc[-1]
-        wk  = df.iloc[-6]  if len(df) >= 6  else None
-        mo  = df.iloc[-21] if len(df) >= 21 else None
-        return {"date": lat[dcol].strftime("%Y-%m-%d"), "tonnes": round(float(lat[tcol]),2),
-                "wk_chg": round(float(lat[tcol])-float(wk[tcol]),2) if wk is not None else None,
-                "mo_chg": round(float(lat[tcol])-float(mo[tcol]),2) if mo is not None else None}
+        t = yf.Ticker("GLD")
+        total_assets = float(t.info.get("totalAssets") or 0)
+        if total_assets <= 0:
+            return {"error": "yfinance totalAssets unavailable"}
+        # spot gold (use latest D1 close from our pull)
+        d1 = pd.read_csv(TD_DIR / "1day.csv", parse_dates=["datetime"]).sort_values("datetime")
+        spot = float(d1["close"].iloc[-1])
+        oz_per_tonne = 32150.7466
+        tonnes = total_assets / (spot * oz_per_tonne)
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+
+        # Append to history CSV (idempotent — keep latest per date)
+        GLD_HOLD_CSV.parent.mkdir(parents=True, exist_ok=True)
+        if GLD_HOLD_CSV.exists():
+            hist = pd.read_csv(GLD_HOLD_CSV)
+        else:
+            hist = pd.DataFrame(columns=["date", "tonnes", "aum_usd", "spot"])
+        hist = pd.concat([hist, pd.DataFrame([{
+            "date": today, "tonnes": round(tonnes, 2),
+            "aum_usd": total_assets, "spot": spot
+        }])], ignore_index=True).drop_duplicates("date", keep="last").sort_values("date").reset_index(drop=True)
+        hist.to_csv(GLD_HOLD_CSV, index=False)
+
+        wk_chg = round(tonnes - float(hist.iloc[-6]["tonnes"]), 2) if len(hist) >= 6 else None
+        mo_chg = round(tonnes - float(hist.iloc[-21]["tonnes"]), 2) if len(hist) >= 21 else None
+        return {"date": today, "tonnes": round(tonnes, 2),
+                "wk_chg": wk_chg, "mo_chg": mo_chg,
+                "aum_usd": round(total_assets / 1e9, 2)}
     except Exception as e:
         return {"error": str(e)}
+
+def fetch_dxy(force=False):
+    """ICE DXY via yfinance DX-Y.NYB. Appends to data/yahoo/DXY.csv (date,value)."""
+    try:
+        DXY_CSV.parent.mkdir(parents=True, exist_ok=True)
+        # always pull last 90d, dedupe + merge
+        h = yf.Ticker("DX-Y.NYB").history(period="90d")
+        if h.empty:
+            return {"error": "yfinance empty"}
+        new = pd.DataFrame({
+            "date": h.index.strftime("%Y-%m-%d"),
+            "value": h["Close"].round(3).values,
+        })
+        if DXY_CSV.exists() and not force:
+            existing = pd.read_csv(DXY_CSV)
+            combined = (pd.concat([existing, new], ignore_index=True)
+                        .drop_duplicates("date", keep="last")
+                        .sort_values("date").reset_index(drop=True))
+        else:
+            combined = new
+        combined.to_csv(DXY_CSV, index=False)
+        return {"last_date": str(combined["date"].iloc[-1]), "value": float(combined["value"].iloc[-1]), "rows": len(combined)}
+    except Exception as e:
+        return {"error": str(e)}
+
+def load_dxy_local():
+    """Returns DataFrame indexed by date with 'value' column (matches load_fred_local interface)."""
+    df = pd.read_csv(DXY_CSV, parse_dates=["date"]).set_index("date").sort_index()
+    df["value"] = pd.to_numeric(df["value"], errors="coerce")
+    return df.dropna()
 
 # ── MAIN ──────────────────────────────────────────────────────────────────────
 
@@ -351,6 +411,12 @@ def fetch_and_update(force=False):
     fred_results = update_fred(force=force)
     for sid, n, last in fred_results:
         print(f"  → {sid}: {n} new | last: {last}")
+    print("Updating DXY (ICE 6-currency, yfinance DX-Y.NYB)...")
+    dxy_res = fetch_dxy(force=force)
+    if "error" in dxy_res:
+        print(f"  → DXY fetch FAILED: {dxy_res['error']}")
+    else:
+        print(f"  → DXY: {dxy_res['rows']} rows | last {dxy_res['last_date']} = {dxy_res['value']}")
     print("✅ CSVs ready.")
     return info_15m
 
@@ -433,7 +499,7 @@ def _compute_and_write(out_path):
     # FRED derived
     ry  = load_fred_local("DFII10"); ny  = load_fred_local("DGS10")
     be  = load_fred_local("T5YIE");  ff  = load_fred_local("DFF")
-    dxy = load_fred_local("DTWEXBGS"); vix = load_fred_local("VIXCLS")
+    dxy = load_dxy_local(); vix = load_fred_local("VIXCLS")
 
     gc = float(gold_d["close"].iloc[-1]); gp = float(gold_d["close"].iloc[-6])
     dc = float(dxy["value"].iloc[-1]);    dp = float(dxy["value"].iloc[-6])
@@ -502,7 +568,7 @@ VIX:              {float(vix['value'].iloc[-1]):.2f}
 
 ━━━ PRICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Gold:             ${gc:.2f} (was ${gp:.2f}, {round(((gc/gp)-1)*100,2):+.2f}% ~1w chg)
-USD Index (FRED): {dc:.3f}  (was {dp:.3f},  {round(((dc/dp)-1)*100,2):+.2f}% ~1w chg)
+DXY (ICE 6-cur):  {dc:.3f}  (was {dp:.3f},  {round(((dc/dp)-1)*100,2):+.2f}% ~1w chg)
 
 ━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ATR(14) Daily:    ${atr_d}

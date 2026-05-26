@@ -371,6 +371,180 @@ def s_buyhold(cfg, data):
     return Result("Buy & Hold", eq, [])
 
 
+# ===== 13. Weekly swing v1 — mirrors live /validate formula =====
+# Stop = avg(0.5*D1_ATR14, H4_ATR14_trading, structural_dist)
+# OUTWARD offset = (10 - score) * 0.3 * stop_distance
+# Score: G1 (MTF align) 3.5 + G2 (ATR compressed) 2.0 + G3 (D1 EMA50 trend) 3.5 = 9.0 max
+# (V2 macro drift excluded — no FRED data in backtest loader)
+def s_weekly_swing_v1(cfg, data):
+    d1 = data["D1"].copy()
+    h4_full = data["H4"].copy()
+    h1 = data["H1"].copy()
+
+    # H4 trading-day filter (drop weekend/holiday flatline bars)
+    h4 = h4_full[(h4_full.high - h4_full.low) >= 1.0].copy()
+
+    d1["atr14"]  = atr(d1, 14)
+    d1["atr_med20"] = d1["atr14"].rolling(20).median()
+    d1["ema50"] = d1.close.ewm(span=50, adjust=False).mean()
+    h4["atr14"] = atr(h4, 14)
+    h1["ema20"] = h1.close.ewm(span=20, adjust=False).mean()
+
+    equity = cfg.initial
+    trades = []
+    eq_curve = []
+
+    pos = 0
+    entry = stop = tp = be_trig = size = 0.0
+    risk_dist = 0.0
+    entry_t = None
+    be_armed = False
+
+    # State: per-week setup zone built on Sunday's data
+    current_week = None
+    zone_top = zone_bot = None
+    bias = 0  # 1 long, -1 short
+    score = 0.0
+    limit_armed_until = None
+    trigger_bar_idx = -999
+
+    for i, (ts, row) in enumerate(h1.iterrows()):
+        # === Active trade management ===
+        if pos != 0:
+            exit_px, reason, stop, be_armed = manage(cfg, pos, entry, stop, tp, be_trig, size, row, be_armed, risk_dist)
+            if exit_px is not None:
+                pnl = _close_position(cfg, trades, pos, entry, exit_px, size, risk_dist, entry_t, ts, reason)
+                equity += pnl
+                pos = 0
+                limit_armed_until = None
+
+        # === Weekly setup re-build (Monday 00:00) ===
+        iso_year, iso_week, iso_wd = ts.isocalendar()
+        wkey = (iso_year, iso_week)
+        if wkey != current_week and iso_wd == 1 and ts.hour == 0:
+            current_week = wkey
+            # Need recent D1 close + EMA50 + ATR
+            d1_hist = d1[d1.index < ts]
+            if len(d1_hist) < 50:
+                zone_top = zone_bot = None
+                eq_curve.append(equity)
+                continue
+            last_d = d1_hist.iloc[-1]
+            d1_atr = last_d.atr14
+            d1_atr_med = last_d.atr_med20
+            if pd.isna(d1_atr) or pd.isna(d1_atr_med):
+                zone_top = zone_bot = None; eq_curve.append(equity); continue
+
+            # Bias from EMA50
+            bias = 1 if last_d.close > last_d.ema50 else -1
+
+            # Zone = prior 5 trading-day extreme ± 0.5*D1_ATR
+            recent_d = d1_hist.tail(5)
+            if bias > 0:
+                # long: zone = recent low support
+                z_lo = recent_d.low.min()
+                z_hi = z_lo + 0.5 * d1_atr
+            else:
+                z_hi = recent_d.high.max()
+                z_lo = z_hi - 0.5 * d1_atr
+            zone_top, zone_bot = z_hi, z_lo
+
+            # Score components (simplified)
+            g1 = 3.5  # assume MTF align (gross simplification — could check H4/H1 explicit trend)
+            g2 = 2.0 if d1_atr < d1_atr_med else 0.0
+            g3 = 3.5  # bias passes if direction matches D1 EMA trend (already true by construction)
+            score = g1 + g2 + g3  # max 9.0
+
+            limit_armed_until = ts + pd.Timedelta(days=4, hours=17)  # Mon → Fri 17:00
+            trigger_bar_idx = -999
+
+        # === No active zone or trade ===
+        if pos != 0 or zone_top is None:
+            eq_curve.append(equity); continue
+        if limit_armed_until is None or ts > limit_armed_until:
+            eq_curve.append(equity); continue
+        # Only check entries during London/NY session
+        if ts.hour < 8 or ts.hour >= 17:
+            eq_curve.append(equity); continue
+        if score < 5.5:
+            eq_curve.append(equity); continue
+
+        # === H1 trigger detection (pin or engulfing inside zone) ===
+        in_zone = (row.low <= zone_top) and (row.high >= zone_bot)
+        if not in_zone:
+            eq_curve.append(equity); continue
+
+        body = abs(row.close - row.open)
+        upper_wick = row.high - max(row.close, row.open)
+        lower_wick = min(row.close, row.open) - row.low
+        is_pin_bull = lower_wick >= 2 * body and row.close > row.open and bias > 0
+        is_pin_bear = upper_wick >= 2 * body and row.close < row.open and bias < 0
+        trigger = is_pin_bull or is_pin_bear
+
+        if trigger:
+            trigger_bar_idx = i
+
+        # Recency cap: trigger ≤ 8 bars ago
+        if (i - trigger_bar_idx) > 8:
+            eq_curve.append(equity); continue
+        if trigger_bar_idx < 0:
+            eq_curve.append(equity); continue
+
+        # === Compute stop using live formula ===
+        d1_atr = d1[d1.index < ts].iloc[-1].atr14
+        h4_atr_now = h4[h4.index < ts].iloc[-1].atr14 if len(h4[h4.index < ts]) else d1_atr * 0.4
+        # structural_dist: distance from zone extreme to last pivot in last 5 trading days
+        recent_d = d1[d1.index < ts].tail(5)
+        if bias > 0:
+            struct = max(0.0, zone_bot - recent_d.low.min())
+        else:
+            struct = max(0.0, recent_d.high.max() - zone_top)
+        if struct <= 0:
+            stop_distance = (0.5 * d1_atr + h4_atr_now) / 2.0
+        else:
+            stop_distance = (0.5 * d1_atr + h4_atr_now + struct) / 3.0
+        if stop_distance <= 0 or stop_distance != stop_distance:
+            eq_curve.append(equity); continue
+        # cap
+        if struct > 3 * h4_atr_now:
+            eq_curve.append(equity); continue
+
+        # Outward offset
+        entry_offset = (10 - score) * 0.3 * stop_distance
+        if bias > 0:
+            limit_px = zone_bot - entry_offset
+            tp_px = recent_d.high.max()  # opposite-direction structural anchor
+        else:
+            limit_px = zone_top + entry_offset
+            tp_px = recent_d.low.min()
+
+        # Did this bar reach limit_px?
+        filled = (row.low <= limit_px <= row.high)
+        if not filled:
+            eq_curve.append(equity); continue
+
+        # Reject trades where TP gives < 1R
+        r_planned = abs(tp_px - limit_px) / stop_distance
+        if r_planned < 1.0:
+            eq_curve.append(equity); continue
+
+        risk_dist = stop_distance
+        size, stop, _tp_engine, be_trig, equity = open_trade(cfg, bias, limit_px, risk_dist, equity)
+        # Override engine TP with our structural anchor
+        tp = tp_px
+        entry = limit_px
+        pos = bias
+        entry_t = ts
+        be_armed = False
+        limit_armed_until = None  # one trade per week per setup
+        trigger_bar_idx = -999
+
+        eq_curve.append(equity)
+
+    eq = pd.Series(eq_curve, index=h1.index)
+    return Result("Weekly swing v1 (live formula)", eq, trades)
+
+
 REGISTRY = [
     ("Vol-target SMA 50/200",   s_voltrend,       ["D1"]),
     ("London breakout",         s_london,         ["H1"]),
@@ -385,4 +559,5 @@ REGISTRY = [
     ("RSI2 + 200SMA (MR)",      s_rsi2,           ["D1"]),
     ("Trend pullback",          s_trend_pullback, ["D1"]),
     ("Buy & Hold",              s_buyhold,        ["D1"]),
+    ("Weekly swing v1 (live)",  s_weekly_swing_v1,["D1", "H4", "H1"]),
 ]

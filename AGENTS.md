@@ -4,8 +4,8 @@
 XAUUSD swing trading system driven by multi-agent weekly forecasting.
 - **Instrument:** XAUUSD
 - **Timeframes:** Weekly → Daily → H4
-- **Risk:** $2000/trade (stop = min(4H ATR, 0.5× Daily ATR))
-- **TP:** 3R full close at structural level
+- **Risk:** $2000/trade (stop = avg(0.5×D1_ATR14, H4_ATR14_trading, structural_pivot_dist))
+- **TP:** structural anchor (compute R)
 
 This project was originally built for Claude Code and retains full Claude compatibility (`CLAUDE.md`, `.claude/commands/`). This file exists so Kimi Code CLI can operate it equally.
 

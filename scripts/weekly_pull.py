@@ -306,7 +306,8 @@ def fetch_cot():
             zip_path.write_bytes(r.content)
         z = zipfile.ZipFile(zip_path)
         df = pd.read_csv(z.open(z.namelist()[0]), low_memory=False)
-        mask = df["Market and Exchange Names"].astype(str).str.contains("GOLD - COMMODITY EXCHANGE", case=False, na=False)
+        # Exact match: main GOLD contract only (excludes MICRO GOLD which shares same date rows)
+        mask = df["Market and Exchange Names"].astype(str).str.strip() == "GOLD - COMMODITY EXCHANGE INC."
         g = df[mask].copy()
         g["date"] = pd.to_datetime(g["As of Date in Form YYYY-MM-DD"], errors="coerce")
         g = g.dropna(subset=["date"]).sort_values("date").reset_index(drop=True)

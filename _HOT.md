@@ -24,11 +24,15 @@ None
 - **HARD BLOCK Thu 2026-05-28 12:30 UTC**: PCE Deflator + GDP 2nd Release — cancel any live limits by 10:30 UTC
 - Mon 2026-05-25: US Memorial Day — reduced CME liquidity, wider spreads expected
 - Watch DFII10: above 2.25% = strengthens BEARISH; below 2.00% = softens
-- Watch DXY: above 120 = additional pressure; below 118 = relief
+- Watch DXY (ICE): above 100 = additional pressure; below 98 = relief
+- **COT context (as of 2026-05-19):** Spec net +148,660 — crowded long, declining from peak +165,174 (May 12). Unwind in progress. BEARISH-supportive. Was showing N/A due to bug — now fixed.
+- **GLD holdings:** 1,052.56t, AUM $153.5B — no ETF capitulation. Neutral (no outflows = spec longs not yet exiting en masse).
 - ~~Repair COT + GLD fetch~~ ✅ Fixed 2026-05-26: COT via CFTC yearly zip (`deahistfo{year}.zip`), GLD via yfinance totalAssets + spot → tonnes, history accumulated in `data/gld_holdings.csv`.
 - ~~Repair TD rate limit~~ ✅ Verified 2026-05-26: only 1 TD call per pull (15M, resampled locally). Original "9 credits/min" claim was stale/wrong.
 
 ## Last Session
+2026-05-26 (COT analysis + bug fix) — fetch_cot() was mixing main GOLD + MICRO GOLD rows (same date, different contracts). Bug caused spurious net_prev = -24k vs net +148k = fake +172k swing. Fixed: exact match "GOLD - COMMODITY EXCHANGE INC." only. Real W/W change: −16,514 (DECLINING from peak 165k May 12). COT BEARISH-supportive, not conflicting. W22 forecast Positioning section + frontmatter corrected. DXY baseline corrected FRED 119 → ICE 99.239 in W22 frontmatter.
+
 2026-05-26 (system improvements) — Implemented: (1) COT fetch via CFTC yearly zip `deahistfo{year}.zip` → working, latest 2026-05-19 spec net +148,660 BULLISH (conflicts BEARISH thesis — investigate). (2) GLD fetch via yfinance totalAssets + spot → 1052t, AUM $153.5B, history in `data/gld_holdings.csv`. (3) DXY migrated to ICE via yfinance `DX-Y.NYB` → 99.239. Dropped FRED DTWEXBGS. (4) Pivot window widened 20 H4 bars → 5 trading days (~30 H4 bars). (5) V1b mid-day H4 invalidation rule + `scripts/check_v1b.py`. (6) H1 trigger recency cap ≤8 bars. (7) New backtest strategy `s_weekly_swing_v1` mirrors live formula — 22 trades 2020-2026, +$18k from $100k. (8) `scripts/log_trade.py` + `data/trades_log.csv`. (9) Stale TD rate-limit pending action removed (verified 1 call/pull). #10 backtest divergence resolved.
 
 2026-05-26 (/validate) — Spot $4536.27 inside Setup A zone. Validation 10.0/10 (G1 H4+H1 LH+LL ✅, G3 DFII slope +0.29 ✅, G2 D1 ATR 88.77<97.40 ✅, V2 drift 0.000 ✅). H1 trigger ✅ bearish engulfing at 2026-05-25 23:00 (body $13.91 engulfs prior $4.32 bullish, closes inside zone). Stop $25.40, offset $15.24, limit $4590.24, SL $4615.64, TP $4501.11, 3.51R, 0.78 lots. **ORDER LIMIT PLACED**. Setup B WATCH (zone unreachable). D014 logged.

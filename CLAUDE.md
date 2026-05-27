@@ -41,14 +41,6 @@ Summary: for each PENDING setup → hard blocks (V1/V3/G4) → validation score 
 Output is exactly one of: ✅ ORDER LIMIT (score ≥ 6.0 + H1 trigger) | 👁 WATCH (score ≥ 6.0, no trigger) | ❌ NO TRADE (score < 6.0 or hard block)
 Save to `forecasts/daily/[DATE].md`. Update `_HOT.md`.
 
-### /macro
-Update wiki/system/macro/yield_environment.md with latest data from weekly_pull.txt.
-Do not create a new file — rewrite the existing one in place.
-
-### /status
-Print: current week forecast summary, open position (if any),
-week risk used, pending actions from _HOT.md.
-
 ## File Rules
 - forecasts/weekly/: immutable after Monday open. Never edit a prior week.
 - forecasts/daily/: append-style. One file per day.
@@ -152,7 +144,7 @@ wiki/
     decisions.md                 — system design belief log
     setup_library.md             — recurring setup patterns (grows with trades)
     macro/
-      yield_environment.md       — current macro snapshot (rewritten weekly via /macro)
+      yield_environment.md       — current macro snapshot (rewritten weekly by /weekly)
     templates/
       weekly_forecast.md         — canonical weekly forecast structure
       daily_validation.md        — canonical daily validation structure

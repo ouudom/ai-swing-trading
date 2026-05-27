@@ -40,7 +40,8 @@
 - `data/weekly_pull/weekly_pull_2026_W22.txt` — W22 pull (Twelve Data 1 call ok; COT/GLD failed)
 
 ## Daily Validations
-- `forecasts/daily/2026-05-26.md` — Setup A ORDER LIMIT SELL $4590.24 / SL $4615.64 / TP $4501.11 / 0.78 lots / 3.51R, val 10.0/10, H1 bearish engulfing
+- `forecasts/daily/2026-05-26.md` — Setup A ORDER LIMIT SELL $4590.24 / SL $4615.64 / TP $4501.11 / 0.78 lots / 3.51R, val 10.0/10, H1 bearish engulfing (EXPIRED UNFILLED 21:00 UTC)
+- `forecasts/daily/2026-05-27.md` — Setup B WATCH val 10.0/10, zone $4690–$4720 unreachable (spot $4505.42)
 
 ## Scripts
 - `scripts/weekly_pull.py` — Pipeline orchestrator. Cache gate (skip if <15min OR market closed) → fetch → compute. Output → data/weekly_pull/weekly_pull_{YEAR}_W{WEEK_NUM}.txt. Hosts all pipeline library functions.

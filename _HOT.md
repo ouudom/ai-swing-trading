@@ -7,20 +7,20 @@ None
 ## Active Forecast
 [2026-W22](forecasts/weekly/2026-W22.md) — BEARISH / MEDIUM-HIGH macro, ALIGNED MTF, conviction MEDIUM-HIGH.
 
-- **Setup A** [8.0/10]: SELL limit **$4590.24** ($4575 + $15.24 OUTWARD) zone $4530–$4575 | SL **$4615.64** | TP $4501.11 (**3.51R**) | **0.78 lots** — ✅ **ORDER LIMIT PLACED** (val 10.0/10, H1 bearish engulfing 2026-05-25 23:00). Expires 2026-05-26 21:00 UTC.
-- **Setup B** [5.5/10]: SELL zone $4690–$4720 | TP $4607.50 — **WATCH** (val 10.0/10 but zone unreachable, spot $4536 = ~$154 below)
+- **Setup A** [8.0/10]: SELL limit $4590.24 — ❌ **EXPIRED UNFILLED** 2026-05-26 21:00 UTC. Today's high $4561.36 (28.88 below limit). Direction thesis ✅ (D1 close $4504.56 dropped through zone) but entry missed. Risk $2000 released.
+- **Setup B** [5.5/10]: SELL zone $4690–$4720 | TP $4607.50 — **WATCH** (val 10.0/10 but zone unreachable, spot $4504 = ~$186 below)
 - **Setup C**: NONE — macro MEDIUM-HIGH disqualifies; no RSI divergence
 
-`stop_distance = avg(0.5×D1_ATR14, H4_ATR14_trading, structural_dist)`. Today: D1_ATR $88.77 → 0.5×D1 $44.38. H4_ATR trading-only $25.87. Setup A structural $5.94 (pivot $4580.94 May 25 20:00). avg($44.38, $25.87, $5.94) = $25.40. Offset (10−8)×0.3×25.40 = $15.24.
+`stop_distance = avg(0.5×D1_ATR14, H4_ATR14_trading, structural_dist)`. Today 17:38 UTC: D1_ATR $96.04 → 0.5×D1 $48.02. H4_ATR trading $26.44. Setup A structural $5.94 (pivot $4580.94). avg = $26.80. Offset $16.08, revised limit $4591.08/SL $4617.88/0.74 lots — drift <$1 on limit, live order kept ($4590.24/$4615.64/0.78 lots).
 
 ## Week Status
 - Week: 2026-W22
-- Trades taken: 0 filled / 1 live limit (Setup A)
-- Risk allocated: $2000 / $4000 cap (Setup A active)
+- Trades taken: 0 filled (Setup A limit expired unfilled 2026-05-26 21:00 UTC)
+- Risk allocated: $0 / $4000 cap
 
 ## Pending Actions
-- Monitor Setup A live limit at $4590.24. Cancel if not hit by 21:00 UTC today.
-- Setup B WATCH — no action unless price rallies $154+ into $4690–$4720 zone.
+- Setup A closed (expired). Bearish move ran without retest — review: 0.3 offset coef priced fill above realized high $4561.36. Consider tighter offset or H1-trigger-only entry for next setup.
+- Setup B WATCH — no action unless price rallies $186+ into $4690–$4720 zone.
 - **HARD BLOCK Thu 2026-05-28 12:30 UTC**: PCE Deflator + GDP 2nd Release — cancel any live limits by 10:30 UTC
 - Mon 2026-05-25: US Memorial Day — reduced CME liquidity, wider spreads expected
 - Watch DFII10: above 2.25% = strengthens BEARISH; below 2.00% = softens
@@ -31,6 +31,12 @@ None
 - ~~Repair TD rate limit~~ ✅ Verified 2026-05-26: only 1 TD call per pull (15M, resampled locally). Original "9 credits/min" claim was stale/wrong.
 
 ## Last Session
+2026-05-27 (/validate 09:06 UTC) — Spot $4505.42. Setup A gone (expired 05-26). Setup B WATCH 10.0/10 (G1✅ G3✅ G2✅ V2✅) but zone $4690–$4720 unreachable ($185+ above spot). H4 ATR $26.73, D1 ATR $92.11<97.40 compressed, DFII10 2.16% slope +0.25 drift −0.02 vs baseline 2.18. V1/V1b/V3/G4 all pass. Thu 05-28 12:30 UTC PCE+GDP = hard block — cancel any future limit by 10:30 UTC. D018 saved to forecasts/daily/2026-05-27.md.
+
+2026-05-26 (/validate 23:53 UTC EOD review) — Setup A limit $4590.24 EXPIRED UNFILLED at 21:00 UTC. Today's high $4561.36 = $28.88 below limit. D1 close $4504.56 dropped through zone_bottom $4530 — bearish thesis ✅ but entry missed. Outward 0.3 offset priced fill above realized high. Setup A removed from pending; $2000 risk released. Setup B still WATCH (zone $4690-$4720 unreachable, spot ~$186 below). Week: 0 trades filled. D017 logged.
+
+2026-05-26 (/validate 17:38 UTC re-check) — Fresh pull. Spot $4536.48. V1 ✅ (D1 May 25 close $4561.87 in zone; today's D1 forming $4536.48 above zone_bottom). V1b ✅ (H4 closes 00/04/08 = $4542/$4538/$4536, all below $4575). V3 ✅ (no NFP/FOMC/CPI/Retail today). G4 — outside 17:00 cutoff but limit already placed, monitoring only. Score 10.0/10. Fresh H1 trigger 08:00 UTC bearish engulfing ($4538→$4523, engulfs $6 bull body). D1 ATR jumped $88.77→$96.04 (today's $48 sweep range). Stop drift $25.40→$26.80, revised limit $4591.08 — <$1 diff from placed $4590.24, kept live. ORDER LIMIT CONFIRMED. D016 logged.
+
 2026-05-26 (/validate 06:16 UTC re-check) — Fresh pull (10 new 15M bars to 06:15 UTC). Spot $4531.14. V1 ✅ (D1 close May 25 $4561.87 inside zone; intraday low $4524 = Wyckoff spring, closed back above $4530), V1b ✅ (H4 closes $4542/$4531 both below zone_top), V3 ✅, 10.0/10 score unchanged. NEW H1 trigger: 04:00 bearish engulfing ($18 body engulfs $9 prior) at bar #3 — supersedes the 23:00 May 25 trigger at recency boundary. Stop drift: $25.40→$25.60 (+$0.20, immaterial). ORDER LIMIT $4590.24 CONFIRMED. $59 below spot — rally needed to fill. D015 appended to 2026-05-26.md.
 
 2026-05-26 (COT analysis + bug fix) — fetch_cot() was mixing main GOLD + MICRO GOLD rows (same date, different contracts). Bug caused spurious net_prev = -24k vs net +148k = fake +172k swing. Fixed: exact match "GOLD - COMMODITY EXCHANGE INC." only. Real W/W change: −16,514 (DECLINING from peak 165k May 12). COT BEARISH-supportive, not conflicting. W22 forecast Positioning section + frontmatter corrected. DXY baseline corrected FRED 119 → ICE 99.239 in W22 frontmatter.

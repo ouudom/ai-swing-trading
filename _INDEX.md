@@ -33,15 +33,29 @@
 - `wiki/research/xauusd/concepts/session-timing.md` — hour-of-day, day-of-week, session effects
 
 ## Forecasts
-- `forecasts/weekly/2026-W21.md` — BEARISH/MEDIUM (mid-week rewrite). A sell $4690.24 (7.0/10, SL $4722.76, TP $4584, 0.61 lots). B sell $4627.80 (6.25/10, TP $4530). C NONE.
-- `forecasts/weekly/2026-W22.md` — BEARISH/MEDIUM-HIGH (Warsh hawkish, ALIGNED). A sell $4570.38 (8.0/10, SL $4593.46, TP $4501.11 [D1 swing low 2.89R], 0.86 lots). B sell $4707.62 (5.5/10, TP $4607.50 [PP 3.64R], 0.72 lots). C NONE.
+
+### XAUUSD
+- `forecasts/weekly/xauusd/2026-W22.md` — BEARISH/MEDIUM-HIGH (Warsh hawkish, ALIGNED). A sell $4570.38 (8.0/10, SL $4593.46, TP $4501.11 [D1 swing low 2.89R], 0.86 lots). B sell $4707.62 (5.5/10, TP $4607.50 [PP 3.64R], 0.72 lots). C NONE.
+
+### EURUSD
+*(none yet — system scaffold only)*
 
 ## Data Pulls
-- `data/weekly_pull/weekly_pull_2026_W22.txt` — W22 pull (Twelve Data 1 call ok; COT/GLD failed)
+
+### XAUUSD
+- `data/weekly_pull/xauusd/weekly_pull_2026_W22.txt` — W22 pull (Twelve Data 1 call ok; COT/GLD failed)
+
+### EURUSD
+*(none yet)*
 
 ## Daily Validations
-- `forecasts/daily/2026-05-26.md` — Setup A ORDER LIMIT SELL $4590.24 / SL $4615.64 / TP $4501.11 / 0.78 lots / 3.51R, val 10.0/10, H1 bearish engulfing (EXPIRED UNFILLED 21:00 UTC)
-- `forecasts/daily/2026-05-27.md` — Setup B WATCH val 10.0/10, zone $4690–$4720 unreachable (spot $4505.42)
+
+### XAUUSD
+- `forecasts/daily/xauusd/2026-05-26.md` — Setup A ORDER LIMIT SELL $4590.24 / SL $4615.64 / TP $4501.11 / 0.78 lots / 3.51R, val 10.0/10, H1 bearish engulfing (EXPIRED UNFILLED 21:00 UTC)
+- `forecasts/daily/xauusd/2026-05-27.md` — Setup B WATCH val 10.0/10, zone $4690–$4720 unreachable (spot $4505.42)
+
+### EURUSD
+*(none yet)*
 
 ## Scripts
 - `scripts/weekly_pull.py` — Pipeline orchestrator. Cache gate (skip if <15min OR market closed) → fetch → compute. Output → data/weekly_pull/weekly_pull_{YEAR}_W{WEEK_NUM}.txt. Hosts all pipeline library functions.

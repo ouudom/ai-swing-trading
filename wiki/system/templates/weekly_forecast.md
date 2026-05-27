@@ -20,10 +20,10 @@ type: weekly_forecast
 week: YYYY-WNN
 generated: YYYY-MM-DD
 macro_bias: BULLISH | BEARISH | NEUTRAL
-macro_confidence: HIGH | MEDIUM | LOW
+macro_confidence: HIGH | MEDIUM-HIGH | MEDIUM | MEDIUM-LOW | LOW
 mtf_alignment: ALIGNED | MIXED | OPPOSING
 best_setup: A | B | NONE
-conviction: HIGH | MEDIUM | LOW
+conviction: HIGH | MEDIUM-HIGH | MEDIUM | MEDIUM-LOW | LOW
 baseline_dfii10: x.xx
 baseline_dxy: xxx.xxx
 weekend_gap_pct: x.xxx
@@ -85,9 +85,10 @@ etf_gld_wk_chg: ±xx.xx
 | Gate | Status | Note |
 |---|---|---|
 | G1 H4+H1 structure aligned | ✅/❌ | direction |
-| G2 D1 ATR compressed | ✅/❌ | $xx.xx vs median $xx.xx |
 | G3 DFII10 slope supports | ✅/❌ | slope value |
-| G4 Session (08–17 UTC) | ✅ always | validated daily |
+| G5 VIX regime | ✅/❌ | VIX xx.xx — calm/mixed/risk-off |
+| G2 D1 ATR compressed | ✅/❌ | $xx.xx vs median $xx.xx |
+_G6 (Asia range) is daily-only — not assessed at /weekly time._
 
 ## Setup A — <Label> [n.n/10] <CONVICTION>
 

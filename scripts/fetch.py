@@ -5,8 +5,10 @@ Use when you need fresh market data. Does NOT compute indicators or write snapsh
 Honors cache policy: skip refetch if <15min old OR market closed (Fri 22:00 → Sun 22:00 UTC).
 
 Usage:
-    .venv/bin/python scripts/fetch.py           # honors cache
-    .venv/bin/python scripts/fetch.py --force   # always refetch full history
+    .venv/bin/python scripts/fetch.py                        # xauusd, honors cache
+    .venv/bin/python scripts/fetch.py --force                # always refetch full history
+    .venv/bin/python scripts/fetch.py --instrument eurusd    # eurusd
+    .venv/bin/python scripts/fetch.py --instrument all       # all instruments
 
 After running, indicators are stale. Run `scripts/compute.py` to rebuild snapshot.
 
@@ -17,19 +19,27 @@ Sister scripts:
 """
 
 import argparse
-from weekly_pull import cache_check, fetch_and_update
+from weekly_pull import cache_check, fetch_and_update, load_instrument, REGISTERED_INSTRUMENTS
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     ap.add_argument("--force", action="store_true", help="Re-fetch full history (bypass cache)")
+    ap.add_argument("--instrument", default="xauusd",
+                    choices=list(REGISTERED_INSTRUMENTS) + ["all"],
+                    help="Instrument to fetch (default: xauusd). 'all' runs every registered instrument.")
     args = ap.parse_args()
 
-    _, hit = cache_check(force=args.force)
-    if hit:
-        return
-    fetch_and_update(force=args.force)
-    print("✅ Fetch complete. CSVs updated. Run scripts/compute.py to rebuild snapshot.")
+    to_run = list(REGISTERED_INSTRUMENTS) if args.instrument == "all" else [args.instrument]
+    for inst in to_run:
+        if len(to_run) > 1:
+            print(f"\n{'='*54}\n  {inst.upper()}\n{'='*54}")
+        load_instrument(inst)
+        _, hit = cache_check(force=args.force)
+        if hit:
+            continue
+        fetch_and_update(force=args.force)
+        print(f"✅ Fetch complete for {inst}. Run scripts/compute.py --instrument {inst} to rebuild snapshot.")
 
 
 if __name__ == "__main__":

@@ -68,12 +68,13 @@ Daily workflow (runs 07:30 UTC, before London open):
   2. Hard blocks (any fail = stop immediately):
        V1: D1 close beyond zone? → INVALIDATED (remove setup)
        V3: Hard news event within 2h? → NO TRADE
-       G4: Outside 08:00–17:00 UTC? → NO TRADE
   3. Validation score (max 10.0):
        G1 H4+H1 structure aligned   3.5 pts
-       G3 DFII10 slope supports     3.5 pts
-       G2 D1 ATR compressed         2.0 pts
-       V2 Macro drift OK            1.0 pts
+       G3 DFII10 slope supports     3.0 pts
+       G5 VIX regime aligned        1.5 pts
+       G2 D1 ATR compressed         1.0 pts
+       V2 Macro drift OK            0.5 pts
+       G6 Asia range < $15          0.5 pts
   4. H1 trigger check (pin bar / engulfing / B&R on H1 inside zone)?
 
   → OUTPUT (exactly one of):
@@ -103,8 +104,11 @@ Rationale: offset = BUFFER. Forces price to commit OUTWARD (through zone extreme
 
 Stop distance drives sizing AND offset — see Position Sizing.
 
-Minimum score to place order: **5.5/10**. Below 5.5 = no order placed, ever.
-Counter (Setup C): **7.5/10** floor.
+**Two distinct score thresholds — do not conflate:**
+- Weekly confluence score (Signals 1–7, max 10.0): minimum **5.5/10** to include setup in forecast as PENDING. This is the setup quality floor — scored at /weekly time.
+- Daily validation score (G1/G3/G5/G2/V2/G6, max 10.0): minimum **6.0/10** to place order. This is the daily gate — scored at /validate time.
+A setup can score 5.5 weekly (barely qualifies) but still fail daily gate if market conditions deteriorate.
+Counter (Setup C): **7.5/10** weekly floor + daily gate still applies.
 
 **H1 trigger (entry confirmation, not confluence):**
 Pin bar, engulfing, or break-and-retest inside zone on H1. Observed at /validate time only.
@@ -132,6 +136,9 @@ lots            = $2000 / (stop_distance × 100), round DOWN
 **Trading-day filter for H4 ATR:** Weekend/holiday flatline bars (~$0.27 range) destroy the rolling ATR. Filter to bars with range >= $1.00 before computing — uses real movement only.
 
 **Cap:** If structural_dist > 3 × H4_ATR14 → zone too wide, skip the trade (R:R collapses).
+**Floor:** If structural_dist < 0.5 × H4_ATR14 → pivot inside noise, structurally irrelevant.
+  1. First check yesterday's daily validation file (`forecasts/daily/[YESTERDAY].md`). If yesterday's `structural_dist` was valid (≥ 0.5 × H4_ATR14 at that time) AND the same pivot still exists in H4 data → **re-use yesterday's pivot reference** (setup zones are static through the week — pivot reference should be stable).
+  2. If yesterday's also failed floor OR no prior validation file exists → fallback: `stop_distance = avg(0.5 × D1_ATR14, H4_ATR14)`.
 **Fallback:** No structural pivot within last 5 trading days (~30 H4 bars) → stop_distance = avg(0.5 × D1_ATR14, H4_ATR14).
 
 ## No-Trade Rules
@@ -151,6 +158,92 @@ Computed at /weekly run from H4 data: Friday 20:00 UTC close vs first bar after 
 | > 1.00% | **Hard re-forecast** — run /weekly again Monday morning. Sunday forecast voided. |
 
 Gap direction matters: large gap *in direction of weekly bias* = momentum confirm but worse fills (zones distant). Large gap *against bias* = potential invalidation.
+
+## Mid-Week Re-Forecast Triggers
+
+Sunday `/weekly` produces bias + setups assumed valid through Friday close. Mid-week re-forecast is **destructive** (cancels live limits, voids PENDING setups) — must be rare, rule-based, and confirmed, never feeling-based, to preserve edge.
+
+### Triggers (all D1-close based, no intraday)
+
+| Trigger | Threshold | Source |
+|---|---|---|
+| T1 — DFII10 1-day jump | abs(today − yesterday) > 0.10% | `data/fred/DFII10.csv` |
+| T2 — DXY 1-day jump | abs(today − yesterday) > 1.0% | `data/fred/DTWEXBGS.csv` |
+| T3 — Gold counter-move | D1 close moves >2.5% AGAINST weekly bias | `data/twelvedata/xauusd/1day.csv` |
+| T4 — Unscheduled macro shock (X OR Y, either fires) | X: structured news event today (see below) OR Y: VIX 1-day jump > 5.0 points | X: web search + operator log / Y: `data/fred/VIXCLS.csv` |
+| T5 — DFII10 cumulative drift | abs(now − baseline) > 0.15% any direction | DFII10 vs `baseline_dfii10` in weekly frontmatter |
+
+**T4 definition (X OR Y):**
+
+**T4-X — Structured news event:**
+- Tier-1 unscheduled event published TODAY by Reuters / Bloomberg / AP
+- Allowed categories ONLY: central-bank emergency action (off-cycle rate move, QE/QT shock), declared war / major sanctions on G20 economy, Fed chair resignation or removal, sovereign default by major economy, major political shock (cancelled election, coup, impeachment vote)
+- NOT allowed: analyst opinion, Fed-speak interpretation, rumor, scheduled commentary, "expected" events
+- Trigger requires: write `data/news_events/[DATE]_t4x.json` (schema enforced by `scripts/check_structured_news_event.py`) + mirror summary to `_HOT.md` as `t4_x_event: {category, url, headline}`
+- If operator cannot write valid JSON with source + headline → T4-X does NOT fire
+
+**T4-Y — VIX jump:**
+- `VIX(today) − VIX(yesterday) > 5.0 points`
+- Pure data check, no operator input
+
+T4 fires if X OR Y is true. Y catches market-priced shocks fast; X catches slow-moving geopolitical/policy events VIX hasn't priced yet. X's structured categories + verbatim logging requirement prevent discretion creep.
+
+### Hard preconditions — re-forecast allowed if and only if ALL true
+
+```
+1. No open positions (filled trades). If any live position → never auto-reforecast.
+   Re-forecast only acts on PENDING / WATCH setups and unfilled limit orders.
+
+2. Day-of-week gate:
+   - NOT Monday (Sunday's forecast is <24h old — let it settle)
+   - NOT Friday (week ends in <48h — let setups expire naturally)
+
+3. Event-proximity gate:
+   - >24h until next scheduled NFP / FOMC / CPI / US Retail Sales
+   - >24h since last NFP / FOMC / CPI / US Retail Sales
+   (vol around scheduled events is expected, not regime shift)
+
+4. Re-forecast spacing: >48h since last /weekly run.
+
+5. Weekly cap: 0 prior mid-week re-forecasts this week.
+   Second qualifying trigger same week → halt trading until Monday. System resets.
+```
+
+### Trigger logic — when preconditions pass
+
+```
+IMMEDIATE re-forecast if ANY of:
+  (a) Two concurrent triggers fire same day from {T1, T2, T3, T4}
+      (e.g., T1 + T3, or T2 + T4, etc — coherent multi-asset shift)
+  (b) T5 fires alone (already-sustained cumulative drift)
+
+CONFIRMATION re-forecast if:
+  (c) Single trigger from {T1, T2, T3, T4} fires today
+      → log as WARN in _HOT.md, set pending_reforecast_check = [TRIGGER, DATE]
+      → at next /validate (next morning), recheck same trigger:
+        - Still firing → re-forecast NOW
+        - Mean-reverted → clear WARN, continue normally
+
+If preconditions fail → log trigger fires to _HOT.md as INFO only, no action.
+```
+
+### Protocol when re-forecast executes
+
+1. Cancel ALL live limit orders immediately
+2. Remove all PENDING / WATCH setups from `_HOT.md`
+3. Run `/weekly` with current data (overwrites week's macro environment file in place)
+4. Original Sunday forecast file is **not** edited — annotate in `_HOT.md`:
+   `MID-WEEK RE-FORECAST [DATE], trigger=[Tx/Tx], original [YYYY-WNN] voided`
+5. Increment `weekly_reforecast_count` in `_HOT.md` (max 1)
+6. New setups land as PENDING — halt today's `/validate`, resume normal flow next morning
+
+### Edge preservation rules
+
+- Maximum **one** mid-week re-forecast per week. Second qualifying trigger → STOP trading until Monday.
+- Re-forecast cannot revive an INVALIDATED setup — invalidation is final.
+- Open positions are NEVER auto-touched by re-forecast. Stops manage live trades.
+- No manual / discretionary mid-week reset path exists. Every override leaks edge over time.
+- Lag is acceptable: confirmed regime shift recognized 24h late beats false reset 4× per year.
 
 ## Real-Yield Baseline Drift (every /validate)
 

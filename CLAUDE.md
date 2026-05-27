@@ -1,9 +1,9 @@
 # Trading Brain — Claude Code Operating Manual
 
 ## What This Is
-XAUUSD swing trading system. Weekly forecast driven by multi-agent analysis.
-Instrument: XAUUSD | Timeframes: Weekly → Daily → H4
-Risk: $2000/trade (stop = avg(0.5×D1_ATR14, H4_ATR14_trading, structural_pivot_dist)) | TP: structural anchor (compute R)
+Multi-instrument swing trading system. Weekly forecast driven by multi-agent analysis.
+Active instruments: XAUUSD (live), EURUSD (scaffold — system TBD)
+Timeframes: Weekly → Daily → H4 | Risk: $2000/trade (stop = avg(0.5×D1_ATR14, H4_ATR14_trading, structural_pivot_dist)) | TP: structural anchor (compute R)
 
 ## Memory Protocol — Read This Every Session
 
@@ -12,8 +12,10 @@ Context resets each session. Load state from these files in order:
 ```
 1. _HOT.md                          — active forecast, open trades, pending actions
 2. _INDEX.md                        — all file locations and current state
-3. wiki/system/constitution.md      — risk rules, entry rules, stop formula
-4. wiki/system/confluence_criteria.md — pre-screen gates + scoring
+3. wiki/system/constitution.md      — universal risk rules, entry rules, stop formula
+4. Instrument-specific confluence:
+   - XAUUSD: wiki/system/confluence_criteria.md
+   - EURUSD:  wiki/instruments/eurusd/confluence_criteria.md
 ```
 
 ## Session Start Protocol
@@ -25,26 +27,28 @@ Context resets each session. Load state from these files in order:
 
 ## Commands
 
-### /weekly
+### /weekly [instrument]
 Run the full weekly forecast. Full steps in `.claude/commands/weekly.md`.
+Argument: `xauusd` | `eurusd` | `all`. Default: `xauusd`.
 
 Summary: pull data → 5-agent analysis (macro / technical / confluence / scenarios / writer) →
-save `forecasts/weekly/[YEAR]-W[WW].md` → update `wiki/system/macro/yield_environment.md` →
-update `_HOT.md` (setups PENDING) → update `_INDEX.md`.
+save `forecasts/weekly/{instrument}/[YEAR]-W[WW].md` → update `wiki/system/macro/yield_environment.md` →
+update `_HOT.md` (setups PENDING, tagged with instrument) → update `_INDEX.md`.
 Agent 4 applies pre-screen gates G1–G3 before building each setup.
 Stop formula: `avg(0.5×D1_ATR14, H4_ATR14, structural_pivot_dist)` (arithmetic mean) where H4_ATR14 uses trading-day bars only (range>=$1, drops weekend/holiday flatline). Order limit offset OUTWARD: `(10−score)×0.3×stop_distance`, applied beyond zone extreme (limit ABOVE zone_top for short, BELOW zone_bottom for long).
 
-### /validate [date]
+### /validate [date] [instrument]
 Run daily validation (07:30 UTC, before London open). Full steps in `.claude/commands/validate.md`.
+Arguments: date (YYYY-MM-DD), instrument (`xauusd` | `eurusd` | `all`). Default: all active instruments.
 
-Summary: for each PENDING setup → hard blocks (V1/V3/G4) → validation score (G1 3.5 + G3 3.5 + G2 2.0 + V2 1.0, max 10.0) → H1 trigger.
+Summary: for each PENDING setup → hard blocks (V1/V3) → validation score (G1 3.5 + G3 3.0 + G5 1.5 + G2 1.0 + V2 0.5 + G6 0.5, max 10.0) → H1 trigger.
 Output is exactly one of: ✅ ORDER LIMIT (score ≥ 6.0 + H1 trigger) | 👁 WATCH (score ≥ 6.0, no trigger) | ❌ NO TRADE (score < 6.0 or hard block)
-Save to `forecasts/daily/[DATE].md`. Update `_HOT.md`.
+Save to `forecasts/daily/{instrument}/[DATE].md`. Update `_HOT.md`.
 
 ## File Rules
-- forecasts/weekly/: immutable after Monday open. Never edit a prior week.
-- forecasts/daily/: append-style. One file per day.
-- data/weekly_pull/: IMMUTABLE. Never edit weekly_pull_*.txt.
+- forecasts/weekly/{instrument}/: immutable after Monday open. Never edit a prior week.
+- forecasts/daily/{instrument}/: append-style. One file per day.
+- data/weekly_pull/{instrument}/: IMMUTABLE. Never edit weekly_pull_*.txt.
 - wiki/: update in place. Never create a parallel page for an existing concept.
 - One concept per wiki page. Cross-link with [[filename]] when referencing.
 - After creating or significantly updating any file: update _INDEX.md.
@@ -93,18 +97,23 @@ active_setup: A | B | C | NONE
 # Hard blocks
 v1_structure_intact: true | false
 v3_news_clear: true | false
-g4_session: true | false
 # Validation score (max 10.0)
 g1_mtf_structure: true | false   # 3.5 pts
-g3_dfii10_slope: true | false    # 3.5 pts
-g2_atr_compressed: true | false  # 2.0 pts
-v2_macro_drift: true | false     # 1.0 pts
+g3_dfii10_slope: true | false    # 3.0 pts
+g5_vix_regime: true | false      # 1.5 pts
+g2_atr_compressed: true | false  # 1.0 pts
+v2_macro_drift: true | false     # 0.5 pts
+g6_asia_compressed: true | false # 0.5 pts
 validation_score: 0.0
+vix: 00.00
+asia_range: 00.00
 # Entry
 h1_trigger_present: true | false
 weekly_confluence_score: 0.0
 stop_distance: 0.00
-stop_type: structural | atr_fallback
+stop_type: structural | atr_fallback | reused_yesterday_pivot
+pivot_price: 0000.00
+structural_dist: 0.00
 order_limit: PLACED | WATCH | NO_TRADE | INVALIDATED
 limit_price: 0000.00
 limit_direction: BUY | SELL | N/A
@@ -124,23 +133,25 @@ When macro bias conflicts with technical structure:
 - Note in _HOT.md as a pending question
 
 ## System Files Reference
-- Rules + risk management: wiki/system/constitution.md
-- Gold macro drivers + sessions: wiki/system/xauusd_profile.md
-- Confluence scoring + pre-screen gates: wiki/system/confluence_criteria.md
+- Universal rules + risk: wiki/system/constitution.md
+- XAUUSD profile + sessions: wiki/system/xauusd_profile.md
+- XAUUSD confluence + gates: wiki/system/confluence_criteria.md
+- EURUSD scaffold: wiki/instruments/eurusd/ (profile, macro_drivers, confluence_criteria, constitution_addendum)
+- Instrument configs: instruments/{instrument}/config.py
 - System decisions log: wiki/system/decisions.md
 - Setup pattern library: wiki/system/setup_library.md
 - Macro environment (current): wiki/system/macro/yield_environment.md
 - Templates: wiki/system/templates/weekly_forecast.md, daily_validation.md
-- Data pipeline: scripts/weekly_pull.py (orchestrator), scripts/fetch.py (network only), scripts/compute.py (indicators only) — see weekly_pull.py docstring
+- Data pipeline: scripts/weekly_pull.py --instrument {name} (orchestrator), scripts/fetch.py, scripts/compute.py
 
 ## Wiki Folder Structure
 
 ```
 wiki/
-  system/                        — core trading rules + reference
-    constitution.md              — risk rules, entry rules, stop formula
-    confluence_criteria.md       — pre-screen gates (G1–G4) + 7-signal scoring
-    xauusd_profile.md            — instrument profile, sessions, ATR ranges
+  system/                        — universal rules + XAUUSD (legacy location, kept for back-compat)
+    constitution.md              — universal risk rules, entry rules, stop formula
+    confluence_criteria.md       — XAUUSD: daily validation gates + 7-signal weekly scoring
+    xauusd_profile.md            — XAUUSD: instrument profile, sessions, ATR ranges
     decisions.md                 — system design belief log
     setup_library.md             — recurring setup patterns (grows with trades)
     macro/
@@ -148,6 +159,13 @@ wiki/
     templates/
       weekly_forecast.md         — canonical weekly forecast structure
       daily_validation.md        — canonical daily validation structure
+
+  instruments/                   — per-instrument system docs (new instruments go here)
+    eurusd/
+      profile.md                 — EURUSD instrument profile (scaffold)
+      macro_drivers.md           — EURUSD macro drivers + re-forecast trigger concepts (scaffold)
+      confluence_criteria.md     — EURUSD scoring gates (scaffold)
+      constitution_addendum.md   — EURUSD-specific overrides (scaffold)
 
   research/                      — all quantitative research
     xauusd/

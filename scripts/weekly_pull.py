@@ -1,9 +1,11 @@
 """
-XAUUSD Data Pipeline — orchestrator (fetch + compute + snapshot write).
+Multi-instrument data pipeline — orchestrator (fetch + compute + snapshot write).
 
 Usage:
-    .venv/bin/python scripts/weekly_pull.py           # honors cache, fetch+compute
-    .venv/bin/python scripts/weekly_pull.py --force   # re-fetch full history
+    .venv/bin/python scripts/weekly_pull.py                        # xauusd, honors cache
+    .venv/bin/python scripts/weekly_pull.py --force                # xauusd, re-fetch full
+    .venv/bin/python scripts/weekly_pull.py --instrument eurusd    # eurusd
+    .venv/bin/python scripts/weekly_pull.py --instrument all       # all instruments
 
 Split entry points (preferred for granular control):
     scripts/fetch.py    — network IO only (TD 15M + FRED)            → CSVs
@@ -14,8 +16,8 @@ Pipeline:
     TD 15M fetch (1 API call) → append 15min.csv → resample → 1h/4h/1day.csv
     FRED fetch                → append data/fred/*.csv
     Compute indicators locally (ATR, ADX, EMA, RSI, MACD, pivots, fibs, swings)
-    Fetch VP (yfinance), COT (CFTC), GLD (SPDR)  — no API key required
-    Write data/weekly_pull/weekly_pull_{YEAR}_W{WW}.txt
+    Fetch VP (yfinance), COT (CFTC, if enabled), ETF flows (if enabled) — no API key required
+    Write data/weekly_pull/{instrument}/weekly_pull_{YEAR}_W{WW}.txt
 
 Cache policy: refetch unless (a) snapshot <15min old OR (b) market closed
 (CME Globex Fri 22:00 → Sun 22:00 UTC) AND snapshot exists. --force bypasses.
@@ -23,13 +25,48 @@ Cache policy: refetch unless (a) snapshot <15min old OR (b) market closed
 Requirements: pip install requests pandas numpy yfinance python-dotenv
 """
 
-import os, sys, json, argparse, time
+import os, sys, json, argparse, time, importlib
 import requests, pandas as pd, numpy as np
 import yfinance as yf
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from io import StringIO
 from dotenv import load_dotenv
+
+# ── INSTRUMENT REGISTRY ───────────────────────────────────────────────────────
+
+REGISTERED_INSTRUMENTS = {
+    "xauusd": "instruments.xauusd.config",
+    "eurusd": "instruments.eurusd.config",
+}
+
+_instrument_cfg = None  # set by load_instrument()
+
+
+def load_instrument(name: str):
+    """Load instrument config and rebind module globals. Must be called before fetch/compute."""
+    global _instrument_cfg, SYMBOL, SYM_CLEAN, TD_DIR, PULL_DIR, FRED_SERIES, GLD_HOLD_CSV
+
+    if name not in REGISTERED_INSTRUMENTS:
+        raise ValueError(f"Unknown instrument '{name}'. Registered: {list(REGISTERED_INSTRUMENTS)}")
+
+    # Add project root to sys.path so instruments/ package is importable
+    _root = str(Path(__file__).resolve().parents[1])
+    if _root not in sys.path:
+        sys.path.insert(0, _root)
+
+    cfg = importlib.import_module(REGISTERED_INSTRUMENTS[name])
+    _instrument_cfg = cfg
+
+    SYMBOL      = cfg.SYMBOL
+    SYM_CLEAN   = cfg.SYM_CLEAN
+    TD_DIR      = Path(cfg.TD_DIR)
+    PULL_DIR    = Path(cfg.PULL_DIR)
+    FRED_SERIES = cfg.FRED_SERIES
+    if cfg.ETF_ENABLED and cfg.ETF_HOLDINGS_CSV:
+        GLD_HOLD_CSV = Path(cfg.ETF_HOLDINGS_CSV)
+
+    print(f"[instrument] {cfg.DISPLAY_NAME} loaded")
 
 # Cache policy: skip refetch only if file <15min old OR market closed (weekend) with existing data
 CACHE_FRESH_SECONDS = 15 * 60   # 15 minutes
@@ -58,11 +95,13 @@ TODAY    = datetime.today()
 WEEK_NUM = TODAY.isocalendar()[1]
 YEAR     = TODAY.year
 
+# Defaults — overridden by load_instrument(). These match xauusd/config.py
+# so legacy callers (compute.py, fetch.py) work without explicit load_instrument().
 SYMBOL    = "XAU/USD"
 SYM_CLEAN = "xauusd"
-TD_DIR    = Path(f"data/twelvedata/{SYM_CLEAN}")
+TD_DIR    = Path("data/twelvedata/xauusd")
 FRED_DIR  = Path("data/fred")
-PULL_DIR  = Path("data/weekly_pull")
+PULL_DIR  = Path("data/weekly_pull/xauusd")
 
 FRED_SERIES = ["DFII10", "DGS10", "T5YIE", "DFF", "VIXCLS"]
 # DXY: ICE 6-currency index via yfinance DX-Y.NYB (not FRED DTWEXBGS which is 26-currency)
@@ -473,23 +512,42 @@ def run(force=False):
 
 
 def _compute_and_write(out_path):
+    cfg = _instrument_cfg  # may be None if called without load_instrument (legacy mode)
+
     # Load local data
     print("Computing indicators...")
-    gold_d       = load_ohlc(TD_DIR / "1day.csv")
-    gold_h4_full = load_ohlc(TD_DIR / "4h.csv")
-    gold_h4      = filter_trading_session(gold_h4_full.reset_index(), "4h").set_index("datetime")
+    price_d       = load_ohlc(TD_DIR / "1day.csv")
+    price_h4_full = load_ohlc(TD_DIR / "4h.csv")
+    price_h4      = filter_trading_session(price_h4_full.reset_index(), "4h").set_index("datetime")
 
     # Drop open (still-forming) candle before ATR calcs — fully closed bars only
-    gold_d_closed  = _drop_open_bar(gold_d,  24)   # D1 bar closes 24h after open
-    gold_h4_closed = _drop_open_bar(gold_h4,  4)   # H4 bar closes 4h after open
+    price_d_closed  = _drop_open_bar(price_d,  24)   # D1 bar closes 24h after open
+    price_h4_closed = _drop_open_bar(price_h4,  4)   # H4 bar closes 4h after open
 
-    # 4. External fetches
-    print("  → Volume Profile (yfinance GC=F)...")
-    vp  = volume_profile()
-    print("  → COT (CFTC)...")
-    cot = fetch_cot()
-    print("  → GLD ETF flows (SPDR)...")
-    gld = fetch_gld_flows()
+    # External fetches — conditional on instrument config
+    vp_ticker = cfg.VP_TICKER if cfg else "GC=F"
+    print(f"  → Volume Profile (yfinance {vp_ticker})...")
+    vp  = volume_profile(ticker=vp_ticker)
+
+    if cfg is None or cfg.COT_ENABLED:
+        print("  → COT (CFTC)...")
+        cot = fetch_cot()
+    else:
+        cot = {"error": f"COT disabled for {SYM_CLEAN} (system TBD)"}
+
+    if cfg is None or cfg.ETF_ENABLED:
+        etf_label = cfg.ETF_TICKER if cfg else "GLD"
+        print(f"  → ETF flows ({etf_label})...")
+        gld = fetch_gld_flows()
+    else:
+        gld = {"error": f"ETF flows disabled for {SYM_CLEAN} (no equivalent ETF)"}
+
+    # Alias back to local names used throughout the rest of this function
+    gold_d       = price_d
+    gold_h4_full = price_h4_full
+    gold_h4      = price_h4
+    gold_d_closed  = price_d_closed
+    gold_h4_closed = price_h4_closed
 
     # 5. Indicators
     atr_d  = calc_atr(gold_d_closed)
@@ -569,9 +627,10 @@ def _compute_and_write(out_path):
     vp_block = (f"VAH: ${vp['VAH']}\nPOC: ${vp['POC']}  ← highest volume node\nVAL: ${vp['VAL']}"
                 if "error" not in vp else f"VP fetch failed: {vp['error']}")
 
+    display = _instrument_cfg.DISPLAY_NAME if _instrument_cfg else SYM_CLEAN.upper()
     out = f"""
 ╔══════════════════════════════════════════════════════╗
-  XAUUSD WEEKLY DATA — {TODAY.strftime('%Y-%m-%d')} (W{WEEK_NUM})
+  {display} WEEKLY DATA — {TODAY.strftime('%Y-%m-%d')} (W{WEEK_NUM})
 ╚══════════════════════════════════════════════════════╝
 
 ━━━ MACRO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -667,5 +726,14 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--force", action="store_true", help="Re-fetch full history")
+    ap.add_argument("--instrument", default="xauusd",
+                    choices=list(REGISTERED_INSTRUMENTS) + ["all"],
+                    help="Instrument to run (default: xauusd). 'all' runs every registered instrument.")
     args = ap.parse_args()
-    run(force=args.force)
+
+    to_run = list(REGISTERED_INSTRUMENTS) if args.instrument == "all" else [args.instrument]
+    for inst in to_run:
+        if len(to_run) > 1:
+            print(f"\n{'='*54}\n  {inst.upper()}\n{'='*54}")
+        load_instrument(inst)
+        run(force=args.force)

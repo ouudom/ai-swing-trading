@@ -5,7 +5,7 @@
 None
 
 ## Active Forecast
-[2026-W22](forecasts/weekly/2026-W22.md) — BEARISH / MEDIUM-HIGH macro, ALIGNED MTF, conviction MEDIUM-HIGH.
+[2026-W22 XAUUSD](forecasts/weekly/xauusd/2026-W22.md) — BEARISH / MEDIUM-HIGH macro, ALIGNED MTF, conviction MEDIUM-HIGH.
 
 - **Setup A** [8.0/10]: SELL limit $4590.24 — ❌ **EXPIRED UNFILLED** 2026-05-26 21:00 UTC. Today's high $4561.36 (28.88 below limit). Direction thesis ✅ (D1 close $4504.56 dropped through zone) but entry missed. Risk $2000 released.
 - **Setup B** [5.5/10]: SELL zone $4690–$4720 | TP $4607.50 — **WATCH** (val 10.0/10 but zone unreachable, spot $4504 = ~$186 below)
@@ -31,6 +31,8 @@ None
 - ~~Repair TD rate limit~~ ✅ Verified 2026-05-26: only 1 TD call per pull (15M, resampled locally). Original "9 credits/min" claim was stale/wrong.
 
 ## Last Session
+2026-05-27 (/validate 12:03 UTC re-run) — Spot $4510.50. Setup B WATCH 6.0/10 (G1❌ G3✅ G5✅ G2✅ V2✅ G6❌). G1 ❌: H4 making HL ($4483→$4498) not LL — consolidation post-drop. G6 ❌: Asia range $30.74 expanded. H4 ATR $26.99, D1 ATR $92.11 compressed, VIX 16.59, DFII10 2.16% slope +0.25 drift −0.02. V1/V1b/V3 all pass. All re-forecast triggers (T1-T5) clear. Zone $4690–$4720 = $179.50 above spot — unreachable. No order. D019 appended to forecasts/daily/xauusd/2026-05-27.md.
+
 2026-05-27 (/validate 09:06 UTC) — Spot $4505.42. Setup A gone (expired 05-26). Setup B WATCH 10.0/10 (G1✅ G3✅ G2✅ V2✅) but zone $4690–$4720 unreachable ($185+ above spot). H4 ATR $26.73, D1 ATR $92.11<97.40 compressed, DFII10 2.16% slope +0.25 drift −0.02 vs baseline 2.18. V1/V1b/V3/G4 all pass. Thu 05-28 12:30 UTC PCE+GDP = hard block — cancel any future limit by 10:30 UTC. D018 saved to forecasts/daily/2026-05-27.md.
 
 2026-05-26 (/validate 23:53 UTC EOD review) — Setup A limit $4590.24 EXPIRED UNFILLED at 21:00 UTC. Today's high $4561.36 = $28.88 below limit. D1 close $4504.56 dropped through zone_bottom $4530 — bearish thesis ✅ but entry missed. Outward 0.3 offset priced fill above realized high. Setup A removed from pending; $2000 risk released. Setup B still WATCH (zone $4690-$4720 unreachable, spot ~$186 below). Week: 0 trades filled. D017 logged.

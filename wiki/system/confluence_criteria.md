@@ -18,18 +18,19 @@ At /validate time (07:30 UTC), three hard blocks are checked first, then a 10-po
 |---|---|---|
 | V1 | D1 close beyond zone | INVALIDATED — remove setup from _HOT.md entirely |
 | V3 | NFP / FOMC / CPI / US Retail Sales within 2h of London or NY open | NO TRADE — cancel any live limit |
-| G4 | Outside 08:00–17:00 UTC session window | NO TRADE — re-validate at London open |
 
 ### Validation Score (max 10.0)
 
-Data-backed via 6.3 years XAUUSD backtest (2020–2026).
+Data-backed via 6.3 years XAUUSD backtest (2020–2026). Reweighted 2026-05-27 — added G5 (VIX regime), G6 (Asia range), redistributed via Path B.
 
 | # | Condition | Weight | Pass when |
 |---|---|---|---|
 | G1 | **H4+H1 Market Structure** | **3.5** | Both H4 and H1 show HH+HL (long) or LH+LL (short) |
-| G3 | **DFII10 Slope** | **3.5** | 20-day slope < 0 for longs, > 0 for shorts. Setup C exempt. |
-| G2 | **ATR Compression** | **2.0** | D1 ATR14 < 20-day median |
-| V2 | **Macro Drift OK** | **1.0** | DFII10 drift vs baseline < 0.10% against direction |
+| G3 | **DFII10 Slope** | **3.0** | 20-day slope < 0 for longs, > 0 for shorts. Setup C exempt. |
+| G5 | **VIX Regime** | **1.5** | Regime aligns with setup type — see VIX table below |
+| G2 | **ATR Compression** | **1.0** | D1 ATR14 < 20-day median |
+| V2 | **Macro Drift OK** | **0.5** | DFII10 drift vs baseline < 0.10% against direction |
+| G6 | **Asia Range Compression** | **0.5** | Asia session range (22:00–07:00 UTC, H1) < $15 |
 
 ### Thresholds
 
@@ -40,12 +41,31 @@ Hard blocks pass AND score < 6.0                          → NO TRADE
 Any hard block fails                                      → NO TRADE / INVALIDATED
 ```
 
-Minimum 6.0 requires at least G1+G3 (the two strongest signals). Cannot place on macro alone without structure, or structure alone without macro.
+Minimum 6.0 requires at least G1+G3 (3.5+3.0=6.5). Cannot place on macro alone without structure, or structure alone without macro.
 
 **H1 trigger** (replaces H4): pin bar, engulfing, or break-and-retest on H1 inside the setup zone. Observed at /validate time. Does not alter weekly confluence score or entry offset.
 
 **G3 note**: Counter-trend setups (Setup C) exempt — they already require RSI divergence + macro LOW/MEDIUM confidence.
-**G4 note**: Validate runs 07:30 UTC → London open always in-session. Fails only on out-of-hours re-runs.
+
+**G5 — VIX Regime Detail:**
+
+| VIX | Regime | Gold behavior | G5 pass condition |
+|-----|--------|---------------|-------------------|
+| <18 | Calm — yield-driven | Real-yield slope dominant (G3 reliable) | ✅ for all primary setups (A/B) aligned with G3 |
+| 18–25 | Mixed | Both yield + safe-haven flow | ✅ if G3 also passes; ❌ if G3 fails |
+| >25 | Risk-off — safe-haven | G3 can flip (gold rallies even on rising yields) | ✅ for LONG setups regardless of G3; ✅ for SHORT only if G3 strongly supports; counter-trend (C) gets ✅ automatically |
+
+VIX source: `data/fred/VIXCLS.csv` latest close. Hard-block edge case: VIX > 35 (panic regime) → all SHORT setups NO TRADE (safe-haven flow overwhelms structure).
+
+**G6 — Asia Range Detail:**
+
+Asia session = 22:00 UTC prior day → 07:00 UTC today (9 H1 bars). Compute: `max(high) − min(low)` across those bars.
+
+| Range | Pass | Reason |
+|-------|------|--------|
+| < $15 | ✅ | Compressed — expansion likely at London open |
+| $15–$30 | ❌ (0 pts, no penalty) | Normal range, no edge |
+| > $30 | ❌ + warn | Move possibly exhausted before London — flag in daily file |
 
 ---
 
@@ -134,7 +154,10 @@ H4_ATR14          = ATR(14) on trading-day H4 bars only (filter: range >= $1)
 D1_ATR14          = ATR(14) on D1 bars
 stop_distance     = avg(0.5 × D1_ATR14, H4_ATR14, structural_dist)   ← arithmetic mean
                     fallback: avg(0.5 × D1_ATR14, H4_ATR14) if no pivot within last 5 trading days
-cap: structural_dist > 3 × H4_ATR14 → NO TRADE
+cap:   structural_dist > 3 × H4_ATR14   → NO TRADE (zone too wide)
+floor: structural_dist < 0.5 × H4_ATR14 → pivot inside noise
+       → check yesterday's validation file; reuse yesterday's pivot if still valid
+       → else fallback to 2-component avg
 
 Order limit (offset OUTWARD beyond zone extreme):
   entry_offset = (10 − confluence_score) × 0.3 × stop_distance

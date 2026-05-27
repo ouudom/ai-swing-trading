@@ -24,17 +24,23 @@ active_setup: A | B | C | NONE
 # Hard blocks
 v1_structure_intact: true | false
 v3_news_clear: true | false
-g4_session: true | false
 # Validation score
 g1_mtf_structure: true | false   # 3.5 pts
-g3_dfii10_slope: true | false    # 3.5 pts
-g2_atr_compressed: true | false  # 2.0 pts
-v2_macro_drift: true | false     # 1.0 pts
+g3_dfii10_slope: true | false    # 3.0 pts
+g5_vix_regime: true | false      # 1.5 pts
+g2_atr_compressed: true | false  # 1.0 pts
+v2_macro_drift: true | false     # 0.5 pts
+g6_asia_compressed: true | false # 0.5 pts
 validation_score: 0.0            # max 10.0
+vix: 00.00
+asia_range: 00.00
 # Entry
 h1_trigger_present: true | false
 weekly_confluence_score: 0.0
 stop_distance: 0.00      # avg of three
+stop_type: structural | atr_fallback | reused_yesterday_pivot
+pivot_price: 0000.00     # H4 swing pivot price used for structural_dist (long: pivot low; short: pivot high). 0.0 if fallback.
+structural_dist: 0.00    # entry to pivot distance. 0.0 if fallback.
 entry_offset: 0.00       # (10 − score) × 0.3 × stop_distance, OUTWARD
 order_limit: PLACED | WATCH | NO_TRADE | INVALIDATED
 limit_price: 0000.00
@@ -74,16 +80,17 @@ _Mon only:_ Weekend gap ±x.xxx% → noise / note / warning / re-forecast
 |---|---|---|---|
 | V1 | D1 close beyond zone | ✅/❌ | ❌ = INVALIDATED, remove setup |
 | V3 | Hard news within 2h London/NY open | ✅/❌ | ❌ = NO TRADE, cancel limits |
-| G4 | Session 08:00–17:00 UTC | ✅/❌ | always ✅ at 07:30 |
 
 ## Validation Score (max 10.0)
 
 | | Condition | Pts | Result | Note |
 |---|---|---|---|---|
 | G1 | H4+H1 structure aligned | 3.5 | ✅/❌ | |
-| G3 | DFII10 slope supports direction | 3.5 | ✅/❌ | Setup C: always ✅ |
-| G2 | D1 ATR compressed (< 20d median) | 2.0 | ✅/❌ | |
-| V2 | DFII10 drift < 0.10% against direction | 1.0 | ✅/❌ | drift ±x.xxx% |
+| G3 | DFII10 slope supports direction | 3.0 | ✅/❌ | Setup C: always ✅ |
+| G5 | VIX regime aligned | 1.5 | ✅/❌ | VIX xx.xx — calm/mixed/risk-off |
+| G2 | D1 ATR compressed (< 20d median) | 1.0 | ✅/❌ | |
+| V2 | DFII10 drift < 0.10% against direction | 0.5 | ✅/❌ | drift ±x.xxx% |
+| G6 | Asia range < $15 (22:00–07:00 UTC) | 0.5 | ✅/❌ | range $xx.xx |
 | | **Total** | **x.x / 10.0** | | ≥ 6.0 to proceed |
 
 ## H1 Trigger
@@ -112,14 +119,14 @@ lots            = $2000 / ($xx.xx × 100) = x.xx → x.xx lots
 ### ✅ ORDER LIMIT _(score ≥ 6.0 + H1 trigger present)_
 ```
 ORDER LIMIT: BUY/SELL $xxxx.xx | x.xx lots | SL $xxxx.xx | TP $xxxx.xx | expires 21:00 UTC
-Validation: x.x/10  (G1:✅ G2:✅ G3:✅ V2:✅) | H1 trigger: ✅
-Stop: $xx.xx [structural / d1_floor / h4_floor / fallback] | Risk: $2,000 | R:R x.xx
+Validation: x.x/10  (G1:✅ G3:✅ G5:✅ G2:✅ V2:✅ G6:✅) | H1 trigger: ✅
+Stop: $xx.xx [structural / reused_yesterday_pivot / atr_fallback] | Risk: $2,000 | R:R x.xx
 "If price reaches $xxxx.xx, order triggers. Cancel if not hit by 21:00 UTC."
 ```
 
 ### 👁 WATCH _(score ≥ 6.0, no H1 trigger)_
 ```
-WATCH — x.x/10  (G1:✅ G2:✅ G3:✅ V2:✅)
+WATCH — x.x/10  (G1:✅ G3:✅ G5:✅ G2:✅ V2:✅ G6:✅)
 "Await H1 pin bar / engulfing / B&R inside $xxxx–$xxxx. If trigger forms before 17:00 UTC → set limit at $xxxx.xx."
 ```
 

@@ -1,0 +1,34 @@
+"""XAUUSD instrument config — gold vs USD."""
+
+SYMBOL       = "XAU/USD"
+SYM_CLEAN    = "xauusd"
+DISPLAY_NAME = "XAUUSD"
+
+# Data paths (relative to project root)
+TD_DIR   = "data/twelvedata/xauusd"
+PULL_DIR = "data/weekly_pull/xauusd"
+
+# FRED series to fetch
+FRED_SERIES = ["DFII10", "DGS10", "T5YIE", "DFF", "VIXCLS"]
+
+# COT (CFTC gold futures)
+COT_ENABLED       = True
+COT_CONTRACT_NAME = "GOLD - COMMODITY EXCHANGE INC."
+
+# ETF flows (SPDR GLD)
+ETF_ENABLED      = True
+ETF_TICKER       = "GLD"
+ETF_HOLDINGS_CSV = "data/gld_holdings.csv"
+
+# Volume Profile futures ticker (yfinance)
+VP_TICKER = "GC=F"
+
+# Lot sizing: $2000 / (stop_distance × TICK_MULTIPLIER) = lots
+# $1 move in gold = $100 per standard lot
+TICK_MULTIPLIER = 100
+
+# Market hours: CME Globex closes Fri 22:00 UTC, reopens Sun 22:00 UTC
+MARKET_CLOSE_WEEKDAY  = 4   # Friday (0=Mon)
+MARKET_CLOSE_HOUR_UTC = 22
+MARKET_REOPEN_WEEKDAY  = 6  # Sunday
+MARKET_REOPEN_HOUR_UTC = 22

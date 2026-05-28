@@ -41,7 +41,7 @@ stop_distance: 0.00      # avg of three
 stop_type: structural | atr_fallback | reused_yesterday_pivot
 pivot_price: 0000.00     # H4 swing pivot price used for structural_dist (long: pivot low; short: pivot high). 0.0 if fallback.
 structural_dist: 0.00    # entry to pivot distance. 0.0 if fallback.
-entry_offset: 0.00       # (10 − score) × 0.3 × stop_distance, OUTWARD
+entry_offset: 0.00       # (10 − score) × 0.25 × stop_distance, OUTWARD
 order_limit: PLACED | WATCH | NO_TRADE | INVALIDATED
 limit_price: 0000.00
 limit_direction: BUY | SELL | N/A
@@ -107,7 +107,7 @@ H4_ATR14        = $xx.xx (trading-day filter: range>=$1)
 stop_distance   = avg(0.5×D1_ATR, H4_ATR, structural_dist) = $xx.xx     ← arithmetic mean
 cap check       = structural_dist $xx.xx < 3 × H4_ATR $xx.xx? ✅/❌
 
-entry_offset    = (10 − score) × 0.3 × stop_distance = $xx.xx
+entry_offset    = (10 − score) × 0.25 × stop_distance = $xx.xx
 limit_price     = zone_top + offset (short) | zone_bottom − offset (long)   ← OUTWARD
 SL              = limit_price ± stop_distance = $xxxx.xx
 TP              = $xxxx.xx (locked from weekly — = x.xR)

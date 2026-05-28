@@ -60,13 +60,35 @@ tags: [index, xauusd]
 
 ## Pending Research
 
-- [ ] **CRITICAL — validate the live edge.** 2026-05-28: replaced backtest stub `g1=3.5` (always-pass)
-      with real fractal structure gate (`scripts/structure.py`, N=2). `s_weekly_swing_v1` collapsed
-      from "22 trades / +$18k" (stub artifact) to **3 trades / −$2419 / 0% win, 2020–2026**. The
-      claimed XAUUSD edge was never tested — G1 was hardcoded. Must establish whether an objective
-      structure gate has positive expectancy before trusting the system or cloning it to EURUSD.
-      Tunable research params: pivot N, H1/H4 lookback window (60-bar H1 → "mixed" 60%+ of weeks),
-      whether G1 should require BOTH TFs or weight them.
+- [ ] **CRITICAL — live edge UNVALIDATED (Phase 0 done 2026-05-28).** Replaced backtest stub
+      `g1=3.5` (always-pass) with real fractal gate (`scripts/structure.py`). Swept pivot_n{2,3} ×
+      struct_win{40,60,90,120} × g1_mode{both,h4_only,either} × r_floor 1.8
+      (`scripts/sweep_structure.py`). **Result: 0/24 configs reach N>=30 trades.** Best by PnL:
+      pivot_n2/either = +$11.8k but only **11 trades in 6 yr** (PF 3.58); pivot_n2/both = 3 trades
+      −$2.2k. Trade frequency is structurally ~1.5–2.5/yr — too low to validate ANY edge.
+      Findings: (a) struct_win irrelevant (last-2-pivots stable across windows); (b) bottleneck is
+      the SERIAL entry funnel (weekly-bias → zone → in-session → pin-trigger≤8bars → outward-offset
+      fill → R≥1.8), not G1 alone — each stage halves the sample. **Decision needed:** redesign the
+      entry funnel for usable frequency (drop/relax pin-trigger, allow touch-fills, multiple
+      setups/wk) OR accept rare-trade regime + validate over longer history. DO NOT clone to EURUSD
+      until the method itself shows edge.
+- [ ] **Funnel diagnosis (2026-05-28, `scripts/diag_funnel.py`).** 314 armed weeks →
+      filled: LIVE 2 / best 9 / most 15. **Dominant killer = OUTWARD OFFSET:** fresh_trigger→filled
+      drops ~85–95% (65→2, 80→9, 81→15). Pin triggers INSIDE zone but limit sits BEYOND zone extreme
+      → price rejects, moves away, never fills. The "commitment filter" (constitution:103) is a
+      never-trade filter. **Redesign target: entry fill mechanism** (fill at trigger bar / zero or
+      inward offset). Inert rules to delete: recency cap ≤8 bars (got_trigger==fresh_trigger always)
+      and R≥1.8 floor (filled==passed_R always). Also: G1 not truly mandatory — G1-fail + ATR-compressed
+      scores exactly 5.5 and proceeds; 5.5 floor lets structure-less setups through.
+- [x] **Entry-mechanism sweep (2026-05-28, `scripts/sweep_entry.py`).** OVERTURNS the fill-at-trigger
+      fix. Outward offset is LOAD-BEARING, not a bug. Monotonic across sweep: more offset → fewer
+      trades → higher win%/avgR/PF. fill_at_trigger: 63–77 trades, PF 0.64–0.71, **−$14.7k** (captures
+      failed rejections). offset 0.00: still losing. **offset 0.15 = sweet spot:** PF ~2, +$9–10k,
+      ~3 trades/yr. Current live 0.30 over-tuned (best quality, ~2 trades/yr, tiny N). Conclusion:
+      method is inherently LOW-FREQUENCY (~2–3 quality trades/yr/instrument); aggregate frequency must
+      come from multiple instruments, NOT from loosening any single gate. ACTIONS: (1) consider live
+      offset_coef 0.30→0.15; (2) keep offset (do not fill-at-trigger); (3) low per-instrument freq is
+      the rationale for multi-instrument breadth incl. EURUSD.
 - [ ] **G5/G6 backtest gap.** Loader has no VIX or Asia-range data → G5 (1.5) + G6 (0.5) weights
       unvalidated (marked provisional in confluence_criteria). Add VIX + intraday-session to loader,
       run with/without comparison.

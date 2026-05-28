@@ -167,28 +167,26 @@ floor: structural_dist < 0.5 × H4_ATR14 → pivot inside noise
        → else fallback to 2-component avg
 
 Order limit (offset OUTWARD beyond zone extreme):
-  entry_offset = (10 − confluence_score) × 0.3 × stop_distance
+  entry_offset = (10 − confluence_score) × 0.25 × stop_distance
   Short: limit_price = zone_top    + entry_offset    ← above zone
   Long:  limit_price = zone_bottom − entry_offset    ← below zone
 
 Direction: offset pushes limit AWAY from spot, BEYOND zone extreme. Lower score = bigger
 overshoot required before fill. Confluence score gates GO/WATCH/NO-TRADE AND scales offset.
-
-R:R floor (after offset): R = abs(TP − limit_price) / stop_distance. R < 1.8 → NO TRADE.
 ```
 
 | Score | Conviction | Offset (× stop_distance) | Risk |
 | --- | --- | --- | --- |
 | 10.0 | HIGH | 0 (limit at zone extreme) | $2000 |
-| 7.5–9.5 | MEDIUM-HIGH | 0.15–0.75× | $2000 |
-| 5.5–7.0 | MEDIUM | 0.90–1.35× | $2000 |
+| 7.5–9.5 | MEDIUM-HIGH | 0.125–0.625× | $2000 |
+| 5.5–7.0 | MEDIUM | 0.75–1.125× | $2000 |
 | < 5.5 | LOW | — NO TRADE | — |
 
 **Example:** Zone $4,660–$4,700, score 7.5/10. D1 ATR=$70 → 0.5×D1=$35. H4 ATR (trading) = $31. structural_dist = $35. stop_distance = avg($35, $31, $35) = $33.67.
 ```
-offset      = (10 − 7.5) × 0.3 × $33.67 = 2.5 × 0.3 × $33.67 = $25.25
-limit_price = zone_top + offset = $4,700 + $25.25 = $4,725.25   (short)
-SL          = $4,725.25 + $33.67 = $4,758.92
+offset      = (10 − 7.5) × 0.25 × $33.67 = 2.5 × 0.25 × $33.67 = $21.04
+limit_price = zone_top + offset = $4,700 + $21.04 = $4,721.04   (short)
+SL          = $4,721.04 + $33.67 = $4,754.71
 lots        = $2000 / ($33.67 × 100) = 0.59 lots
 ```
 

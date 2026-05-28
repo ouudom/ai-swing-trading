@@ -125,6 +125,19 @@ When a decision changes, add a new belief_log entry — never delete old ones.
 
 ---
 
+## D014 — Entry-mechanism cleanup: offset 0.3→0.25, delete inert gates
+**Decision:** (1) `entry_offset = (10 − score) × 0.25 × stop_distance` (was 0.3). (2) Deleted two inert rules proven never to bind in backtest: H1 trigger recency cap (≤8 bars; got_trigger==fresh_trigger always) and the R≥1.8 floor (filled==passed_R always). G1 stays SCORED (3.5 pts), NOT mandatory — a G1-fail week can still clear 6.0 via other gates; user opted to keep that flexibility.
+**Rationale:** Phase-0 research (`scripts/sweep_entry.py`, `diag_funnel.py`, 2020–2026). Outward offset is load-bearing — fill-at-trigger loses (PF 0.64); per-trade PF rises monotonically with offset. 0.25 chosen for quality over frequency (user: "fine with no trade than losing; this is backtest not live"). Method is intentionally selective; usable frequency must come from instrument breadth, NOT from loosening gates. Open question flagged: strict 2-pivot fractal on H1 may over-filter vs the human "both trending" intent — revisit G1 H1 definition before relying on live frequency.
+**belief_log:**
+- date: 2026-05-25
+  belief: "0.3 coefficient, recency cap + R-floor active"
+  trigger: "D013 + later /validate additions"
+- date: 2026-05-28
+  belief: "0.25 coefficient, inert gates removed; G1 stays scored (not mandatory)"
+  trigger: "Phase-0 edge research + user-directed config"
+
+---
+
 ## D013 — Outward offset coefficient 0.2 → 0.3
 **Decision:** `entry_offset = (10 − score) × 0.3 × stop_distance` (was 0.2). Higher coefficient amplifies overshoot demand on lower-confluence setups.
 **Rationale:** At 0.2, score-5.5 setup offset = 0.9×stop ≈ same as stop. At 0.3, score-5.5 offset = 1.35×stop — stronger commitment filter on weak setups, near-zero impact on high-confluence (score 8+ → 0.6×stop offset). Steeper score-to-overshoot gradient.

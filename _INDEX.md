@@ -25,6 +25,7 @@
 
 ## Research
 - `wiki/research/xauusd/_INDEX.md` — data sources, scripts, standards, pending research
+- `wiki/research/eurusd/_INDEX.md` — EURUSD edge-first research index; macro driver = DGS2−ESTR differential (pending Phase-2 confirm)
 - `wiki/research/xauusd/concepts/mtf-market-structure.md` — swing trend alignment (HH/HL pivot detection)
 - `wiki/research/xauusd/concepts/stop-loss.md` — stop placement: structural vs ATR
 - `wiki/research/xauusd/concepts/macro-regime.md` — FRED macro vs gold: DFII10, DXY, VIX

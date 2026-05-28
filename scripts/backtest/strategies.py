@@ -5,7 +5,19 @@ import numpy as np
 import pandas as pd
 from .engine import Config, Trade, Result, open_trade, close_pnl, manage
 from .data import atr, rsi
-from scripts.structure import g1_pass, nearest_pivot_dist
+from scripts.structure import g1_pass, nearest_pivot_dist, structure_state
+
+
+def _g1_check(h4_hist, h1_hist, bias, mode, n):
+    """G1 structure gate, parametrized for sweeps. mode: 'both' | 'h4_only' | 'either'."""
+    want = "up" if bias > 0 else "down"
+    s4 = structure_state(h4_hist, n)
+    s1 = structure_state(h1_hist, n)
+    if mode == "h4_only":
+        return s4 == want
+    if mode == "either":
+        return s4 == want or s1 == want
+    return s4 == want and s1 == want  # 'both' (default)
 
 
 def _close_position(cfg, trades, pos, entry, exit_px, size, risk_dist, entry_time, exit_time, reason):
@@ -374,10 +386,14 @@ def s_buyhold(cfg, data):
 
 # ===== 13. Weekly swing v1 — mirrors live /validate formula =====
 # Stop = avg(0.5*D1_ATR14, H4_ATR14_trading, structural_dist)
-# OUTWARD offset = (10 - score) * 0.3 * stop_distance
+# OUTWARD offset = (10 - score) * 0.25 * stop_distance
 # Score: G1 (MTF align) 3.5 + G2 (ATR compressed) 2.0 + G3 (D1 EMA50 trend) 3.5 = 9.0 max
 # (V2 macro drift excluded — no FRED data in backtest loader)
-def s_weekly_swing_v1(cfg, data):
+def s_weekly_swing_v1(cfg, data, params=None):
+    p = {"pivot_n": 2, "struct_win": 60, "g1_mode": "both",
+         "entry_mode": "offset", "offset_coef": 0.25}
+    if params:
+        p.update(params)
     d1 = data["D1"].copy()
     h4_full = data["H4"].copy()
     h1 = data["H1"].copy()
@@ -450,10 +466,10 @@ def s_weekly_swing_v1(cfg, data):
                 z_lo = z_hi - 0.5 * d1_atr
             zone_top, zone_bot = z_hi, z_lo
 
-            # Score components — G1 now a real fractal structure check (shared module)
-            h4_hist = h4[h4.index < ts].tail(60)
-            h1_hist = h1[h1.index < ts].tail(60)
-            g1 = 3.5 if g1_pass(h4_hist, h1_hist, bias) else 0.0
+            # Score components — G1 real fractal structure check (shared module, parametrized)
+            h4_hist = h4[h4.index < ts].tail(p["struct_win"])
+            h1_hist = h1[h1.index < ts].tail(p["struct_win"])
+            g1 = 3.5 if _g1_check(h4_hist, h1_hist, bias, p["g1_mode"], p["pivot_n"]) else 0.0
             g2 = 2.0 if d1_atr < d1_atr_med else 0.0
             g3 = 3.5  # bias passes if direction matches D1 EMA trend (already true by construction)
             score = g1 + g2 + g3  # max 9.0
@@ -486,10 +502,7 @@ def s_weekly_swing_v1(cfg, data):
 
         if trigger:
             trigger_bar_idx = i
-
-        # Recency cap: trigger ≤ 8 bars ago
-        if (i - trigger_bar_idx) > 8:
-            eq_curve.append(equity); continue
+        # Need a trigger to have fired (recency cap deleted 2026-05-28 — never bound)
         if trigger_bar_idx < 0:
             eq_curve.append(equity); continue
 
@@ -499,7 +512,7 @@ def s_weekly_swing_v1(cfg, data):
         # structural_dist: distance from zone extreme to nearest fractal pivot (shared module)
         h4_hist = h4[h4.index < ts]
         ref_px = zone_bot if bias > 0 else zone_top
-        struct = nearest_pivot_dist(h4_hist, ref_px, bias)
+        struct = nearest_pivot_dist(h4_hist, ref_px, bias, n=p["pivot_n"])
         if struct is None or struct <= 0:
             stop_distance = (0.5 * d1_atr + h4_atr_now) / 2.0
             struct = 0.0
@@ -511,26 +524,22 @@ def s_weekly_swing_v1(cfg, data):
         if struct > 3 * h4_atr_now:
             eq_curve.append(equity); continue
 
-        # Outward offset
         recent_d = d1[d1.index < ts].tail(5)
-        entry_offset = (10 - score) * 0.3 * stop_distance
-        if bias > 0:
-            limit_px = zone_bot - entry_offset
-            tp_px = recent_d.high.max()  # opposite-direction structural anchor
+        tp_px = recent_d.high.max() if bias > 0 else recent_d.low.min()
+
+        if p["entry_mode"] == "trigger_fill":
+            # Fill at the trigger bar close — the in-zone pin IS the entry signal.
+            limit_px = row.close
+            filled = True
         else:
-            limit_px = zone_top + entry_offset
-            tp_px = recent_d.low.min()
+            # Outward offset: limit placed beyond zone extreme, away from spot.
+            entry_offset = (10 - score) * p["offset_coef"] * stop_distance
+            limit_px = (zone_bot - entry_offset) if bias > 0 else (zone_top + entry_offset)
+            filled = (row.low <= limit_px <= row.high)
+            if not filled:
+                eq_curve.append(equity); continue
 
-        # Did this bar reach limit_px?
-        filled = (row.low <= limit_px <= row.high)
-        if not filled:
-            eq_curve.append(equity); continue
-
-        # R:R floor — mirrors live /validate (1.8R)
-        r_planned = abs(tp_px - limit_px) / stop_distance
-        if r_planned < 1.8:
-            eq_curve.append(equity); continue
-
+        # (R:R floor deleted 2026-05-28 — every fill already cleared it; never bound)
         risk_dist = stop_distance
         size, stop, _tp_engine, be_trig, equity = open_trade(cfg, bias, limit_px, risk_dist, equity)
         # Override engine TP with our structural anchor

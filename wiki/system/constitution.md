@@ -87,7 +87,7 @@ Daily workflow (runs 07:30 UTC, before London open):
 
 **Order limit placement — outward offset beyond zone extreme:**
 ```
-entry_offset = (10 − confluence_score) × 0.3 × stop_distance
+entry_offset = (10 − confluence_score) × 0.25 × stop_distance
 
 Short: limit_price = zone_top    + entry_offset    ← offset OUTWARD (above zone)
 Long:  limit_price = zone_bottom − entry_offset    ← offset OUTWARD (below zone)
@@ -97,21 +97,12 @@ Lower confluence → bigger offset → price must overshoot zone further before 
 Higher confluence → smaller offset → limit closer to zone extreme.
 
 At score 10: offset = 0 → limit at zone extreme exactly.
-At score 5.5: offset = 1.35 × stop_distance → limit 1.35 stop-units past extreme.
+At score 5.5: offset = 1.125 × stop_distance → limit 1.125 stop-units past extreme.
 ```
 
-Rationale: offset = BUFFER. Forces price to commit OUTWARD (through zone extreme) before triggering. Earlier inward-offset (toward spot) produced premature fills on confirmed-rejection trades. Outward offset = strong-commitment filter — fewer fills, higher-quality entries.
+Rationale: offset = BUFFER. Forces price to commit OUTWARD (through zone extreme) before triggering. Earlier inward-offset (toward spot) produced premature fills on confirmed-rejection trades. Outward offset = strong-commitment filter — fewer fills, higher-quality entries. Backtest 2020–2026 (`scripts/sweep_entry.py`) confirmed: the offset is load-bearing — fill-at-trigger (no offset) loses money (PF 0.64), and per-trade PF rises monotonically with offset. Coefficient 0.25 chosen to favour trade quality over frequency (~2 trades/yr/instrument; aggregate frequency comes from running multiple instruments).
 
 Stop distance drives sizing AND offset — see Position Sizing.
-
-**Minimum R:R gate (checked after offset, before placing order):**
-```
-R = abs(TP − limit_price) / stop_distance
-R < 1.8 → ❌ NO TRADE ("R:R floor: [R] < 1.8")
-```
-Outward offset pushes the limit away from spot daily, shrinking R while TP stays frozen from /weekly.
-The 1.8 floor protects the 3R-target premise — if daily conditions erode R below 1.8, the edge is gone.
-Applies to all setups (A/B/C).
 
 **Two distinct score thresholds — do not conflate:**
 - Weekly confluence score (Signals 1–7, max 10.0): minimum **5.5/10** to include setup in forecast as PENDING. This is the setup quality floor — scored at /weekly time.

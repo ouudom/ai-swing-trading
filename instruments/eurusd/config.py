@@ -12,9 +12,16 @@ DISPLAY_NAME = "EURUSD"
 TD_DIR   = "data/twelvedata/eurusd"
 PULL_DIR = "data/weekly_pull/eurusd"
 
-# FRED series — USD macro still relevant; expand with EU-specific series TBD
-# TODO: add EU macro: ECB rate series, EU inflation, EU PMI (non-FRED sources)
-FRED_SERIES = ["DFF", "VIXCLS", "DGS10"]
+# FRED series. Macro driver = US-EU short-rate differential (DGS2 - ESTR), daily + independent
+# of EUR price (unlike DXY). German Bund is monthly-only on FRED, so a 10y differential is not
+# feasible free; ESTR (euro overnight, daily) supplies the EU side, DGS2 carries the daily move.
+#   DGS2  = US 2y (rate-expectations, dominant EURUSD driver)
+#   DFII10/DGS10 = US real/nominal 10y (context)
+#   ECBESTRVOLWGTTRMDMNRT = ESTR euro short-term rate (daily)
+#   DFF, VIXCLS = policy + risk regime
+# Differential slope's predictive power on EUR direction must be CONFIRMED in Phase-2 research
+# before its weight is locked (edge-first).
+FRED_SERIES = ["DGS2", "DGS10", "DFII10", "ECBESTRVOLWGTTRMDMNRT", "DFF", "VIXCLS"]
 
 # COT (CFTC EUR/USD futures) — disabled until system defined
 # TODO: verify exact contract name from CFTC deahistfo{year}.zip

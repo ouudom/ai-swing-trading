@@ -68,19 +68,20 @@ Daily workflow (runs 07:30 UTC, before London open):
   2. Hard blocks (any fail = stop immediately):
        V1: D1 close beyond zone? → INVALIDATED (remove setup)
        V3: Hard news event within 2h? → NO TRADE
-  3. Validation score (max 10.0):
-       G1 H4+H1 structure aligned   3.5 pts
-       G3 DFII10 slope supports     3.0 pts
-       G5 VIX regime aligned        1.5 pts
-       G2 D1 ATR compressed         1.0 pts
-       V2 Macro drift OK            0.5 pts
-       G6 Asia range < $15          0.5 pts
+  3. Validation score (max 10.0) — XAUUSD (D017 reweight 2026-05-28):
+       G1 H4+H1 structure aligned   4.0 pts
+       G3 DFII10 slope supports     3.5 pts
+       G2 D1 ATR compressed         1.5 pts
+       V2 Macro drift OK            1.0 pts
+       G5 VIX regime                VETO 0 pts (VIX>35 → shorts NO TRADE; logged)
+       G6 Asia range                0 pts (logged as context)
   4. H1 trigger check (pin bar / engulfing / B&R on H1 inside zone)?
 
+  → floor = 6.5 if ADX(14) D1 in 20–25 (transitional regime) else 6.0
   → OUTPUT (exactly one of):
-     ✅ ORDER LIMIT: score ≥ 6.0 + H1 trigger present
-     👁 WATCH: score ≥ 6.0, no H1 trigger yet
-     ❌ NO TRADE: score < 6.0 or hard block triggered
+     ✅ ORDER LIMIT: score ≥ floor + H1 trigger present
+     👁 WATCH: score ≥ floor, no H1 trigger yet
+     ❌ NO TRADE: score < floor or hard block triggered
 
   5. Order expires 21:00 UTC — re-validate next morning, never carry forward.
 ```

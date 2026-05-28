@@ -1,57 +1,50 @@
 ---
 type: system
-updated: 2026-05-27
-confidence: low
-tags: [eurusd, macro, drivers]
+updated: 2026-05-28
+confidence: medium
+tags: [eurusd, macro, drivers, fundamental]
 related: [profile.md, confluence_criteria.md]
 ---
 
-# EURUSD Macro Drivers
+# EURUSD Macro / Fundamental Drivers
 
-> **STATUS: SCAFFOLD — define before running /weekly eurusd.**
+> Feeds **S5 (weekly) + G4 (daily) as a 0-POINT VETO** — NOT a scored signal (unlike DFII10 for
+> gold, which scores). EUR macro is null/regime-unstable as a standalone directional signal
+> (research below), so it cannot ADD conviction — it can only BLOCK a fade when fundamentals are
+> strongly driving price further into the extreme. Multi-factor + discretionary; never a mechanical
+> slope gate. (D016.)
 
-## Primary Drivers (TODO — research and fill)
+## Primary drivers (ranked)
 
-### 1. Fed/ECB Rate Differential
-- Direction: EUR strengthens when ECB > Fed, weakens when Fed > ECB
-- Data: DFF (Fed funds), ECB deposit rate (non-FRED — pull from ECB data portal or web)
-- Signal: rate differential widening/narrowing + forward guidance
+### 1. US–EU rate differential  [core of S6 / G3]
+- Proxy: **DGS2 − ESTR** (US 2y vs euro short-term rate), daily. Also watch DGS10−Bund and Fed/ECB policy spread.
+- Direction (textbook): wider US advantage → USD bid → EUR bearish. EUR long wants differential slope < 0; short > 0.
+- **Caveat (research 2026-05-28):** as a *lone mechanical slope gate* this had ~0 edge over 22yr and
+  flipped sign across regimes (textbook 2010-23, inverted 2023-26). So: use as direction CONTEXT inside
+  multi-factor confluence + discretionary forecast, NOT as a standalone trigger. Confidence MEDIUM at best.
 
-### 2. Relative Inflation
-- EUR: EU HICP (Eurostat) or German CPI
-- USD: PCE, CPI
-- Signal: higher EU inflation relative to US = ECB more hawkish = EUR bullish
+### 2. Fed / ECB policy + forward guidance
+- DFF vs ECB deposit rate (ECBDFR); meeting outcomes, dot-path / guidance tone. Drives the differential's trend.
 
-### 3. EU Growth Proxy
-- German/EU PMI manufacturing + services
-- EU GDP QoQ
-- Signal: EU PMI > 50 and expanding = EUR bullish
+### 3. Relative growth & inflation
+- EU HICP, German CPI, EU/German PMI vs US CPI/PCE/ISM. Surprise vs consensus matters most
+  (consensus feed not yet wired — flagged in research index).
 
-### 4. DXY (Inverse)
-- Strong negative correlation to EUR/USD
-- Data: `data/yahoo/DXY.csv` (already fetched)
-- Signal: DXY rising = EUR bearish; DXY falling = EUR bullish
+### 4. DXY (inverse) [G3 confirm]
+- `data/yahoo/DXY.csv` (ICE). EUR ≈ 57.6% of DXY → strong inverse. DXY 20d trend confirms G3.
+  Note: near-mirror of EUR price, so it confirms, doesn't independently lead.
 
-### 5. VIX / Risk Sentiment
-- USD is safe-haven — VIX spike = USD bid = EUR bearish
-- Same VIXCLS data from FRED
+### 5. Risk sentiment / VIX [G5]
+- USD safe-haven bid on risk-off. VIXCLS regime table → G5. VIX>35 → shorts blocked.
 
-### 6. COT Positioning
-- CFTC EUR FX futures spec net position
-- Extremes signal reversal risk (same logic as gold COT)
-- Contract: `EURO FX - CHICAGO MERCANTILE EXCHANGE` (verify)
+### 6. COT positioning (context)
+- CFTC EURO FX spec net (`data/cftc/eur_cot_net.csv`). Research: no standalone edge (corr +0.01) →
+  context/extreme-flag only, not a scored signal.
 
-## Re-Forecast Triggers (TODO — define equivalent of T1-T5)
+## News (V3 + T4-X)
+ECB decision + presser, EU HICP, German CPI/PMI, plus US NFP/FOMC/CPI/Retail/PCE-GDP. Hard-block
+within 2h of London/NY open; structured-shock scan per T4-X. See constitution_addendum.
 
-XAUUSD uses T1=DFII10, T2=DXY, T3=gold move, T4=macro shock, T5=cumulative drift.
-EURUSD equivalent triggers need definition:
-- T1: ECB rate surprise / unscheduled ECB action
-- T2: DXY 1-day jump > 1.0% (same as XAUUSD T2)
-- T3: EUR/USD D1 move > X% against weekly bias (threshold TBD)
-- T4: macro shock (same T4-X/T4-Y framework)
-- T5: rate differential cumulative drift (threshold TBD)
-
-## Baseline Variables (TODO — define frontmatter fields)
-
-XAUUSD baseline uses `baseline_dfii10` + `baseline_dxy`.
-EURUSD equivalent: `baseline_fed_ecb_spread` + `baseline_dxy` (same DXY)
+## Data
+DGS2, DGS10, DFII10, ECBESTRVOLWGTTRMDMNRT (ESTR), DFF, ECBDFR, VIXCLS (FRED); DXY (yahoo); EUR COT (cftc).
+Full research + nulls: `wiki/research/eurusd/_INDEX.md`.

@@ -177,6 +177,50 @@ When a decision changes, add a new belief_log entry — never delete old ones.
 
 ---
 
+## D017 — G5 (VIX) + G6 (Asia) demoted to 0-point veto; weight → G1/G3/G2/V2 (2026-05-28)
+**Decision:** XAUUSD daily-validation reweight. G5 (VIX, was 1.5) and G6 (Asia range, was 0.5) now
+award ZERO points. G5 retains a hard RISK veto (VIX>35 → shorts NO TRADE); G6 is informational/logged.
+Their 2.0 pts redistributed to backtest-proven anchors: G1 3.5→4.0, G3 3.0→3.5, G2 1.0→1.5, V2 0.5→1.0.
+Max stays 10.0; floor 6.0 still needs ≥1 of G1/G3.
+**Rationale:** `scripts/sweep_g5g6.py` added VIX + Asia-range to the backtest and tagged every executed
+trade. The live-formula strategy fires only ~1.7 trades/yr (11 in 6.3yr) → sample far too small to
+validate a 2.0-pt sub-weight. What signal existed was null/contradictory: Asia-compressed avgR +0.86
+vs normal +1.17 (compression did NOT help); VIX>25 was n=1 (one lucky long). Edge-first: an
+unconfirmable weight is removed, not assumed. Resolves the X1 audit item — answer was (a) "keep only
+if confirmed," and it was not confirmed.
+**belief_log:**
+- date: 2026-05-27
+  belief: "G5 VIX 1.5 + G6 Asia 0.5 added via Path B redistribution (assumed weights)"
+  trigger: "Daily-validation reweight — VIX/Asia hypothesized to add edge"
+- date: 2026-05-28
+  belief: "G5/G6 demoted to 0-pt veto/info; backtest can't validate sub-weights at ~1.7 trades/yr"
+  trigger: "scripts/sweep_g5g6.py — X1 audit; edge not confirmed"
+
+---
+
+## D015 — System-audit honesty + ADX wired + G1 floor-math correction (2026-05-28)
+**Decision:** Three audit outcomes recorded as belief: (1) XAUUSD's real edge is THIN — Phase-0 (`scripts/diag_funnel.py`, `sweep_entry.py`) showed the prior "edge" was a hardcoded g1 stub; real signal ≈ 2 trades/yr/instrument, carried by the outward-offset (load-bearing: fill-at-trigger PF 0.64, PF rises monotonically with offset) + mandatory structural. Frequency must come from instrument breadth, never from loosening gates. (2) The ADX(14) regime filter, previously a floating doc rule, is now WIRED: transitional regime (ADX 20–25) raises the daily-validation floor 6.0→6.5; /weekly biases setup type by regime. (3) Corrected a wrong doc claim — daily floor 6.0 needs **at least one** of G1/G3, not both; G1 is scored (3.5) but NOT individually mandatory (a G1-fail week clears 6.0 via G3+G5+G2+V2+G6=6.5).
+**Rationale:** Honest framing prevents over-trusting the confluence score. Dead/floating rules erode doc trust — wire them or delete them. G5 (VIX 1.5) + G6 (Asia 0.5) remain PROVISIONAL pending backtest-loader validation (D-pending, task X1).
+**belief_log:**
+- date: 2026-05-28
+  belief: "XAUUSD edge thin but real (offset + structure); ADX now a live floor modifier; G1 non-mandatory by design and by floor math"
+  trigger: "Deep system audit — user requested weakness review before/alongside EUR build"
+
+---
+
+## D016 — EURUSD ships as RSI-anchored mean-reversion swing; intraday edge shelved (2026-05-28)
+**Decision:** EURUSD goes live on the SAME architecture as XAUUSD (weekly forecast → daily validation → outward-offset limit) but with its OWN, research-derived signals: a MEAN-REVERSION confluence anchored on RSI extremes. Measured edge (`scripts/research_eurusd_indicators.py`, 6.4yr, forward-5d vs 48.9% baseline): RSI>70 short +6.6pp / RSI<30 long +4.4pp (strongest), Bollinger 2σ +1.6pp, structural extreme +1.3–2.3pp; Donchian breakout NEGATIVE (fade, never follow); macro/rate-diff NULL + regime-flipping → context-only, no positive confluence points. The separately-validated intraday NY-overlap fade (Phase 3, PF~1.2, OOS-stable) is SHELVED — it is a different system, not the swing book the user wants now.
+**Rationale:** User explicitly requires the weekly-swing/confluence/offset architecture for every instrument. EUR swing edge is THIN (RSI mean-reversion modest) and conviction is medium-low until thresholds are calibrated — accepted, with eyes open. Honest record so future-self knows EUR swing is not a strong-edge system and the intraday alternative exists if the swing book underperforms.
+**belief_log:**
+- date: 2026-05-28
+  belief: "EUR macro driver (DGS2−ESTR) is THE anchor like DFII10 for gold"
+  trigger: "Initial EUR scaffold (instruments/eurusd/config.py)"
+- date: 2026-05-28
+  belief: "EUR macro is null/regime-unstable; EUR is MEAN-REVERTING; swing confluence = RSI-extreme + structural extreme + Bollinger, macro context-only. Intraday fade shelved."
+  trigger: "Phase-2 research nulls + Phase-2e indicator scan; user-directed architecture"
+
+---
+
 ## D004 — No ICT/SMC Concepts
 **Decision:** System uses market structure, S/R, RSI, EMA, Fibonacci, ATR. No order blocks, FVGs, liquidity grabs.
 **Rationale:** Zero peer-reviewed validation. Cultish community dynamics. Same underlying concepts expressible with classical TA vocabulary that has partial empirical support.

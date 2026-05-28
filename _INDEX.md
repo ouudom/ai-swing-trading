@@ -9,6 +9,7 @@
 - `wiki/system/constitution.md` — risk rules, TP structure, entry/stop rules
 - `wiki/system/xauusd_profile.md` — gold macro drivers, sessions, ATR ranges, position sizing
 - `wiki/system/confluence_criteria.md` — 7-signal scoring rubric, fake confluence rules
+- `wiki/system/adding_instruments.md` — end-to-end process for onboarding a new instrument (edge-first, 6 phases)
 
 ## Templates
 - `wiki/system/templates/weekly_forecast.md` — canonical skeleton for forecasts/weekly/YYYY-WNN.md
@@ -39,7 +40,9 @@
 - `forecasts/weekly/xauusd/2026-W22.md` — BEARISH/MEDIUM-HIGH (Warsh hawkish, ALIGNED). A sell $4570.38 (8.0/10, SL $4593.46, TP $4501.11 [D1 swing low 2.89R], 0.86 lots). B sell $4707.62 (5.5/10, TP $4607.50 [PP 3.64R], 0.72 lots). C NONE.
 
 ### EURUSD
-*(none yet — system scaffold only)*
+- System = SAME architecture as XAUUSD (weekly forecast → daily validation → outward-offset limit, fundamental+news+technical confluence). EUR-specific signals/weights/pip-thresholds in `wiki/instruments/eurusd/{confluence_criteria,constitution_addendum,profile,macro_drivers}.md`.
+- Adaptations: G6 Asia→London/pre-NY range; H4 trading filter $1→5pips; T3 2.5%→1.2%; fundamental=US-EU rate diff (context, not lone gate per research); offset coef 0.25 (kept — live edge).
+- PENDING: command-level pip-scaling (/weekly /validate are gold-$-hardcoded) before EUR runs end-to-end.
 
 ## Data Pulls
 
@@ -66,6 +69,11 @@
 - `scripts/backtest/` — walk-forward backtest engine (cli.py, engine.py, strategies.py, data.py). Reads from data/ohlc/xauusd/. Run via `python -m scripts.backtest`. Output → results/. Includes `s_weekly_swing_v1` (live formula).
 - `scripts/check_v1b.py` — V1b intraday H4 invalidation checker. Reads `_HOT.md` zones, last 2 H4 closes. Run at each H4 boundary.
 - `scripts/log_trade.py` — append fills/exits to `data/trades_log.csv`. Subcommands: `fill`, `exit`.
+- `scripts/structure.py` — shared fractal pivots / MTF structure / structural_dist (live + backtest parity).
+- `scripts/sweep_structure.py`, `sweep_entry.py`, `diag_funnel.py` — XAUUSD Phase-0 method research.
+- `scripts/research_eurusd.py`, `research_eurusd_session.py` — EURUSD edge research (macro null, session edge).
+- `scripts/ingest_histdata_eur.py` — HistData M1 → UTC merge with TD → `data/research/eurusd/`.
+- `scripts/backtest_eur_session.py` — EURUSD overlap mean-reversion backtest (OOS split, cost sweep).
 
 ## Trades
 - `data/trades_log.csv` — schema: date,week,setup,direction,entry,sl,tp,lots,stop_dist,r_planned,fill_time,exit_time,exit_px,exit_reason,r_actual,mfe,mae,notes

@@ -27,6 +27,15 @@ VP_TICKER = "GC=F"
 # $1 move in gold = $100 per standard lot
 TICK_MULTIPLIER = 100
 
+# H4 "trading-day" ATR filter: drop flatline weekend/holiday bars below this price range.
+# Gold moves in $ (≥$1 = real bar). EUR moves in pips (use 0.0005 = 5 pips). Instrument-scaled.
+MIN_BAR_RANGE = 1.0
+
+# Daily-validation "quiet pre-session" gate (G6) window in UTC hours [start, end).
+# Gold = Asia (22→07). EUR overrides to London/pre-NY since Asia is EUR-dead.
+G6_WINDOW_UTC = (22, 7)
+G6_RANGE_MAX = 15.0   # max range (price units) to count as "compressed"
+
 # Market hours: CME Globex closes Fri 22:00 UTC, reopens Sun 22:00 UTC
 MARKET_CLOSE_WEEKDAY  = 4   # Friday (0=Mon)
 MARKET_CLOSE_HOUR_UTC = 22

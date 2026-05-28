@@ -21,54 +21,70 @@ At /validate time (07:30 UTC), three hard blocks are checked first, then a 10-po
 
 ### Validation Score (max 10.0)
 
-Data-backed via 6.3 years XAUUSD backtest (2020–2026). Reweighted 2026-05-27 — added G5 (VIX regime), G6 (Asia range), redistributed via Path B.
+Data-backed via 6.3 years XAUUSD backtest (2020–2026). **Reweighted 2026-05-28 (D017):** G5 (VIX)
+and G6 (Asia) DEMOTED to 0-point veto/informational after `scripts/sweep_g5g6.py` could not confirm
+their edge (see note); their 2.0 pts redistributed to the backtest-proven anchors G1/G3/G2/V2.
 
 | # | Condition | Weight | Pass when |
 |---|---|---|---|
-| G1 | **H4+H1 Market Structure** | **3.5** | Both H4 and H1 show HH+HL (long) or LH+LL (short) |
-| G3 | **DFII10 Slope** | **3.0** | 20-day slope < 0 for longs, > 0 for shorts. Setup C exempt. |
-| G5 | **VIX Regime** *(provisional)* | **1.5** | Regime aligns with setup type — see VIX table below |
-| G2 | **ATR Compression** | **1.0** | D1 ATR14 < 20-day median |
-| V2 | **Macro Drift OK** | **0.5** | DFII10 drift vs baseline < 0.10% against direction |
-| G6 | **Asia Range Compression** *(provisional)* | **0.5** | Asia session range (22:00–07:00 UTC, H1) < $15 |
+| G1 | **H4+H1 Market Structure** | **4.0** | Both H4 and H1 show HH+HL (long) or LH+LL (short) |
+| G3 | **DFII10 Slope** | **3.5** | 20-day slope < 0 for longs, > 0 for shorts. Setup C exempt. |
+| G2 | **ATR Compression** | **1.5** | D1 ATR14 < 20-day median |
+| V2 | **Macro Drift OK** | **1.0** | DFII10 drift vs baseline < 0.10% against direction |
+| G5 | **VIX Regime** | **VETO, 0 pts** | No points. Hard veto only: VIX > 35 → all SHORT setups NO TRADE (safe-haven flow). Regime still logged in daily file. |
+| G6 | **Asia Range Compression** | **0 pts, info** | No points. Logged in daily file as context (compressed = expansion likely at London) — does not score. |
 
-> **Provisional weights (G5, G6):** the backtest (`s_weekly_swing_v1`) does NOT model VIX or
-> Asia range — its loader has no VIX/intraday-session data. So the 1.5 + 0.5 weights are
-> assumed, not empirically validated. Treat as provisional until the backtest loader carries
-> VIX + Asia-range and a with/without comparison confirms edge. See research _INDEX pending item.
+> **Why G5/G6 demoted (D017, 2026-05-28):** `scripts/sweep_g5g6.py` added VIX + Asia-range to the
+> backtest and tagged every executed trade. Result: the live-formula strategy fires only **~1.7
+> trades/yr (11 in 6.3yr)** — far too few to validate a 2.0-pt sub-weight. What signal existed was
+> null-to-contradictory: Asia-compressed trades avgR +0.86 vs normal +1.17 (compression did NOT
+> help), and VIX>25 was a single lucky long (n=1). Per edge-first policy, an unconfirmable weight is
+> removed, not assumed. VIX>35 short-block kept as RISK management (not edge). Frequency must come
+> from instrument breadth, never from padding the score with unvalidated gates.
 
 ### Thresholds
 
 ```
-Hard blocks pass AND score ≥ 6.0 AND H1 trigger present  → ORDER LIMIT
-Hard blocks pass AND score ≥ 6.0, no H1 trigger          → WATCH
-Hard blocks pass AND score < 6.0                          → NO TRADE
-Any hard block fails                                      → NO TRADE / INVALIDATED
+Hard blocks pass AND score ≥ floor AND H1 trigger present  → ORDER LIMIT
+Hard blocks pass AND score ≥ floor, no H1 trigger          → WATCH
+Hard blocks pass AND score < floor                         → NO TRADE
+Any hard block fails                                       → NO TRADE / INVALIDATED
+floor = 6.5 if ADX(14) D1 in 20–25 (transitional) else 6.0  (see Regime Filter)
 ```
 
-Minimum 6.0 requires at least G1+G3 (3.5+3.0=6.5). Cannot place on macro alone without structure, or structure alone without macro.
+Minimum 6.0 requires **at least one of G1 or G3** (neither is individually mandatory):
+- Without G1: G3+G2+V2 = 3.5+1.5+1.0 = 6.0 ✅ (exactly clears)
+- Without G3: G1+G2+V2 = 4.0+1.5+1.0 = 6.5 ✅
+- Without both G1 AND G3: max 2.5 < 6.0 ❌ → at least one of structure/macro must hold.
+
+So G1 is NOT a hard-mandatory gate (flag intentionally not set); the floor math only forbids placing with neither structure nor macro support. (G5/G6 contribute 0 → cannot lift a sub-floor score.)
 
 **H1 trigger** (replaces H4): pin bar, engulfing, or break-and-retest on H1 inside the setup zone. Observed at /validate time. Does not alter weekly confluence score or entry offset.
 
 **G3 note**: Counter-trend setups (Setup C) exempt — they already require RSI divergence + macro LOW/MEDIUM confidence.
 
-**G5 — VIX Regime Detail:**
+**G5 — VIX Regime (0-point VETO + logging only, D017):**
 
-| VIX | Regime | Gold behavior | G5 pass condition |
-|-----|--------|---------------|-------------------|
-| <18 | Calm — yield-driven | Real-yield slope dominant (G3 reliable) | ✅ for all primary setups (A/B) aligned with G3 |
-| 18–25 | Mixed | Both yield + safe-haven flow | ✅ if G3 also passes; ❌ if G3 fails |
-| >25 | Risk-off — safe-haven | G3 can flip (gold rallies even on rising yields) | ✅ for LONG setups regardless of G3; ✅ for SHORT only if G3 strongly supports; counter-trend (C) gets ✅ automatically |
+Awards NO score. Two uses remain: (1) a hard risk veto, (2) regime context logged in the daily file.
 
-VIX source: `data/fred/VIXCLS.csv` latest close. Hard-block edge case: VIX > 35 (panic regime) → all SHORT setups NO TRADE (safe-haven flow overwhelms structure).
+- **Hard veto:** VIX > 35 (panic) → all SHORT setups NO TRADE (safe-haven flow overwhelms structure).
+- **Logged context:** <18 calm (yield-driven, G3 reliable) | 18–25 mixed | >25 risk-off (G3 can flip;
+  gold rallies even on rising yields). Recorded as `vix` + regime in the daily file — informational.
 
-**Freshness guard:** FRED VIXCLS is a prior-daily-close series and lags — at 07:30 UTC the latest row may be 1–2 days old. If `latest VIX date < today − 1`, set `vix_stale=true`: award G5 = 0 (no credit) AND suspend the VIX>35 short block (don't act on stale data). Log `vix_stale` in the daily file. Optional upgrade: fetch intraday VIX via Twelve Data `VIX` symbol when stale.
+VIX source: `data/fred/VIXCLS.csv` latest close.
+**Freshness guard:** FRED VIXCLS lags — at 07:30 UTC the latest row may be 1–2 days old. If
+`latest VIX date < today − 1`, set `vix_stale=true` and suspend the VIX>35 short veto (don't act on
+stale data). Log `vix_stale` in the daily file. Optional upgrade: intraday VIX via Twelve Data `VIX`.
 
-**G6 — Asia Range Detail:**
+**G6 — Asia Range (0-point, informational only, D017):**
 
-Asia session = 22:00 UTC prior day → 07:00 UTC today (9 H1 bars). Compute: `max(high) − min(low)` across those bars.
+Awards NO score. Asia session = 22:00 UTC prior day → 07:00 UTC today (9 H1 bars),
+range = `max(high) − min(low)`. Logged as `asia_range` context (compressed < $15 = expansion likely
+at London; > $30 = possibly exhausted before London — flag). Does not affect the validation score.
 
-| Range | Pass | Reason |
+(Legacy reference — the pass/penalty table below is retained for context but no longer scores:)
+
+| Range | (was) | Reason |
 |-------|------|--------|
 | < $15 | ✅ | Compressed — expansion likely at London open |
 | $15–$30 | ❌ (0 pts, no penalty) | Normal range, no edge |
@@ -76,15 +92,21 @@ Asia session = 22:00 UTC prior day → 07:00 UTC today (9 H1 bars). Compute: `ma
 
 ---
 
-## Regime Filter — Run Before Scoring
+## Regime Filter — ADX (wired into both /weekly and /validate)
 
-ADX(14) on Daily chart:
+ADX(14) on Daily chart (emitted by `weekly_pull.py` as `adx_val`). This is NOT a scored signal —
+it is a **floor modifier + setup-bias filter**, applied as follows:
 
-| ADX | Regime | Implication |
-| --- | --- | --- |
-| > 25 | Trending | Favor continuation/breakout setups |
-| 20–25 | Transitional | Require 6.5/10+ score minimum |
-| < 20 | Ranging | Favor reversal setups at zone edges |
+| ADX | Regime | /weekly bias | /validate floor |
+| --- | --- | --- | --- |
+| > 25 | Trending | Favor continuation/trend setups (A/B with bias) | 6.0 (normal) |
+| 20–25 | Transitional | No regime preference | **6.5** (raised — chop risk) |
+| < 20 | Ranging | Favor reversal/counter at zone edges; trend-continuation weaker | 6.0 (normal) |
+
+**Wiring:**
+- `/weekly` (Agent 3/4): read `adx_val` from pull; bias setup selection per table; note regime in forecast.
+- `/validate`: read `adx_val` from pull. If 20 ≤ ADX ≤ 25 → required validation floor = **6.5** (else 6.0).
+  Record `adx_regime` + the floor used in the daily file.
 
 ## Tiered Weighting — Max Score 10.0
 

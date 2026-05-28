@@ -45,7 +45,7 @@ _instrument_cfg = None  # set by load_instrument()
 
 def load_instrument(name: str):
     """Load instrument config and rebind module globals. Must be called before fetch/compute."""
-    global _instrument_cfg, SYMBOL, SYM_CLEAN, TD_DIR, PULL_DIR, FRED_SERIES, GLD_HOLD_CSV
+    global _instrument_cfg, SYMBOL, SYM_CLEAN, TD_DIR, PULL_DIR, FRED_SERIES, GLD_HOLD_CSV, TICK_MULTIPLIER, PRICE_DP
 
     if name not in REGISTERED_INSTRUMENTS:
         raise ValueError(f"Unknown instrument '{name}'. Registered: {list(REGISTERED_INSTRUMENTS)}")
@@ -63,6 +63,10 @@ def load_instrument(name: str):
     TD_DIR      = Path(cfg.TD_DIR)
     PULL_DIR    = Path(cfg.PULL_DIR)
     FRED_SERIES = cfg.FRED_SERIES
+    TICK_MULTIPLIER = getattr(cfg, "TICK_MULTIPLIER", 100)
+    # Price display/rounding precision: $-scale instruments (gold, TICK<=100) → 2dp;
+    # pip-scale FX (TICK>=10000, price ~1.16, ATR ~0.0018) → 5dp or values round to 0.
+    PRICE_DP = 2 if TICK_MULTIPLIER <= 100 else 5
     if cfg.ETF_ENABLED and cfg.ETF_HOLDINGS_CSV:
         GLD_HOLD_CSV = Path(cfg.ETF_HOLDINGS_CSV)
 
@@ -102,6 +106,8 @@ SYM_CLEAN = "xauusd"
 TD_DIR    = Path("data/twelvedata/xauusd")
 FRED_DIR  = Path("data/fred")
 PULL_DIR  = Path("data/weekly_pull/xauusd")
+TICK_MULTIPLIER = 100   # $/lot per 1.0 price move (gold). EUR=100000. Overridden by load_instrument.
+PRICE_DP = 2            # price rounding precision (gold $-scale). FX→5. Overridden by load_instrument.
 
 FRED_SERIES = ["DFII10", "DGS10", "T5YIE", "DFF", "VIXCLS"]
 # DXY: ICE 6-currency index via yfinance DX-Y.NYB (not FRED DTWEXBGS which is 26-currency)
@@ -221,7 +227,7 @@ def _drop_open_bar(df, freq_hours: float) -> pd.DataFrame:
 def calc_atr(df, p=14):
     h, l, c = df["high"], df["low"], df["close"]
     tr = pd.concat([(h-l), (h-c.shift()).abs(), (l-c.shift()).abs()], axis=1).max(axis=1)
-    return round(float(tr.rolling(p).mean().iloc[-1]), 2)
+    return round(float(tr.rolling(p).mean().iloc[-1]), PRICE_DP)
 
 def calc_atr_series(df, p=14):
     h, l, c = df["high"], df["low"], df["close"]
@@ -241,7 +247,23 @@ def calc_adx(df, p=14):
     return round(float(adx.iloc[-1]), 1)
 
 def calc_ema(series, span):
-    return round(float(series.ewm(span=span, adjust=False).mean().iloc[-1]), 2)
+    return round(float(series.ewm(span=span, adjust=False).mean().iloc[-1]), PRICE_DP)
+
+def calc_bollinger(df, p=20, k=2):
+    """20,2 Bollinger bands on D1 close. EUR mean-reversion S3/G3 input.
+    Returns mid/upper/lower + %B + position vs bands (last close)."""
+    c = df["close"]
+    mid = c.rolling(p).mean()
+    sd  = c.rolling(p).std(ddof=0)
+    upper = mid + k * sd
+    lower = mid - k * sd
+    last = float(c.iloc[-1])
+    u, m, lo = float(upper.iloc[-1]), float(mid.iloc[-1]), float(lower.iloc[-1])
+    pctb = (last - lo) / (u - lo) if u != lo else 0.5
+    pos = "ABOVE upper (over-extended ↑ → fade short)" if last > u else \
+          "BELOW lower (over-extended ↓ → fade long)" if last < lo else "inside bands"
+    return {"upper": round(u, PRICE_DP), "mid": round(m, PRICE_DP),
+            "lower": round(lo, PRICE_DP), "pctb": round(pctb, 2), "pos": pos}
 
 def calc_rsi_series(df, p=14, n=10):
     delta = df["close"].diff()
@@ -256,34 +278,35 @@ def calc_macd(df, fast=12, slow=26, sig=9, n=5):
     line = c.ewm(span=fast, adjust=False).mean() - c.ewm(span=slow, adjust=False).mean()
     sl   = line.ewm(span=sig, adjust=False).mean()
     hist = line - sl
-    return [(str(i.date()), round(float(line[i]),2), round(float(sl[i]),2), round(float(hist[i]),2))
+    _md = max(2, PRICE_DP)  # MACD on FX needs more dp or rounds to 0.0
+    return [(str(i.date()), round(float(line[i]),_md), round(float(sl[i]),_md), round(float(hist[i]),_md))
             for i in line.iloc[-n:].index]
 
 def calc_pivots(d1_df):
     gw = d1_df.resample("W").agg({"open":"first","high":"max","low":"min","close":"last"}).dropna()
     b  = gw.iloc[-2]
     pp = (b["high"] + b["low"] + b["close"]) / 3
-    return {"PP": round(pp,2),
-            "R1": round(2*pp-b["low"],2),    "R2": round(pp+b["high"]-b["low"],2),
-            "R3": round(b["high"]+2*(pp-b["low"]),2),
-            "S1": round(2*pp-b["high"],2),   "S2": round(pp-b["high"]+b["low"],2),
-            "S3": round(b["low"]-2*(b["high"]-pp),2)}
+    return {"PP": round(pp,PRICE_DP),
+            "R1": round(2*pp-b["low"],PRICE_DP),    "R2": round(pp+b["high"]-b["low"],PRICE_DP),
+            "R3": round(b["high"]+2*(pp-b["low"]),PRICE_DP),
+            "S1": round(2*pp-b["high"],PRICE_DP),   "S2": round(pp-b["high"]+b["low"],PRICE_DP),
+            "S3": round(b["low"]-2*(b["high"]-pp),PRICE_DP)}
 
 def swing_points(df, n=5):
     highs, lows = [], []
     for i in range(n, len(df)-n):
         if df["high"].iloc[i] == df["high"].iloc[i-n:i+n+1].max():
-            highs.append((str(df.index[i].date()), round(float(df["high"].iloc[i]),2)))
+            highs.append((str(df.index[i].date()), round(float(df["high"].iloc[i]),PRICE_DP)))
         if df["low"].iloc[i] == df["low"].iloc[i-n:i+n+1].min():
-            lows.append((str(df.index[i].date()), round(float(df["low"].iloc[i]),2)))
+            lows.append((str(df.index[i].date()), round(float(df["low"].iloc[i]),PRICE_DP)))
     return highs[-5:], lows[-5:]
 
 def fib_levels(lo, hi):
     d = hi - lo
-    return {"swing_low": round(lo,2), "swing_high": round(hi,2),
-            "78.6%": round(hi-0.786*d,2), "61.8%": round(hi-0.618*d,2),
-            "50.0%": round(hi-0.500*d,2), "38.2%": round(hi-0.382*d,2),
-            "ext_127.2%": round(lo+1.272*d,2), "ext_161.8%": round(lo+1.618*d,2)}
+    return {"swing_low": round(lo,PRICE_DP), "swing_high": round(hi,PRICE_DP),
+            "78.6%": round(hi-0.786*d,PRICE_DP), "61.8%": round(hi-0.618*d,PRICE_DP),
+            "50.0%": round(hi-0.500*d,PRICE_DP), "38.2%": round(hi-0.382*d,PRICE_DP),
+            "ext_127.2%": round(lo+1.272*d,PRICE_DP), "ext_161.8%": round(lo+1.618*d,PRICE_DP)}
 
 def weekend_gap(h4_full, h4_trade):
     fri = h4_trade[h4_trade.index.dayofweek == 4]
@@ -301,9 +324,9 @@ def weekend_gap(h4_full, h4_trade):
     flag    = ("RE-FORECAST" if abs(gap_pct) > 1.00 else
                "WARNING"     if abs(gap_pct) > 0.50 else
                "NOTE"        if abs(gap_pct) > 0.20 else "NOISE")
-    return {"fri_date": str(last_fri_ts), "fri_close": round(fri_close,2),
-            "next_date": str(next_ts),     "next_open": round(next_open,2),
-            "gap_$": round(gap_d,2),       "gap_pct": round(gap_pct,3), "flag": flag}
+    return {"fri_date": str(last_fri_ts), "fri_close": round(fri_close,PRICE_DP),
+            "next_date": str(next_ts),     "next_open": round(next_open,PRICE_DP),
+            "gap_$": round(gap_d,PRICE_DP), "gap_pct": round(gap_pct,3), "flag": flag}
 
 # ── STEP 5: EXTERNAL FETCHES (no API key) ────────────────────────────────────
 
@@ -326,7 +349,7 @@ def volume_profile(ticker="GC=F", period="3mo", bins=50):
                 if ov > 0:
                     vols[i] += vol * (ov / br)
         poc_idx = int(np.argmax(vols))
-        poc = round((edges[poc_idx]+edges[poc_idx+1])/2, 2)
+        poc = round((edges[poc_idx]+edges[poc_idx+1])/2, PRICE_DP)
         total = vols.sum(); target = total*0.70
         lo_i = hi_i = poc_idx; acc = vols[poc_idx]
         while acc < target and (lo_i > 0 or hi_i < bins-1):
@@ -335,7 +358,7 @@ def volume_profile(ticker="GC=F", period="3mo", bins=50):
             if add_lo >= add_hi and lo_i > 0: lo_i -= 1; acc += add_lo
             elif hi_i < bins-1:               hi_i += 1; acc += add_hi
             else:                             lo_i -= 1; acc += add_lo
-        return {"POC": poc, "VAH": round(edges[hi_i+1],2), "VAL": round(edges[lo_i],2)}
+        return {"POC": poc, "VAH": round(edges[hi_i+1],PRICE_DP), "VAL": round(edges[lo_i],PRICE_DP)}
     except Exception as e:
         return {"error": str(e)}
 
@@ -554,8 +577,8 @@ def _compute_and_write(out_path):
     atr_h4 = calc_atr(gold_h4_closed)
 
     d1_atr_s   = calc_atr_series(gold_d_closed)
-    atr_d_now  = round(float(d1_atr_s.iloc[-1]), 2)
-    atr_d_med  = round(float(d1_atr_s.iloc[-20:].median()), 2)
+    atr_d_now  = round(float(d1_atr_s.iloc[-1]), PRICE_DP)
+    atr_d_med  = round(float(d1_atr_s.iloc[-20:].median()), PRICE_DP)
     compressed = atr_d_now < atr_d_med
 
     adx_val   = calc_adx(gold_d)
@@ -563,6 +586,7 @@ def _compute_and_write(out_path):
     ema200    = calc_ema(gold_d["close"], 200)
     rsi_vals  = calc_rsi_series(gold_d)
     macd_rows = calc_macd(gold_d)
+    boll      = calc_bollinger(gold_d)
     gap       = weekend_gap(gold_h4_full, gold_h4)
     pvt       = calc_pivots(gold_d)
     sh, sl    = swing_points(gold_d)
@@ -572,27 +596,66 @@ def _compute_and_write(out_path):
     rec_lo = sl[-1][1] if sl else float(gold_d["low"].tail(30).min())
     fibs   = fib_levels(rec_lo, rec_hi)
 
-    # FRED derived
-    ry  = load_fred_local("DFII10"); ny  = load_fred_local("DGS10")
-    be  = load_fred_local("T5YIE");  ff  = load_fred_local("DFF")
+    # FRED derived — shared risk series
     dxy = load_dxy_local(); vix = load_fred_local("VIXCLS")
-
+    ff  = load_fred_local("DFF")
     gc = float(gold_d["close"].iloc[-1]); gp = float(gold_d["close"].iloc[-6])
     dc = float(dxy["value"].iloc[-1]);    dp = float(dxy["value"].iloc[-6])
-    ry_now  = float(ry["value"].iloc[-1]); ry_prev = float(ry["value"].iloc[-6])
-    ry_20d  = ry["value"].iloc[-21:]
-    ry_slope = float(np.polyfit(range(len(ry_20d)), ry_20d.values, 1)[0])
-    ry_drift = ry_now - float(ry["value"].iloc[-2])
 
-    risk_unit = round(min(atr_h4, 0.5*atr_d), 2)
-    lots_raw  = round(2000 / (risk_unit*100), 3)
+    # risk_unit precision now driven by PRICE_DP (gold 2dp / FX 5dp)
+    risk_unit = round(min(atr_h4, 0.5*atr_d), PRICE_DP)
+    lots_raw  = round(2000 / (risk_unit * TICK_MULTIPLIER), 3) if risk_unit > 0 else 0.0
     lots_fl   = int(lots_raw*100) / 100
 
-    adx_regime = ("TRENDING (favor continuation/breakout setups)"  if adx_val > 25  else
-                  "TRANSITIONAL (require 6.5/10+ score minimum)"   if adx_val >= 20 else
-                  "RANGING (favor reversal setups at zone edges)")
+    adx_regime = ("TRENDING (favor continuation/trend setups; floor 6.0)"      if adx_val > 25  else
+                  "TRANSITIONAL (chop risk → /validate floor raised to 6.5)"   if adx_val >= 20 else
+                  "RANGING (favor reversal/counter at zone edges; floor 6.0)")
 
     rsi_now = rsi_vals[-1][1]; rsi_old = rsi_vals[0][1]
+
+    # ── MACRO block + baselines — instrument-aware ────────────────────────────
+    if SYM_CLEAN == "eurusd":
+        # EUR macro = US-EU short-rate differential (DGS2 − ESTR). Context/VETO only (D016),
+        # not a scored directional gate. ny/be kept None (gold-only fields).
+        ny = be = None
+        dgs2 = load_fred_local("DGS2")
+        estr = load_fred_local("ECBESTRVOLWGTTRMDMNRT")
+        merged = (dgs2.rename(columns={"value": "us"})
+                  .join(estr.rename(columns={"value": "eu"}), how="inner")).dropna()
+        diff = (merged["us"] - merged["eu"])
+        rd_now  = float(diff.iloc[-1]); rd_prev = float(diff.iloc[-6])
+        rd_20d  = diff.iloc[-21:]
+        rd_slope = float(np.polyfit(range(len(rd_20d)), rd_20d.values, 1)[0])
+        rd_drift = rd_now - float(diff.iloc[-2])
+        # bind gold-named vars so downstream baseline refs stay valid
+        ry_now = rd_now; ry_prev = rd_prev; ry_slope = rd_slope; ry_drift = rd_drift
+        macro_block = (
+            f"Fed Funds:        {float(ff['value'].iloc[-1]):.2f}%\n"
+            f"US 2Y (DGS2):     {float(dgs2['value'].iloc[-1]):.2f}%\n"
+            f"ESTR (EU o/n):    {float(estr['value'].iloc[-1]):.2f}%\n"
+            f"US−EU rate diff:  {rd_now:+.3f}  (was {rd_prev:+.3f} ~1w ago, Δ {rd_now-rd_prev:+.3f})\n"
+            f"  20d slope: {rd_slope:+.4f} /day  {'(widening → USD bid, EUR bearish ctx)' if rd_slope > 0 else '(narrowing → EUR bullish ctx)'}\n"
+            f"  1d drift:  {rd_drift:+.3f}\n"
+            f"  NOTE: differential is CONTEXT/VETO only — null/regime-unstable as directional gate (D016).\n"
+            f"VIX:              {float(vix['value'].iloc[-1]):.2f}")
+        baseline_label = "baseline_ratediff"; baseline_val = round(rd_now, 3)
+    else:
+        ny  = load_fred_local("DGS10"); be = load_fred_local("T5YIE")
+        ry  = load_fred_local("DFII10")
+        ry_now  = float(ry["value"].iloc[-1]); ry_prev = float(ry["value"].iloc[-6])
+        ry_20d  = ry["value"].iloc[-21:]
+        ry_slope = float(np.polyfit(range(len(ry_20d)), ry_20d.values, 1)[0])
+        ry_drift = ry_now - float(ry["value"].iloc[-2])
+        macro_block = (
+            f"Fed Funds:        {float(ff['value'].iloc[-1]):.2f}%\n"
+            f"10Y Nominal:      {float(ny['value'].iloc[-1]):.2f}%\n"
+            f"10Y Real (TIPS):  {ry_now}% (was {ry_prev}% ~1w ago, Δ {round(ry_now-ry_prev,3):+}%)\n"
+            f"  → {'RISING ⚠  (bearish gold)' if ry_now > ry_prev else 'FALLING ✅ (bullish gold)'}\n"
+            f"  20d slope: {ry_slope:+.4f} %/day  {'(rising trend)' if ry_slope > 0 else '(falling trend)'}\n"
+            f"  1d drift:  {ry_drift:+.3f}%\n"
+            f"5Y Breakeven:     {float(be['value'].iloc[-1]):.2f}%\n"
+            f"VIX:              {float(vix['value'].iloc[-1]):.2f}")
+        baseline_label = "baseline_dfii10"; baseline_val = ry_now
 
     # Format blocks
     if cot and "error" not in cot:
@@ -603,7 +666,7 @@ def _compute_and_write(out_path):
                      f"W/W Change:     {chg_str}  ({'INCREASING' if (cot['net_chg'] or 0)>0 else 'DECREASING'})\n"
                      f"Note: extreme net longs (>200k) = crowded = reversal risk")
     else:
-        cot_block = f"━━━ COT — CFTC GOLD FUTURES ━━━━━━━━━━━━━━━━━━━━━━━━━━\nFetch failed: {(cot or {}).get('error','no data')}"
+        cot_block = f"━━━ COT — CFTC FUTURES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFetch failed: {(cot or {}).get('error','no data')}"
 
     if gld and "error" not in gld:
         wk = f"{gld['wk_chg']:+}" if gld["wk_chg"] is not None else "N/A"
@@ -613,7 +676,7 @@ def _compute_and_write(out_path):
                      f"Tonnes:         {gld['tonnes']}\n1w Δ tonnes:    {wk}  ({bias})\n4w Δ tonnes:    {mo}\n"
                      f"Note: persistent outflows during macro BEARISH = confirmation. Inflows against bias = warning.")
     else:
-        gld_block = f"━━━ ETF FLOWS — SPDR GLD ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFetch failed: {(gld or {}).get('error','no data')}"
+        gld_block = f"━━━ ETF FLOWS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFetch failed: {(gld or {}).get('error','no data')}"
 
     if gap and "error" not in gap:
         gap_block = (f"━━━ WEEKEND GLOBEX GAP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -634,23 +697,16 @@ def _compute_and_write(out_path):
 ╚══════════════════════════════════════════════════════╝
 
 ━━━ MACRO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Fed Funds:        {float(ff['value'].iloc[-1]):.2f}%
-10Y Nominal:      {float(ny['value'].iloc[-1]):.2f}%
-10Y Real (TIPS):  {ry_now}% (was {ry_prev}% ~1w ago, Δ {round(ry_now-ry_prev,3):+}%)
-  → {"RISING ⚠  (bearish gold)" if ry_now > ry_prev else "FALLING ✅ (bullish gold)"}
-  20d slope: {ry_slope:+.4f} %/day  {"(rising trend)" if ry_slope > 0 else "(falling trend)"}
-  1d drift:  {ry_drift:+.3f}%
-5Y Breakeven:     {float(be['value'].iloc[-1]):.2f}%
-VIX:              {float(vix['value'].iloc[-1]):.2f}
+{macro_block}
 
 ━━━ PRICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Gold:             ${gc:.2f} (was ${gp:.2f}, {round(((gc/gp)-1)*100,2):+.2f}% ~1w chg)
+{display}:{' '*max(1,16-len(display))}${gc:.{PRICE_DP}f} (was ${gp:.{PRICE_DP}f}, {round(((gc/gp)-1)*100,2):+.2f}% ~1w chg)
 DXY (ICE 6-cur):  {dc:.3f}  (was {dp:.3f},  {round(((dc/dp)-1)*100,2):+.2f}% ~1w chg)
 
 ━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ATR(14) Daily:    ${atr_d}
 ATR(14) H4:       ${atr_h4}  (trading days only)
-risk_unit:        ${risk_unit} = min(H4 ATR ${atr_h4}, 0.5× Daily ATR ${round(0.5*atr_d,2)})
+risk_unit:        ${risk_unit} = min(H4 ATR ${atr_h4}, 0.5× Daily ATR ${round(0.5*atr_d,PRICE_DP)})
 D1 ATR now:       ${atr_d_now} | 20d median: ${atr_d_med} → {"COMPRESSED ✅" if compressed else "EXPANDING ⚠"}
 
 Lot sizing ($2000 risk):
@@ -661,6 +717,7 @@ ADX(14) D1:       {adx_val} → {adx_regime}
 EMA 50 D1:        ${ema50} | Price {"ABOVE" if gc > ema50 else "BELOW"}
 EMA 200 D1:       ${ema200} | Price {"ABOVE" if gc > ema200 else "BELOW"}
 RSI(14) D1:       {rsi_now} (was {rsi_old} 10 bars ago, {"rising" if rsi_now > rsi_old else "falling"})
+Bollinger(20,2):  upper ${boll['upper']} | mid ${boll['mid']} | lower ${boll['lower']} | %B {boll['pctb']} → {boll['pos']}
 
 RSI D1 (last 10 bars):
 {chr(10).join([f"  {v[0]}: {v[1]}" for v in rsi_vals])}
@@ -671,9 +728,9 @@ MACD(12,26,9) D1 — last 5 bars:
   Histogram {"POSITIVE (bullish momentum)" if macd_rows[-1][3] > 0 else "NEGATIVE (bearish momentum)"}
   Cross: {"MACD above signal (bullish)" if macd_rows[-1][1] > macd_rows[-1][2] else "MACD below signal (bearish)"}
 
-━━━ VOLUME PROFILE (CME GC=F, 3mo daily) ━━━━━━━━━━━━
+━━━ VOLUME PROFILE ({_instrument_cfg.VP_TICKER if _instrument_cfg else 'GC=F'}, 3mo daily) ━━━━━━━━━━━━
 {vp_block}
-Signal 7 check: zone within $8 of POC/VAH/VAL = confluent
+VP check: zone within ~8 units of POC/VAH/VAL = confluent
 
 {cot_block}
 
@@ -682,7 +739,7 @@ Signal 7 check: zone within $8 of POC/VAH/VAL = confluent
 {gap_block}
 
 ━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
-baseline_dfii10: {ry_now}
+{baseline_label}: {baseline_val}
 baseline_dxy:    {dc:.3f}
 weekend_gap_pct: {gap['gap_pct'] if gap and 'gap_pct' in gap else 'N/A'}
 
@@ -709,10 +766,10 @@ Swing: ${fibs['swing_low']} → ${fibs['swing_high']}
   Ext 161.8%: ${fibs['ext_161.8%']}  ← TP extension zone
 
 ━━━ DAILY OHLCV — last 15 bars ━━━━━━━━━━━━━━━━━━━━━━━
-{gold_d[['open','high','low','close']].tail(15).round(2).to_string()}
+{gold_d[['open','high','low','close']].tail(15).round(PRICE_DP).to_string()}
 
 ━━━ H4 OHLCV — last 24 bars (trading days) ━━━━━━━━━━━
-{gold_h4[['open','high','low','close']].tail(24).round(2).to_string()}
+{gold_h4[['open','high','low','close']].tail(24).round(PRICE_DP).to_string()}
 
 Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 """

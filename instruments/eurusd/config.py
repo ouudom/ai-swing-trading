@@ -36,11 +36,19 @@ ETF_HOLDINGS_CSV = None
 # Volume Profile — EUR/USD futures
 VP_TICKER = "6E=F"
 
-# Lot sizing: $2000 / (stop_distance × TICK_MULTIPLIER) = lots
-# EURUSD: $0.0001 pip × 100,000 units = $10/pip per standard lot
-# stop_distance expressed in price (e.g. 0.0050 = 50 pips)
-# $2000 / (0.0050 × 10000) = 40 lots — adjust if using mini/micro
-TICK_MULTIPLIER = 10000
+# Lot sizing: lots = $2000 / (stop_distance_price × TICK_MULTIPLIER)
+# EURUSD standard lot = 100,000 units → a 1.0 price move = $100,000/lot → TICK_MULTIPLIER = 100000.
+# stop_distance in PRICE (e.g. 0.0020 = 20 pips). $2000 / (0.0020 × 100000) = 10 lots
+# = 10 lots × $10/pip × 20 pip = $2000 risk. ✓  (was 10000 — 10× over-risk bug, fixed 2026-05-28)
+TICK_MULTIPLIER = 100000
+
+# H4 "trading-day" ATR filter: 5 pips (0.0005) is the EUR-scale equivalent of gold's $1.
+MIN_BAR_RANGE = 0.0005
+
+# G6 quiet-window gate: EUR's Asia is dead → use London/pre-NY 07:00–13:00 UTC instead.
+# Range threshold in price (30 pips = 0.0030).
+G6_WINDOW_UTC = (7, 13)
+G6_RANGE_MAX = 0.0030
 
 # Market hours: same Fri 22:00 UTC close as CME
 MARKET_CLOSE_WEEKDAY  = 4

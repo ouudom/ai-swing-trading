@@ -41,8 +41,8 @@ Stop formula: `avg(0.5×D1_ATR14, H4_ATR14, structural_pivot_dist)` (arithmetic 
 Run daily validation (07:30 UTC, before London open). Full steps in `.claude/commands/validate.md`.
 Arguments: date (YYYY-MM-DD), instrument (`xauusd` | `eurusd` | `all`). Default: all active instruments.
 
-Summary: for each PENDING setup → hard blocks (V1/V3) → validation score (G1 3.5 + G3 3.0 + G5 1.5 + G2 1.0 + V2 0.5 + G6 0.5, max 10.0) → H1 trigger.
-Output is exactly one of: ✅ ORDER LIMIT (score ≥ 6.0 + H1 trigger) | 👁 WATCH (score ≥ 6.0, no trigger) | ❌ NO TRADE (score < 6.0 or hard block)
+Summary: for each PENDING setup → hard blocks (V1/V3) → validation score [XAUUSD D017: G1 4.0 + G3 3.5 + G2 1.5 + V2 1.0, max 10.0; G5/G6 = 0-pt veto/info] → H1 trigger.
+Output is exactly one of: ✅ ORDER LIMIT (score ≥ floor + H1 trigger) | 👁 WATCH (score ≥ floor, no trigger) | ❌ NO TRADE (score < floor or hard block). floor = 6.5 if ADX 20–25 else 6.0.
 Save to `forecasts/daily/{instrument}/[DATE].md`. Update `_HOT.md`.
 
 ## File Rules

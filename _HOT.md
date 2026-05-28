@@ -8,7 +8,7 @@ None
 [2026-W22 XAUUSD](forecasts/weekly/xauusd/2026-W22.md) — BEARISH / MEDIUM-HIGH macro, ALIGNED MTF, conviction MEDIUM-HIGH.
 
 - **Setup A** [8.0/10]: SELL limit $4590.24 — ❌ **EXPIRED UNFILLED** 2026-05-26 21:00 UTC. Today's high $4561.36 (28.88 below limit). Direction thesis ✅ (D1 close $4504.56 dropped through zone) but entry missed. Risk $2000 released.
-- **Setup B** [5.5/10]: SELL zone $4690–$4720 | TP $4607.50 — **WATCH** (val 10.0/10 but zone unreachable, spot $4504 = ~$186 below)
+- **Setup B** [5.5/10]: SELL zone $4690–$4720 | TP $4607.50 — **NO TRADE 2026-05-28** (V3 hard block PCE+GDP 12:30 UTC). Also zone ~$300 above spot $4387.96. Stays WATCH for rest of W22 only if price rallies $300+ into zone (improbable as downtrend extends).
 - **Setup C**: NONE — macro MEDIUM-HIGH disqualifies; no RSI divergence
 
 `stop_distance = avg(0.5×D1_ATR14, H4_ATR14_trading, structural_dist)`. Today 17:38 UTC: D1_ATR $96.04 → 0.5×D1 $48.02. H4_ATR trading $26.44. Setup A structural $5.94 (pivot $4580.94). avg = $26.80. Offset $16.08, revised limit $4591.08/SL $4617.88/0.74 lots — drift <$1 on limit, live order kept ($4590.24/$4615.64/0.78 lots).
@@ -31,6 +31,8 @@ None
 - ~~Repair TD rate limit~~ ✅ Verified 2026-05-26: only 1 TD call per pull (15M, resampled locally). Original "9 credits/min" claim was stale/wrong.
 
 ## Last Session
+2026-05-28 (/validate 14:03 UTC) — Spot $4387.96. Gold crashed: D1 $4561.87 (May 25)→$4387.96, ~$174/3 sessions on Iran war + hawkish Fed + PCE/GDP day. Setup B → **NO TRADE**: V3 hard block (PCE Deflator + GDP 2nd Release 12:30 UTC, within 2h NY open). Zone $4690–$4720 also ~$300 above spot = unreachable. V1/V1b ✅. Mid-week re-forecast preconditions PASS (new forward-only 12h proximity rule — PCE/GDP fired 12:30 UTC, past at pull); but NO triggers fired (gold moved WITH bearish bias not against; T5 drift 0.08<0.15) → no re-forecast. No T4-X event. H4 ATR expanded $26.73→$38.78 (vol breakout), D1 ATR $94.12<97.40 compressed, VIX 17.01, DFII10 2.10% slope +0.18 drift −0.08, Asia $99.09 expanded. D020 → forecasts/daily/xauusd/2026-05-28.md. Week: 0 trades filled, $0/$4000 risk.
+
 2026-05-27 (/validate 12:03 UTC re-run) — Spot $4510.50. Setup B WATCH 6.0/10 (G1❌ G3✅ G5✅ G2✅ V2✅ G6❌). G1 ❌: H4 making HL ($4483→$4498) not LL — consolidation post-drop. G6 ❌: Asia range $30.74 expanded. H4 ATR $26.99, D1 ATR $92.11 compressed, VIX 16.59, DFII10 2.16% slope +0.25 drift −0.02. V1/V1b/V3 all pass. All re-forecast triggers (T1-T5) clear. Zone $4690–$4720 = $179.50 above spot — unreachable. No order. D019 appended to forecasts/daily/xauusd/2026-05-27.md.
 
 2026-05-27 (/validate 09:06 UTC) — Spot $4505.42. Setup A gone (expired 05-26). Setup B WATCH 10.0/10 (G1✅ G3✅ G2✅ V2✅) but zone $4690–$4720 unreachable ($185+ above spot). H4 ATR $26.73, D1 ATR $92.11<97.40 compressed, DFII10 2.16% slope +0.25 drift −0.02 vs baseline 2.18. V1/V1b/V3/G4 all pass. Thu 05-28 12:30 UTC PCE+GDP = hard block — cancel any future limit by 10:30 UTC. D018 saved to forecasts/daily/2026-05-27.md.

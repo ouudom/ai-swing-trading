@@ -27,10 +27,15 @@ Data-backed via 6.3 years XAUUSD backtest (2020–2026). Reweighted 2026-05-27 �
 |---|---|---|---|
 | G1 | **H4+H1 Market Structure** | **3.5** | Both H4 and H1 show HH+HL (long) or LH+LL (short) |
 | G3 | **DFII10 Slope** | **3.0** | 20-day slope < 0 for longs, > 0 for shorts. Setup C exempt. |
-| G5 | **VIX Regime** | **1.5** | Regime aligns with setup type — see VIX table below |
+| G5 | **VIX Regime** *(provisional)* | **1.5** | Regime aligns with setup type — see VIX table below |
 | G2 | **ATR Compression** | **1.0** | D1 ATR14 < 20-day median |
 | V2 | **Macro Drift OK** | **0.5** | DFII10 drift vs baseline < 0.10% against direction |
-| G6 | **Asia Range Compression** | **0.5** | Asia session range (22:00–07:00 UTC, H1) < $15 |
+| G6 | **Asia Range Compression** *(provisional)* | **0.5** | Asia session range (22:00–07:00 UTC, H1) < $15 |
+
+> **Provisional weights (G5, G6):** the backtest (`s_weekly_swing_v1`) does NOT model VIX or
+> Asia range — its loader has no VIX/intraday-session data. So the 1.5 + 0.5 weights are
+> assumed, not empirically validated. Treat as provisional until the backtest loader carries
+> VIX + Asia-range and a with/without comparison confirms edge. See research _INDEX pending item.
 
 ### Thresholds
 
@@ -56,6 +61,8 @@ Minimum 6.0 requires at least G1+G3 (3.5+3.0=6.5). Cannot place on macro alone w
 | >25 | Risk-off — safe-haven | G3 can flip (gold rallies even on rising yields) | ✅ for LONG setups regardless of G3; ✅ for SHORT only if G3 strongly supports; counter-trend (C) gets ✅ automatically |
 
 VIX source: `data/fred/VIXCLS.csv` latest close. Hard-block edge case: VIX > 35 (panic regime) → all SHORT setups NO TRADE (safe-haven flow overwhelms structure).
+
+**Freshness guard:** FRED VIXCLS is a prior-daily-close series and lags — at 07:30 UTC the latest row may be 1–2 days old. If `latest VIX date < today − 1`, set `vix_stale=true`: award G5 = 0 (no credit) AND suspend the VIX>35 short block (don't act on stale data). Log `vix_stale` in the daily file. Optional upgrade: fetch intraday VIX via Twelve Data `VIX` symbol when stale.
 
 **G6 — Asia Range Detail:**
 
@@ -166,6 +173,8 @@ Order limit (offset OUTWARD beyond zone extreme):
 
 Direction: offset pushes limit AWAY from spot, BEYOND zone extreme. Lower score = bigger
 overshoot required before fill. Confluence score gates GO/WATCH/NO-TRADE AND scales offset.
+
+R:R floor (after offset): R = abs(TP − limit_price) / stop_distance. R < 1.8 → NO TRADE.
 ```
 
 | Score | Conviction | Offset (× stop_distance) | Risk |

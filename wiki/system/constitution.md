@@ -104,6 +104,15 @@ Rationale: offset = BUFFER. Forces price to commit OUTWARD (through zone extreme
 
 Stop distance drives sizing AND offset — see Position Sizing.
 
+**Minimum R:R gate (checked after offset, before placing order):**
+```
+R = abs(TP − limit_price) / stop_distance
+R < 1.8 → ❌ NO TRADE ("R:R floor: [R] < 1.8")
+```
+Outward offset pushes the limit away from spot daily, shrinking R while TP stays frozen from /weekly.
+The 1.8 floor protects the 3R-target premise — if daily conditions erode R below 1.8, the edge is gone.
+Applies to all setups (A/B/C).
+
 **Two distinct score thresholds — do not conflate:**
 - Weekly confluence score (Signals 1–7, max 10.0): minimum **5.5/10** to include setup in forecast as PENDING. This is the setup quality floor — scored at /weekly time.
 - Daily validation score (G1/G3/G5/G2/V2/G6, max 10.0): minimum **6.0/10** to place order. This is the daily gate — scored at /validate time.
@@ -141,6 +150,24 @@ lots            = $2000 / (stop_distance × 100), round DOWN
   2. If yesterday's also failed floor OR no prior validation file exists → fallback: `stop_distance = avg(0.5 × D1_ATR14, H4_ATR14)`.
 **Fallback:** No structural pivot within last 5 trading days (~30 H4 bars) → stop_distance = avg(0.5 × D1_ATR14, H4_ATR14).
 
+## Correlation Guard (multi-instrument)
+
+Active once >1 instrument trades live. Prevents disguised double-bets on the same macro driver (USD).
+
+```
+usd_position(trade) = trade_dir(+1 long / −1 short) × USD_BETA_SIGN   (from instruments/{name}/config.py)
+```
+XAUUSD and EURUSD both have USD_BETA_SIGN = −1, so:
+- XAUUSD short (+1) + EURUSD short (+1) = stacked LONG-USD bet.
+- XAUUSD long (−1) + EURUSD long (−1) = stacked SHORT-USD bet.
+
+**Rule:** across all open + pending/limit trades, two trades sharing the same `usd_position` sign = one correlated USD exposure, not two independent bets. When a new ORDER LIMIT would create same-sign stacking:
+1. If combined risk would exceed $2000 → **halve both** to $1000 risk each (re-size lots), keeping net USD risk at one trade-unit; OR
+2. reject the lower-confluence setup and keep the higher.
+Opposite-sign trades (one long-USD, one short-USD) are a hedge — allowed at full size, no stacking penalty.
+
+This guard is independent of the weekly $ risk cap — it bounds *correlation concentration*, not total dollars.
+
 ## No-Trade Rules
 - No new entries 2 hours before any red-folder Forex Factory event
 - Gold: NFP, FOMC, CPI, US Retail Sales are hard blocks — cancel any live limit orders
@@ -159,6 +186,8 @@ Computed at /weekly run from H4 data: Friday 20:00 UTC close vs first bar after 
 
 Gap direction matters: large gap *in direction of weekly bias* = momentum confirm but worse fills (zones distant). Large gap *against bias* = potential invalidation.
 
+**Cap exemption:** A weekend-gap re-forecast (>1.00% → Monday `/weekly` re-run) is a SEPARATE path from mid-week trigger re-forecasts. It runs BEFORE the week trades, replacing the Sunday forecast — it does NOT consume `weekly_reforecast_count`. The 1/week mid-week cap still leaves one mid-week re-forecast available after a Monday gap re-run.
+
 ## Mid-Week Re-Forecast Triggers
 
 Sunday `/weekly` produces bias + setups assumed valid through Friday close. Mid-week re-forecast is **destructive** (cancels live limits, voids PENDING setups) — must be rare, rule-based, and confirmed, never feeling-based, to preserve edge.
@@ -168,7 +197,7 @@ Sunday `/weekly` produces bias + setups assumed valid through Friday close. Mid-
 | Trigger | Threshold | Source |
 |---|---|---|
 | T1 — DFII10 1-day jump | abs(today − yesterday) > 0.10% | `data/fred/DFII10.csv` |
-| T2 — DXY 1-day jump | abs(today − yesterday) > 1.0% | `data/fred/DTWEXBGS.csv` |
+| T2 — DXY 1-day jump | abs(today − yesterday) > 0.75 ICE points | `data/yahoo/DXY.csv` (ICE DX-Y.NYB) |
 | T3 — Gold counter-move | D1 close moves >2.5% AGAINST weekly bias | `data/twelvedata/xauusd/1day.csv` |
 | T4 — Unscheduled macro shock (X OR Y, either fires) | X: structured news event today (see below) OR Y: VIX 1-day jump > 5.0 points | X: web search + operator log / Y: `data/fred/VIXCLS.csv` |
 | T5 — DFII10 cumulative drift | abs(now − baseline) > 0.15% any direction | DFII10 vs `baseline_dfii10` in weekly frontmatter |
@@ -198,10 +227,10 @@ T4 fires if X OR Y is true. Y catches market-priced shocks fast; X catches slow-
    - NOT Monday (Sunday's forecast is <24h old — let it settle)
    - NOT Friday (week ends in <48h — let setups expire naturally)
 
-3. Event-proximity gate:
-   - >24h until next scheduled NFP / FOMC / CPI / US Retail Sales
-   - >24h since last NFP / FOMC / CPI / US Retail Sales
-   (vol around scheduled events is expected, not regime shift)
+3. Event-proximity gate (forward-only, 12h):
+   - >12h until next scheduled NFP / FOMC / CPI / US Retail Sales / GDP
+   - Past events do NOT block — once the print is out, re-forecast may act on it.
+   (block only the pre-event uncertainty window; post-event move is real, tradeable info)
 
 4. Re-forecast spacing: >48h since last /weekly run.
 
@@ -236,6 +265,16 @@ If preconditions fail → log trigger fires to _HOT.md as INFO only, no action.
    `MID-WEEK RE-FORECAST [DATE], trigger=[Tx/Tx], original [YYYY-WNN] voided`
 5. Increment `weekly_reforecast_count` in `_HOT.md` (max 1)
 6. New setups land as PENDING — halt today's `/validate`, resume normal flow next morning
+7. Re-forecast is **week-scoped**: tagged to current `YYYY-WNN`, voided at week market close
+   (CME Globex Fri 22:00 UTC). It carries NO weight into the next week.
+
+### Re-forecast lifecycle / expiry
+
+- A mid-week re-forecast inherits the current week (`YYYY-WNN`). Its setups + voiding of the
+  original Sunday forecast apply ONLY through Friday market close (CME Globex Fri 22:00 UTC).
+- New week ALWAYS requires a fresh Sunday `/weekly` — never carry a mid-week re-forecast forward.
+- `weekly_reforecast_count` resets to 0 at each new week's `/weekly` run.
+- At Friday close: all unfilled limits expire, PENDING/WATCH setups clear, count resets.
 
 ### Edge preservation rules
 

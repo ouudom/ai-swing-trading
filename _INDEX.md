@@ -53,6 +53,7 @@
 ### XAUUSD
 - `forecasts/daily/xauusd/2026-05-26.md` — Setup A ORDER LIMIT SELL $4590.24 / SL $4615.64 / TP $4501.11 / 0.78 lots / 3.51R, val 10.0/10, H1 bearish engulfing (EXPIRED UNFILLED 21:00 UTC)
 - `forecasts/daily/xauusd/2026-05-27.md` — Setup B WATCH val 10.0/10, zone $4690–$4720 unreachable (spot $4505.42)
+- `forecasts/daily/xauusd/2026-05-28.md` — Setup B NO TRADE (V3 hard block PCE+GDP 12:30 UTC; zone ~$300 above spot $4387.96)
 
 ### EURUSD
 *(none yet)*

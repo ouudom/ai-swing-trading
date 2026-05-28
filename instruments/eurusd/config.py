@@ -40,3 +40,10 @@ MARKET_CLOSE_WEEKDAY  = 4
 MARKET_CLOSE_HOUR_UTC = 22
 MARKET_REOPEN_WEEKDAY  = 6
 MARKET_REOPEN_HOUR_UTC = 22
+
+# Correlation guard: EUR rises when USD falls → inverse → -1.
+# usd_position(trade) = trade_dir(+1 long / -1 short) × USD_BETA_SIGN
+#   EURUSD short = -1 × -1 = +1 (long USD). EURUSD long = -1 (short USD).
+# NOTE: XAUUSD and EURUSD share USD_BETA_SIGN = -1 → a gold-short + EUR-short
+# both resolve to +1 (long USD) = stacked dollar bet. Correlation guard applies.
+USD_BETA_SIGN = -1

@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from .engine import Config, Trade, Result, open_trade, close_pnl, manage
 from .data import atr, rsi
+from scripts.structure import g1_pass, nearest_pivot_dist
 
 
 def _close_position(cfg, trades, pos, entry, exit_px, size, risk_dist, entry_time, exit_time, reason):
@@ -449,8 +450,10 @@ def s_weekly_swing_v1(cfg, data):
                 z_lo = z_hi - 0.5 * d1_atr
             zone_top, zone_bot = z_hi, z_lo
 
-            # Score components (simplified)
-            g1 = 3.5  # assume MTF align (gross simplification — could check H4/H1 explicit trend)
+            # Score components — G1 now a real fractal structure check (shared module)
+            h4_hist = h4[h4.index < ts].tail(60)
+            h1_hist = h1[h1.index < ts].tail(60)
+            g1 = 3.5 if g1_pass(h4_hist, h1_hist, bias) else 0.0
             g2 = 2.0 if d1_atr < d1_atr_med else 0.0
             g3 = 3.5  # bias passes if direction matches D1 EMA trend (already true by construction)
             score = g1 + g2 + g3  # max 9.0
@@ -493,14 +496,13 @@ def s_weekly_swing_v1(cfg, data):
         # === Compute stop using live formula ===
         d1_atr = d1[d1.index < ts].iloc[-1].atr14
         h4_atr_now = h4[h4.index < ts].iloc[-1].atr14 if len(h4[h4.index < ts]) else d1_atr * 0.4
-        # structural_dist: distance from zone extreme to last pivot in last 5 trading days
-        recent_d = d1[d1.index < ts].tail(5)
-        if bias > 0:
-            struct = max(0.0, zone_bot - recent_d.low.min())
-        else:
-            struct = max(0.0, recent_d.high.max() - zone_top)
-        if struct <= 0:
+        # structural_dist: distance from zone extreme to nearest fractal pivot (shared module)
+        h4_hist = h4[h4.index < ts]
+        ref_px = zone_bot if bias > 0 else zone_top
+        struct = nearest_pivot_dist(h4_hist, ref_px, bias)
+        if struct is None or struct <= 0:
             stop_distance = (0.5 * d1_atr + h4_atr_now) / 2.0
+            struct = 0.0
         else:
             stop_distance = (0.5 * d1_atr + h4_atr_now + struct) / 3.0
         if stop_distance <= 0 or stop_distance != stop_distance:
@@ -510,6 +512,7 @@ def s_weekly_swing_v1(cfg, data):
             eq_curve.append(equity); continue
 
         # Outward offset
+        recent_d = d1[d1.index < ts].tail(5)
         entry_offset = (10 - score) * 0.3 * stop_distance
         if bias > 0:
             limit_px = zone_bot - entry_offset
@@ -523,9 +526,9 @@ def s_weekly_swing_v1(cfg, data):
         if not filled:
             eq_curve.append(equity); continue
 
-        # Reject trades where TP gives < 1R
+        # R:R floor — mirrors live /validate (1.8R)
         r_planned = abs(tp_px - limit_px) / stop_distance
-        if r_planned < 1.0:
+        if r_planned < 1.8:
             eq_curve.append(equity); continue
 
         risk_dist = stop_distance

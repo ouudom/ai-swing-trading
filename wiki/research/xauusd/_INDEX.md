@@ -16,6 +16,8 @@ tags: [index, xauusd]
 | `concepts/atr-compression.md` | 82% expansion probability, directional neutrality, G2 gate rationale |
 | `concepts/r-target.md` | 2R/2.5R/3R EV comparison, filter impact on TP% |
 | `concepts/session-timing.md` | Session volatility by hour, day-of-week bias |
+| `concepts/independent-signal-results.md` | **Phase 0b** — each signal tested independently D1/H4/H1. Key: gold=momentum not mean-reversion. DFII10 slope confirmed (+5.3pp). RSI>70 anti-fade. EMA regime confirmed. |
+| `phase0b_signal_plan.md` | Phase 0b plan doc — signal catalogue, methodology, action thresholds |
 
 ## Data Sources
 

@@ -177,6 +177,26 @@ When a decision changes, add a new belief_log entry — never delete old ones.
 
 ---
 
+## D018 — Weekly confluence reweight from Phase 0b signal research (2026-05-29)
+**Decision:** XAUUSD weekly confluence (S1–S7) reweighted based on measured forward-return edge
+from `scripts/research_xauusd_signals.py` (D1 fwd=5, 6.3yr, 50+ signals × 3 TFs).
+Changes: Fundamental 2.5→**3.0** (strongest signal: DFII10 slope +5.3pp t=2.95**);
+EMA 0.75→**1.0** (EMA regime +4.7pp t=3.13**); Fib 0.75→**0.5** (no standalone edge);
+Pivot **removed** (0.5→0, no evidence + needed to maintain 10.0 cap). Max stays 10.0.
+**Rationale:** Prior weights were theory-based (literature + Tier A/B/C logic), not measured.
+Phase 0b is the equivalent of EUR Phase-2e: each signal tested independently. Key findings:
+gold is MOMENTUM not mean-reverting (RSI>70 continues, RSI<30 bounces — asymmetric);
+DFII10 slope is the dominant signal; EMA regime is the strongest confirmed filter; Fib and
+Pivot had zero measurable independent edge. Pivot subsumed by structural zone (if pivot
+coincides with S/R, Signal 1 already scores it). COT crowded long is momentum signal, not
+contrarian fade. RSI divergence (S3, 1.5) kept — divergence ≠ level extreme, not tested here.
+**belief_log:**
+- date: 2026-05-29
+  belief: "Weight Fundamental 3.0 > Structure 2.5 > VP/RSI 1.5 > EMA 1.0 > Fib 0.5"
+  trigger: "Phase 0b independent signal scan — first evidence-based weighting for gold weekly confluence"
+
+---
+
 ## D017 — G5 (VIX) + G6 (Asia) demoted to 0-point veto; weight → G1/G3/G2/V2 (2026-05-28)
 **Decision:** XAUUSD daily-validation reweight. G5 (VIX, was 1.5) and G6 (Asia range, was 0.5) now
 award ZERO points. G5 retains a hard RISK veto (VIX>35 → shorts NO TRADE); G6 is informational/logged.

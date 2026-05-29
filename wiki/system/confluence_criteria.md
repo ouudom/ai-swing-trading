@@ -1,6 +1,6 @@
 ---
 type: system
-updated: 2026-05-24
+updated: 2026-05-29
 confidence: high
 tags: [confluence, entry, scoring]
 related: [constitution, xauusd_profile]
@@ -57,6 +57,8 @@ Minimum 6.0 requires **at least one of G1 or G3** (neither is individually manda
 - Without G3: G1+G2+V2 = 4.0+1.5+1.0 = 6.5 ✅
 - Without both G1 AND G3: max 2.5 < 6.0 ❌ → at least one of structure/macro must hold.
 
+*(Weekly confluence floor math is separate — see Tiered Weighting below. Min 5.5/10 weekly.)*
+
 So G1 is NOT a hard-mandatory gate (flag intentionally not set); the floor math only forbids placing with neither structure nor macro support. (G5/G6 contribute 0 → cannot lift a sub-floor score.)
 
 **H1 trigger** (replaces H4): pin bar, engulfing, or break-and-retest on H1 inside the setup zone. Observed at /validate time. Does not alter weekly confluence score or entry offset.
@@ -110,17 +112,22 @@ it is a **floor modifier + setup-bias filter**, applied as follows:
 
 ## Tiered Weighting — Max Score 10.0
 
-Signals weighted by empirical independence + info value. Weight inflation from price-derived overlap (Fib/EMA/pivot all anchored to same swing) is the main fake-confluence vector — Tier C weighted low to neutralize.
+Weights derived from Phase 0b independent signal testing (`scripts/research_xauusd_signals.py`,
+2026-05-29, D1 fwd=5, 6.3yr). Rebalanced to keep max 10.0 and `(10−score)` offset formula valid.
+
+Changes vs prior (D018): Fundamental 2.5→**3.0** (strongest measured signal, +5.3pp t=2.95**);
+EMA 0.75→**1.0** (EMA20>EMA50 regime confirmed +4.7pp t=3.13**); Fib 0.75→**0.5** (no independent
+edge measured); Pivot **removed** (0.5→0, no evidence + budget balance to maintain 10.0 cap).
 
 | Tier | # | Signal | Weight | Notes |
 | --- | --- | --- | --- | --- |
-| **A — Anchor** | 1 | Structural Level | **2.5** | MANDATORY. Strongest empirical edge (S/R, swing). |
-| **A — Anchor** | 6 | Fundamental Alignment | **2.5** | Real yields = #1 gold driver per xauusd_profile. |
-| **B — Independent confirm** | 3 | RSI Divergence (Daily) | **1.5** | Independent momentum. Mandatory for counter. |
+| **A — Anchor** | 1 | Structural Level | **2.5** | MANDATORY. Zone anchor by role (not standalone edge). |
+| **A — Anchor** | 6 | Fundamental Alignment | **3.0** | DFII10 slope = strongest measured D1 signal (+5.3pp). |
+| **B — Independent confirm** | 3 | RSI Divergence (Daily) | **1.5** | Divergence (≠ level extreme). Mandatory for counter. |
 | **B — Independent confirm** | 7 | Volume Profile (CME GC) | **1.5** | Real liquidity, actual volume (not derived). |
-| **C — Price-derived overlap** | 2 | Fibonacci | **0.75** | Overlaps Signal 1 (same swing anchor). |
-| **C — Price-derived overlap** | 4 | EMA Confluence | **0.75** | Self-fulfilling, partial overlap. |
-| **C — Price-derived overlap** | 5 | Pivot Level | **0.5** | Arithmetic formula, weakest support. |
+| **B — Independent confirm** | 4 | EMA Confluence | **1.0** | EMA20>EMA50 regime confirmed +4.7pp t=3.13**. |
+| **C — Price-derived overlap** | 2 | Fibonacci | **0.5** | Overlaps Signal 1 (same swing anchor). Reduced: no standalone edge. |
+| ~~C~~ | ~~5~~ | ~~Pivot Level~~ | ~~0~~ | **Removed** — arithmetic formula, zero measured edge, no budget. |
 | | | **Total possible** | **10.0** | |
 
 ## The Rule
@@ -137,10 +144,12 @@ Price at a significant Daily or Weekly S/R zone.
 Valid: prior weekly swing H/L, prior daily swing H/L (2+ reactions), role-reversal retest, round number coinciding with structure.
 Draw as zones (boxes), not lines.
 
-### 2 — Fibonacci Confluence [0.75]
+### 2 — Fibonacci Confluence [0.5]
 
 Setup level at 38.2%, 50%, or 61.8% of most recent significant Daily swing.
 Within $5 of zone boundary = confluent.
+*(Weight reduced 0.75→0.5: no independent forward-return edge measured in Phase 0b.
+Retained at 0.5 as price-level overlap with Signal 1.)*
 
 ### 3 — RSI Divergence (Daily) [1.5]
 
@@ -149,20 +158,25 @@ Bullish div: lower low price + higher low RSI.
 Bearish div: higher high price + lower high RSI.
 Overbought/oversold alone = NOT valid.
 
-### 4 — EMA Confluence (Daily) [0.75]
+### 4 — EMA Confluence (Daily) [1.0]
 
 50 EMA or 200 EMA within $10 of setup zone.
 Both EMAs at zone = still 1 signal (same family).
+*(Weight raised 0.75→1.0: EMA20>EMA50 regime confirmed +4.7pp t=3.13** in Phase 0b.)*
 
-### 5 — Pivot Level [0.5]
+### 5 — Pivot Level [REMOVED]
 
-Weekly or monthly pivot (PP, R1/R2, S1/S2) within $8 of zone.
-Daily pivots only if weekly/monthly unavailable.
+~~Weekly or monthly pivot (PP, R1/R2, S1/S2) within $8 of zone.~~
+**Removed (D018, 2026-05-29):** arithmetic formula, zero measured independent edge, weight
+budget zeroed to maintain 10.0 cap. Pivot proximity is now subsumed by Signal 1 (structural
+zone — if a pivot coincides with a structural level, Signal 1 already captures it).
 
-### 6 — Fundamental Alignment [2.5]
+### 6 — Fundamental Alignment [3.0]
 
 Macro bias supports trade direction at MEDIUM or HIGH confidence.
 Neutral macro = does NOT count.
+*(Weight raised 2.5→3.0: DFII10 slope = strongest measured D1 signal in Phase 0b,
++5.3pp edge t=2.95**. Highest weight justified.)*
 
 ### 7 — Volume Profile Level (CME GC) [1.5]
 
@@ -224,7 +238,7 @@ Counter-trend = direction opposite to weekly macro bias.
 - If macro confidence is HIGH → no Setup C regardless of technical score
 - Counter-trend offset uses same formula but raises hard cap to **40% zone width** (tighter — less room to be wrong)
 
-Counter to reach 7.5 ceiling requires ALL of: Signal 1 (2.5) + Signal 3 (1.5) + Signal 7 (1.5) + Tier C (2.0 total). Tight by design.
+Counter to reach 7.5 ceiling requires ALL of: Signal 1 (2.5) + Signal 3 (1.5) + Signal 7 (1.5) + Signal 4 (1.0) + Signal 2 (0.5) = 7.0, needs Signal 6 unavailable. Still tight by design.
 
 ## Fake Confluence — Never Double-Count
 

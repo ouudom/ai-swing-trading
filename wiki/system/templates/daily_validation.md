@@ -8,6 +8,10 @@ related: [constitution, weekly_forecast]
 
 # Daily Validation Template
 
+> **Structured schema:** `schemas/daily.py` (`DailyValidation`, `HardBlock`, `ValidationGate`).
+> Markdown is a rendered view from the SQLite DB (`data/trading.db`).
+> Use `render/daily_md.py` to regenerate from DB, or `db/crud.py` to query programmatically.
+
 File: `forecasts/daily/YYYY-MM-DD.md` — one per day, append-style.
 Runs 07:30 UTC before London open. Setup params (zone/score/TP anchor) never change — stop_distance + entry_offset + limit_price + SL + lots recompute daily.
 

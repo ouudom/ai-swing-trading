@@ -1,15 +1,15 @@
 """
-Append a row to data/trades_log.csv when an order fills or closes.
+Log a trade fill or exit to the SQLite DB, then re-export trades_log.csv.
 
 Schema:
-  date,week,setup,direction,entry,sl,tp,lots,stop_dist,r_planned,
+  date,week,instrument,setup,direction,entry,sl,tp,lots,stop_dist,r_planned,
   fill_time,exit_time,exit_px,exit_reason,r_actual,mfe,mae,notes
 
 Usage (two-stage: log fill first, update on exit):
 
   # When limit fills
   .venv/bin/python scripts/log_trade.py fill \
-      --setup A --direction SELL --entry 4590.24 --sl 4615.64 --tp 4501.11 \
+      --instrument xauusd --setup A --direction SELL --entry 4590.24 --sl 4615.64 --tp 4501.11 \
       --lots 0.78 --stop-dist 25.40 --r-planned 3.51 --fill-time "2026-05-26 14:30"
 
   # When trade exits (matches latest open row for that setup)
@@ -19,79 +19,81 @@ Usage (two-stage: log fill first, update on exit):
       --notes "PCE day, exited 30min before release"
 """
 
+from __future__ import annotations
+
 import argparse
-import csv
-from datetime import datetime
+import sys
+from datetime import date, datetime
 from pathlib import Path
 
-LOG_PATH = Path("data/trades_log.csv")
-COLUMNS = [
-    "date", "week", "setup", "direction", "entry", "sl", "tp", "lots",
-    "stop_dist", "r_planned", "fill_time", "exit_time", "exit_px",
-    "exit_reason", "r_actual", "mfe", "mae", "notes",
-]
+# Allow imports from project root
+_project_root = Path(__file__).resolve().parents[1]
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
 
+from db import init_db
+from db.crud import create_trade, get_open_trades, update_trade_exit
+from render.trade_csv import export_trades_to_csv
+from schemas import Direction, ExitReason, SetupLetter, Trade
 
-def ensure_header():
-    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if not LOG_PATH.exists():
-        with LOG_PATH.open("w", newline="") as f:
-            csv.writer(f).writerow(COLUMNS)
-
-
-def read_all():
-    if not LOG_PATH.exists():
-        return []
-    with LOG_PATH.open() as f:
-        return list(csv.DictReader(f))
-
-
-def write_all(rows):
-    with LOG_PATH.open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=COLUMNS)
-        w.writeheader()
-        for r in rows:
-            w.writerow({k: r.get(k, "") for k in COLUMNS})
+CSV_PATH = Path("data/trades_log.csv")
 
 
 def cmd_fill(args):
-    ensure_header()
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    iso = datetime.strptime(today, "%Y-%m-%d").isocalendar()
-    week = f"{iso[0]}-W{iso[1]:02d}"
-    row = {
-        "date": today, "week": week, "setup": args.setup,
-        "direction": args.direction, "entry": args.entry, "sl": args.sl,
-        "tp": args.tp, "lots": args.lots, "stop_dist": args.stop_dist,
-        "r_planned": args.r_planned, "fill_time": args.fill_time,
-    }
-    rows = read_all()
-    rows.append(row)
-    write_all(rows)
-    print(f"✅ Logged fill: {args.setup} {args.direction} @ {args.entry} | {args.lots} lots | {LOG_PATH}")
+    init_db()
+    today = date.today()
+    iso_week = today.isocalendar()
+    week = f"{iso_week[0]}-W{iso_week[1]:02d}"
+
+    trade = Trade(
+        date=today,
+        week=week,
+        instrument=args.instrument,
+        setup=SetupLetter(args.setup),
+        direction=Direction(args.direction),
+        entry=float(args.entry),
+        sl=float(args.sl),
+        tp=float(args.tp),
+        lots=float(args.lots),
+        stop_dist=float(args.stop_dist),
+        r_planned=float(args.r_planned),
+        fill_time=datetime.fromisoformat(args.fill_time),
+    )
+    created = create_trade(trade)
+    export_trades_to_csv(CSV_PATH, get_open_trades() + [created])
+    print(f"✅ Logged fill: {args.setup} {args.direction} @ {args.entry} | {args.lots} lots | DB id={created.id}")
 
 
 def cmd_exit(args):
-    rows = read_all()
-    if not rows:
-        print("❌ No trades logged.")
-        return
-    # find latest open row matching setup
-    target_idx = None
-    for i in range(len(rows) - 1, -1, -1):
-        if rows[i]["setup"] == args.setup and not rows[i].get("exit_time"):
-            target_idx = i
+    init_db()
+    open_trades = get_open_trades()
+    # Find latest open trade matching setup letter
+    target = None
+    for t in reversed(open_trades):
+        if t.setup.value == args.setup:
+            target = t
             break
-    if target_idx is None:
+    if target is None:
         print(f"❌ No open trade for setup {args.setup}.")
-        return
-    rows[target_idx].update({
-        "exit_time": args.exit_time, "exit_px": args.exit_px,
-        "exit_reason": args.exit_reason, "r_actual": args.r_actual,
-        "mfe": args.mfe or "", "mae": args.mae or "",
-        "notes": args.notes or "",
-    })
-    write_all(rows)
+        sys.exit(1)
+
+    updated = update_trade_exit(
+        trade_id=target.id,
+        exit_time=datetime.fromisoformat(args.exit_time),
+        exit_px=float(args.exit_px),
+        exit_reason=args.exit_reason,
+        r_actual=float(args.r_actual) if args.r_actual else None,
+        mfe=float(args.mfe) if args.mfe else None,
+        mae=float(args.mae) if args.mae else None,
+        notes=args.notes,
+    )
+    if updated is None:
+        print(f"❌ Failed to update trade {target.id}.")
+        sys.exit(1)
+
+    # Re-export full trade history to CSV
+    from db.crud import get_all_trades
+    export_trades_to_csv(CSV_PATH, get_all_trades())
     print(f"✅ Closed trade {args.setup}: {args.exit_reason} @ {args.exit_px} | R={args.r_actual}")
 
 
@@ -100,6 +102,7 @@ def build_parser():
     sub = p.add_subparsers(dest="cmd", required=True)
 
     f = sub.add_parser("fill", help="Log a new fill")
+    f.add_argument("--instrument", required=True, help="Instrument symbol (e.g. xauusd)")
     for arg in ["--setup", "--direction", "--entry", "--sl", "--tp",
                 "--lots", "--stop-dist", "--r-planned", "--fill-time"]:
         f.add_argument(arg, required=True)
@@ -117,5 +120,4 @@ def build_parser():
 
 if __name__ == "__main__":
     args = build_parser().parse_args()
-    args.r_planned = getattr(args, "r_planned", None)
     args.func(args)

@@ -8,6 +8,10 @@ related: [constitution, confluence_criteria]
 
 # Weekly Forecast Template
 
+> **Structured schema:** `schemas/weekly.py` (`WeeklyForecast`, `Setup`, `MacroDriver`).
+> Markdown is a rendered view from the SQLite DB (`data/trading.db`).
+> Use `render/weekly_md.py` to regenerate from DB, or `db/crud.py` to query programmatically.
+
 File: `forecasts/weekly/YYYY-WNN.md` — immutable after Monday open.
 
 ---

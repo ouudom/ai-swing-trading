@@ -32,7 +32,9 @@ Run the full weekly forecast. Full steps in `.claude/commands/weekly.md`.
 Argument: `xauusd` | `eurusd` | `all`. Default: `xauusd`.
 
 Summary: pull data → 5-agent analysis (macro / technical / confluence / scenarios / writer) →
-save `forecasts/weekly/{instrument}/[YEAR]-W[WW].md` → update `wiki/system/macro/yield_environment.md` →
+build `WeeklyForecast` schema (`schemas/weekly.py`) → write to SQLite DB (`db/crud.py`) →
+render markdown `forecasts/weekly/{instrument}/[YEAR]-W[WW].md` (`render/weekly_md.py`) →
+update `wiki/system/macro/yield_environment.md` → upsert `ActiveSetup` rows in DB →
 update `_HOT.md` (setups PENDING, tagged with instrument) → update `_INDEX.md`.
 Agent 4 applies pre-screen gates G1–G3 before building each setup.
 Stop formula: `avg(0.5×D1_ATR14, H4_ATR14, structural_pivot_dist)` (arithmetic mean) where H4_ATR14 uses trading-day bars only (range>=$1, drops weekend/holiday flatline). Order limit offset OUTWARD: `(10−score)×0.3×stop_distance`, applied beyond zone extreme (limit ABOVE zone_top for short, BELOW zone_bottom for long).
@@ -43,13 +45,30 @@ Arguments: date (YYYY-MM-DD), instrument (`xauusd` | `eurusd` | `all`). Default:
 
 Summary: for each PENDING setup → hard blocks (V1/V3) → validation score [XAUUSD D017: G1 4.0 + G3 3.5 + G2 1.5 + V2 1.0, max 10.0; G5/G6 = 0-pt veto/info] → H1 trigger.
 Output is exactly one of: ✅ ORDER LIMIT (score ≥ floor + H1 trigger) | 👁 WATCH (score ≥ floor, no trigger) | ❌ NO TRADE (score < floor or hard block). floor = 6.5 if ADX 20–25 else 6.0.
-Save to `forecasts/daily/{instrument}/[DATE].md`. Update `_HOT.md`.
+Build `DailyValidation` schema (`schemas/daily.py`) → write to SQLite DB (`db/crud.py`) →
+render markdown `forecasts/daily/{instrument}/[DATE].md` (`render/daily_md.py`) → update `_HOT.md`.
+On ORDER LIMIT: update `ActiveSetup` lifecycle to PLACED in DB.
+
+## Database Architecture (Source of Truth)
+Structured data lives in `data/trading.db` (SQLite). Markdown forecasts/validations and `trades_log.csv` are **generated views** from the DB.
+
+**Write path:** Agent/scripts produce structured data → validated by Pydantic schemas (`schemas/`) → written to SQLite (`db/crud.py`) → rendered to markdown/CSV (`render/`).
+
+**Read path:** Agents read markdown files for context. Scripts query the DB directly for structured operations.
+
+Key packages:
+- `schemas/` — Pydantic v2 models: `WeeklyForecast`, `DailyValidation`, `Trade`, `ActiveSetup`, `OpenPosition`
+- `db/` — SQLite persistence: `init_db()`, CRUD operations
+- `render/` — View generation: `render_weekly_forecast()`, `render_daily_validation()`, `export_trades_to_csv()`
+
+**Migration:** Existing markdown/CSV data was imported via `scripts/migrate_to_db.py`. Run once.
 
 ## File Rules
-- forecasts/weekly/{instrument}/: immutable after Monday open. Never edit a prior week.
-- forecasts/daily/{instrument}/: append-style. One file per day.
-- data/weekly_pull/{instrument}/: IMMUTABLE. Never edit weekly_pull_*.txt.
-- wiki/: update in place. Never create a parallel page for an existing concept.
+- `data/trading.db` — source of truth. Never edit directly; use `db/crud.py`.
+- `forecasts/weekly/{instrument}/` — immutable after Monday open. Rendered from DB.
+- `forecasts/daily/{instrument}/` — append-style. Rendered from DB.
+- `data/weekly_pull/{instrument}/` — IMMUTABLE. Never edit weekly_pull_*.txt.
+- `wiki/` — update in place. Never create a parallel page for an existing concept.
 - One concept per wiki page. Cross-link with [[filename]] when referencing.
 - After creating or significantly updating any file: update _INDEX.md.
 - End of every session: update _HOT.md.

@@ -703,7 +703,7 @@ drawdown_data = {
     "max_dd_dollars": round(float(dd_max_dd) * risk_per_trade, 0),
     "total_pnl_r": round(float(sum(dd_pnl)), 2),
     "win_rate": round(float(sum(1 for x in dd_pnl if x>0)/len(dd_pnl)*100),1) if dd_pnl else 0,
-    "weekly_cap_ok": dd_max_consec <= 5,
+    "signal_quality_focus": True,
     "pnl_curve": dd_pnl_cumsum[::max(1,len(dd_pnl_cumsum)//200)],
 }
 print(f"  DD sim: n={drawdown_data['n_trades']} max_consec_loss={dd_max_consec} max_dd={dd_max_dd:.1f}R (${drawdown_data['max_dd_dollars']:,.0f})")
@@ -1143,7 +1143,7 @@ HTML_BODY = f"""
       <div class="rule-section">STOP: max(last pivot low/high dist, 0.5×H4_ATR14)</div>
       <div class="rule">Cap: if &gt; 3×H4_ATR14 → skip (R:R collapses)</div>
       <div class="rule-section">TP: 3R at structural level</div>
-      <div class="rule-section">RISK: $2,000/trade | weekly cap $4,000 (2 SL max)</div>
+      <div class="rule-section">RISK: $2,000/trade | no weekly cap — all qualifying signals taken</div>
     </div>
   </div>
 

@@ -96,7 +96,7 @@ tags: [index, xauusd]
       run with/without comparison.
 - [ ] NFP event drift (day before / day of / 3 days after)
 - [ ] Trade duration: avg H4 bars to TP vs SL
-- [ ] Consecutive loss / drawdown simulation — validate $4000/week cap
+- [ ] Consecutive loss / drawdown simulation — max drawdown characterization
 - [ ] Structural level proxy: entries at 20-day swing H/L vs random (validates Signal 1 weight 2.5)
 - [ ] Macro direction 2×2: falling yields × long vs falling yields × short
 - [ ] D1 direct TD pull depth — does it extend before 2020?

@@ -16,14 +16,13 @@ related: [xauusd_profile, confluence_criteria]
 
 ## Risk Rules — Non-Negotiable
 - Risk per trade: $2000
-- **No calendar trade cap** — bounded by weekly risk only
-- Max loss per week: $4000 (= 2 losing trades). Hit → cancel all live limits, no new trades until Monday.
+- **No calendar trade cap** — all setups that independently pass gates are valid
 - Max loss per month: $10000
 - Drawdown circuit breaker: account drops 5% from peak → $1000/trade until recovered
 - Never widen a stop after entry
 - Never move stop against the trade
 
-Multiple trades same week allowed if (a) each setup independently passes /validate, (b) cumulative open risk + closed loss ≤ $4000, (c) no two trades same direction stacking (treated as one position).
+Multiple trades same week allowed if (a) each setup independently passes /validate, (b) no two trades same direction stacking (treated as one position).
 
 ## TP Structure
 - TP: 3R → close full position (single exit, no split)
@@ -158,12 +157,11 @@ XAUUSD and EURUSD both have USD_BETA_SIGN = −1, so:
 2. reject the lower-confluence setup and keep the higher.
 Opposite-sign trades (one long-USD, one short-USD) are a hedge — allowed at full size, no stacking penalty.
 
-This guard is independent of the weekly $ risk cap — it bounds *correlation concentration*, not total dollars.
+This guard bounds *correlation concentration*, not total dollars.
 
 ## No-Trade Rules
 - No new entries 2 hours before any red-folder Forex Factory event
 - Gold: NFP, FOMC, CPI, US Retail Sales are hard blocks — cancel any live limit orders
-- If weekly $4000 loss limit hit: cancel all open limit orders, no new trades until Monday
 
 ## Weekend Gap Gate (Monday /validate only)
 
@@ -306,7 +304,7 @@ A setup is cancelled when:
 | C — Counter | Against weekly bias | 7.5 | Signal 3 mandatory; macro must be LOW/MEDIUM confidence only; cap 40% zone width |
 
 Max 3 setups per week. If no valid setup for a slot → NONE (never force).
-Trades executed bounded by $4000 weekly risk cap, not by setup count.
+Trades executed whenever a setup independently passes gates — no weekly count or dollar cap.
 Priority A → B → C only governs entry preference if multiple fill same day. Independent setups may fill across the week.
 
 ## The Three Laws

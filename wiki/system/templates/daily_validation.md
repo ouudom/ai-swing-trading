@@ -148,4 +148,4 @@ NO TRADE — [hard block / score x.x < 6.0]: <specific reason>
 - V1 fail = setup invalidated → remove from _HOT.md (not just HOLD)
 - Limit price = zone_extreme + outward_offset (recomputed daily via (10−score)×0.3×stop_distance). stop_distance/SL/lots recompute daily. TP anchor never changes.
 - Order expires 21:00 UTC — never carry forward
-- Multiple setups: validate independently, observe $4000/week cap
+- Multiple setups: validate independently, each taken if gates pass

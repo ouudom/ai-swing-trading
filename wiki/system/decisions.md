@@ -99,9 +99,9 @@ When a decision changes, add a new belief_log entry — never delete old ones.
 
 ---
 
-## D009 — Drop Calendar Trade Cap, Keep $ Risk Cap
-**Decision:** Remove "max 1 trade per week" rule. Trades bounded only by $4000 weekly risk cap (= 2 losing trades). Multiple setups may fill same week if zones distinct and risk budget allows.
-**Rationale:** Calendar cap is artificial — none of the trader-wizard literature (PTJ, Druckenmiller, Kovner, Brandt) trades by clock. Opportunity-driven beats time-boxed. The $4000 risk cap already enforces survival; the 1/wk rule adds nothing except missed independent setups.
+## D009 — Drop All Trade Caps — Signal Quality Gate Only
+**Decision:** Remove all calendar and dollar-based weekly caps. Trades taken whenever a setup independently passes gates. No weekly count or risk-dollar ceiling.
+**Rationale:** Caps are artificial filters that reject valid high-conviction setups. System focus is generating and acting on quality signals. Gate quality (confluence score, validation floor) is the only governor — not clock or dollar counting.
 **belief_log:**
 - date: 2026-05-21
   belief: "1 trade/wk during single-instrument phase reduces overtrading risk"

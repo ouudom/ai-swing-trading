@@ -27,7 +27,7 @@ from db.crud import (
     create_weekly_forecast,
     upsert_active_setup,
 )
-from schemas import (
+from db.schemas import (
     ActiveSetup,
     Bias,
     Confidence,

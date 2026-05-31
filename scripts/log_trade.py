@@ -34,7 +34,7 @@ if str(_project_root) not in sys.path:
 from db import init_db
 from db.crud import create_trade, get_open_trades, update_trade_exit
 from render.trade_csv import export_trades_to_csv
-from schemas import Direction, ExitReason, SetupLetter, Trade
+from db.schemas import Direction, ExitReason, SetupLetter, Trade
 
 CSV_PATH = Path("data/trades_log.csv")
 

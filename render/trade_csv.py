@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-from schemas import Trade
+from db.schemas import Trade
 
 COLUMNS = [
     "date",

@@ -6,7 +6,7 @@ import json
 from datetime import date, datetime
 from typing import Any
 
-from schemas import (
+from db.schemas import (
     ActiveSetup,
     BacktestConfig,
     BacktestResult,
@@ -828,7 +828,7 @@ def get_data_snapshot(week: str, instrument: str) -> DataSnapshot | None:
 
 
 def _row_to_data_snapshot(row: Any) -> DataSnapshot:
-    from schemas import OhlcTail, PivotLevel
+    from db.schemas import OhlcTail, PivotLevel
 
     return DataSnapshot(
         id=row["id"],

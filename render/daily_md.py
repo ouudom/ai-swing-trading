@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import yaml
 
-from schemas import DailyValidation
+from db.schemas import DailyValidation
 
 
 def render_daily_validation(dv: DailyValidation) -> str:

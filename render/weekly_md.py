@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import yaml
 
-from schemas import WeeklyForecast
+from db.schemas import WeeklyForecast
 
 
 def render_weekly_forecast(wf: WeeklyForecast) -> str:

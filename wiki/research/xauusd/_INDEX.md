@@ -17,6 +17,7 @@ tags: [index, xauusd]
 | `concepts/r-target.md` | 2R/2.5R/3R EV comparison, filter impact on TP% |
 | `concepts/session-timing.md` | Session volatility by hour, day-of-week bias |
 | `concepts/independent-signal-results.md` | **Phase 0b** — each signal tested independently D1/H4/H1. Key: gold=momentum not mean-reversion. DFII10 slope confirmed (+5.3pp). RSI>70 anti-fade. EMA regime confirmed. |
+| `concepts/entry-confirmation.md` | **H1 trigger ablation** (`scripts/sweep_trigger.py`). Pin has NO standalone edge (trigger_fill loses) but +offset lifts PF 2.20→3.38. Offset dominant. Engulf redundant w/ pin. Reject trigger-only entry. |
 | `phase0b_signal_plan.md` | Phase 0b plan doc — signal catalogue, methodology, action thresholds |
 
 ## Data Sources

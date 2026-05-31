@@ -391,7 +391,8 @@ def s_buyhold(cfg, data):
 # (V2 macro drift excluded — no FRED data in backtest loader)
 def s_weekly_swing_v1(cfg, data, params=None):
     p = {"pivot_n": 2, "struct_win": 60, "g1_mode": "both",
-         "entry_mode": "offset", "offset_coef": 0.25}
+         "entry_mode": "offset", "offset_coef": 0.25,
+         "trigger_mode": "pin"}  # pin | engulf | pin_or_engulf | none
     if params:
         p.update(params)
     d1 = data["D1"].copy()
@@ -498,7 +499,30 @@ def s_weekly_swing_v1(cfg, data, params=None):
         lower_wick = min(row.close, row.open) - row.low
         is_pin_bull = lower_wick >= 2 * body and row.close > row.open and bias > 0
         is_pin_bear = upper_wick >= 2 * body and row.close < row.open and bias < 0
-        trigger = is_pin_bull or is_pin_bear
+        is_pin = is_pin_bull or is_pin_bear
+
+        # Engulfing: current body fully engulfs prior body, correct direction
+        is_engulf = False
+        if i > 0:
+            prev = h1.iloc[i - 1]
+            prev_body_hi = max(prev.close, prev.open)
+            prev_body_lo = min(prev.close, prev.open)
+            cur_body_hi = max(row.close, row.open)
+            cur_body_lo = min(row.close, row.open)
+            engulfs = cur_body_hi >= prev_body_hi and cur_body_lo <= prev_body_lo and body > 0
+            is_engulf_bull = engulfs and row.close > row.open and prev.close < prev.open and bias > 0
+            is_engulf_bear = engulfs and row.close < row.open and prev.close > prev.open and bias < 0
+            is_engulf = is_engulf_bull or is_engulf_bear
+
+        tm = p["trigger_mode"]
+        if tm == "none":
+            trigger = True            # any in-zone bar qualifies (ablation: no confirmation)
+        elif tm == "engulf":
+            trigger = is_engulf
+        elif tm == "pin_or_engulf":
+            trigger = is_pin or is_engulf
+        else:  # "pin"
+            trigger = is_pin
 
         if trigger:
             trigger_bar_idx = i

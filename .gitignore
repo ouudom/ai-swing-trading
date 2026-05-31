@@ -34,3 +34,5 @@ Thumbs.db
 .idea/
 .vscode/data/ohlc/XAUUSD_M1_2018_2026.csv
 data/ohlc/xauusd/XAUUSD_M1.csv
+
+/wiki/research-papers

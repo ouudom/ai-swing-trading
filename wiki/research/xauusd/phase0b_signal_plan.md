@@ -250,5 +250,5 @@ Signal                       Dir  N     win%   edge    avg%     t
 1. Re-derive XAUUSD weekly confluence weights from measured edge
 2. Compare to current weights (S1–S6): which were justified, which weren't
 3. Write results to `concepts/` files (one per category)
-4. Update `wiki/system/confluence_criteria.md` weights if evidence supports change
-5. Log in `wiki/system/decisions.md` (D018 or next available)
+4. Update `wiki/system/xauusd/confluence_criteria.md` weights if evidence supports change
+5. Log in `wiki/system/core/decisions.md` (D018 or next available)

@@ -9,7 +9,7 @@ related: [confluence_criteria.md, macro_drivers.md, profile.md]
 # EURUSD Constitution Addendum
 
 > Same architecture as XAUUSD: weekly forecast (`/weekly eurusd`) → daily validation
-> (`/validate eurusd`) → outward-offset limit. Universal rules in `wiki/system/constitution.md`.
+> (`/validate eurusd`) → outward-offset limit. Universal rules in `wiki/system/core/constitution.md`.
 > This file = EURUSD-specific overrides only. All thresholds in PIPS (0.0001).
 
 ## Risk & Sizing

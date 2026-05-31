@@ -8,7 +8,7 @@ related: [macro_drivers.md, profile.md, constitution_addendum.md]
 
 # EURUSD Confluence Criteria
 
-> Same ARCHITECTURE as XAUUSD (`wiki/system/confluence_criteria.md`): weekly forecast → daily
+> Same ARCHITECTURE as XAUUSD (`wiki/system/xauusd/confluence_criteria.md`): weekly forecast → daily
 > validation → outward-offset limit entry. EUR differs only in signal definitions, weights, and
 > pip-scaled thresholds. Universal rules (risk, stop formula, R, offset) live in [[constitution]]
 > + [[constitution_addendum]]. All price thresholds in PIPS (1 pip = 0.0001).

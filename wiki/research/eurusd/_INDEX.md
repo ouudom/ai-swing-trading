@@ -142,7 +142,7 @@ Scanned candidate indicators, forward-5d edge vs 48.9% baseline (6.4yr daily):
 
 → EUR confluence = counter-trend mean-reversion at structural extremes + RSI extreme/divergence
 + Bollinger; NO breakout/trend-continuation signal. Fundamental kept as lower-weight context
-(macro null as standalone). Codified in `wiki/instruments/eurusd/confluence_criteria.md`.
+(macro null as standalone). Codified in `wiki/system/eurusd/confluence_criteria.md`.
 
 ## Phase 5 — threshold calibration (2026-05-28) `scripts/calibrate_eurusd.py`
 

@@ -12,16 +12,16 @@ Context resets each session. Load state from these files in order:
 ```
 1. _HOT.md                          — active forecast, open trades, pending actions
 2. _INDEX.md                        — all file locations and current state
-3. wiki/system/constitution.md      — universal risk rules, entry rules, stop formula
+3. wiki/system/core/constitution.md      — universal risk rules, entry rules, stop formula
 4. Instrument-specific confluence:
-   - XAUUSD: wiki/system/confluence_criteria.md
-   - EURUSD:  wiki/instruments/eurusd/confluence_criteria.md
+   - XAUUSD: wiki/system/xauusd/confluence_criteria.md
+   - EURUSD:  wiki/system/eurusd/confluence_criteria.md
 ```
 
 ## Session Start Protocol
 1. Read `_HOT.md` — check active forecast and pending actions
 2. Read `_INDEX.md` — orient to current file state
-3. Read `wiki/system/macro/yield_environment.md` — load current macro baseline
+3. Read `wiki/system/core/macro/yield_environment.md` — load current macro baseline
 4. Never create duplicate pages — update existing ones in place
 5. End of session: update `_HOT.md` with what changed and what is pending
 
@@ -34,7 +34,7 @@ Argument: `xauusd` | `eurusd` | `all`. Default: `xauusd`.
 Summary: pull data → 5-agent analysis (macro / technical / confluence / scenarios / writer) →
 build `WeeklyForecast` schema (`schemas/weekly.py`) → write to SQLite DB (`db/crud.py`) →
 render markdown `forecasts/weekly/{instrument}/[YEAR]-W[WW].md` (`render/weekly_md.py`) →
-update `wiki/system/macro/yield_environment.md` → upsert `ActiveSetup` rows in DB →
+update `wiki/system/core/macro/yield_environment.md` → upsert `ActiveSetup` rows in DB →
 update `_HOT.md` (setups PENDING, tagged with instrument) → update `_INDEX.md`.
 Agent 4 applies pre-screen gates G1–G3 before building each setup.
 Stop formula: `avg(0.5×D1_ATR14, H4_ATR14, structural_pivot_dist)` (arithmetic mean) where H4_ATR14 uses trading-day bars only (range>=$1, drops weekend/holiday flatline). Order limit offset OUTWARD: `(10−score)×0.3×stop_distance`, applied beyond zone extreme (limit ABOVE zone_top for short, BELOW zone_bottom for long).
@@ -152,14 +152,14 @@ When macro bias conflicts with technical structure:
 - Note in _HOT.md as a pending question
 
 ## System Files Reference
-- Universal rules + risk: wiki/system/constitution.md
-- XAUUSD profile + sessions: wiki/system/xauusd_profile.md
-- XAUUSD confluence + gates: wiki/system/confluence_criteria.md
-- EURUSD scaffold: wiki/instruments/eurusd/ (profile, macro_drivers, confluence_criteria, constitution_addendum)
+- Universal rules + risk: wiki/system/core/constitution.md
+- XAUUSD profile + sessions: wiki/system/xauusd/xauusd_profile.md
+- XAUUSD confluence + gates: wiki/system/xauusd/confluence_criteria.md
+- EURUSD scaffold: wiki/system/eurusd/ (profile, macro_drivers, confluence_criteria, constitution_addendum)
 - Instrument configs: instruments/{instrument}/config.py
-- System decisions log: wiki/system/decisions.md
-- Setup pattern library: wiki/system/setup_library.md
-- Macro environment (current): wiki/system/macro/yield_environment.md
+- System decisions log: wiki/system/core/decisions.md
+- Setup pattern library: wiki/system/core/setup_library.md
+- Macro environment (current): wiki/system/core/macro/yield_environment.md
 - Templates: wiki/system/templates/weekly_forecast.md, daily_validation.md
 - Data pipeline: scripts/weekly_pull.py --instrument {name} (orchestrator), scripts/fetch.py, scripts/compute.py
 
@@ -167,26 +167,29 @@ When macro bias conflicts with technical structure:
 
 ```
 wiki/
-  system/                        — universal rules + XAUUSD (legacy location, kept for back-compat)
-    constitution.md              — universal risk rules, entry rules, stop formula
-    confluence_criteria.md       — XAUUSD: daily validation gates + 7-signal weekly scoring
-    xauusd_profile.md            — XAUUSD: instrument profile, sessions, ATR ranges
-    decisions.md                 — system design belief log
-    setup_library.md             — recurring setup patterns (grows with trades)
-    macro/
-      yield_environment.md       — current macro snapshot (rewritten weekly by /weekly)
+  system/
+    core/                        — universal rules (all instruments)
+      constitution.md            — universal risk rules, entry rules, stop formula
+      decisions.md               — system design belief log
+      setup_library.md           — recurring setup patterns (grows with trades)
+      adding_instruments.md      — 6-phase process for onboarding new instruments
+      macro/
+        yield_environment.md     — current macro snapshot (rewritten weekly by /weekly)
     templates/
       weekly_forecast.md         — canonical weekly forecast structure
       daily_validation.md        — canonical daily validation structure
-
-  instruments/                   — per-instrument system docs (new instruments go here)
-    eurusd/
-      profile.md                 — EURUSD instrument profile (scaffold)
-      macro_drivers.md           — EURUSD macro drivers + re-forecast trigger concepts (scaffold)
-      confluence_criteria.md     — EURUSD scoring gates (scaffold)
+      paper_review.md            — research paper review template
+    xauusd/                      — XAUUSD-specific system docs
+      xauusd_profile.md          — instrument profile, sessions, ATR ranges
+      confluence_criteria.md     — daily validation gates + 7-signal weekly scoring
+    eurusd/                      — EURUSD-specific system docs
+      profile.md                 — instrument profile (scaffold)
+      macro_drivers.md           — macro drivers + re-forecast trigger concepts (scaffold)
+      confluence_criteria.md     — scoring gates (scaffold)
       constitution_addendum.md   — EURUSD-specific overrides (scaffold)
 
   research/                      — all quantitative research
+    general/                     — cross-instrument research
     xauusd/
       _INDEX.md                  — data sources, scripts, standards, pending research
       concepts/
@@ -196,5 +199,10 @@ wiki/
         atr-compression.md       — volatility cycle detection, expansion probability
         r-target.md              — TP ratio optimization (2R vs 2.5R vs 3R)
         session-timing.md        — hour-of-day, day-of-week, session effects
+        entry-confirmation.md    — H1 trigger ablation: pin vs engulf vs none
+    eurusd/
+      _INDEX.md                  — EURUSD research index
+    source/                      — external research papers (PDFs reviewed as markdown)
+      _INDEX.md                  — paper index
 ```
 

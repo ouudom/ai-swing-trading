@@ -16,7 +16,7 @@ are instrument-specific and research-derived.
 
 ## The invariants (never change per instrument)
 
-These are universal — live in `wiki/system/constitution.md`, apply to every instrument:
+These are universal — live in `wiki/system/core/constitution.md`, apply to every instrument:
 
 - Risk model: $2,000/trade, $4,000/week, $10,000/month, 5% drawdown circuit breaker.
 - Stop formula: `avg(0.5×D1_ATR14, H4_ATR14_trading, structural_dist)` (arithmetic mean).
@@ -54,7 +54,7 @@ Output: a go/no-go note in `wiki/research/{instrument}/_INDEX.md`.
    instrument. **Critical: `TICK_MULTIPLIER`** ($1 move → $/lot). Getting this wrong is a silent
    N× risk bug (EUR shipped 10000, was 10× over-risk; correct = 100000).
 2. Register the instrument in `scripts/weekly_pull.py` `REGISTERED_INSTRUMENTS`.
-3. Create `wiki/instruments/{instrument}/` with four scaffold pages:
+3. Create `wiki/system/{instrument}/` with four scaffold pages:
    `profile.md`, `macro_drivers.md`, `confluence_criteria.md`, `constitution_addendum.md`.
    Mark `confidence: low` until research fills them.
 4. Create `wiki/research/{instrument}/_INDEX.md` (data sources, planned concepts, standards).

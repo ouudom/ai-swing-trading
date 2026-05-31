@@ -1,6 +1,6 @@
 """E5 — calibrate EURUSD provisional thresholds from 6.4yr research data.
 
-Replaces placeholders in wiki/instruments/eurusd/{confluence_criteria,constitution_addendum}.md
+Replaces placeholders in wiki/system/eurusd/{confluence_criteria,constitution_addendum}.md
 with values DERIVED from the EUR distribution rather than copied/guessed from gold.
 
 Outputs proposed values for:

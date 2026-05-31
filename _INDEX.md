@@ -27,12 +27,12 @@
 ## Research
 - `wiki/research/xauusd/_INDEX.md` — data sources, scripts, standards, pending research
 - `wiki/research/eurusd/_INDEX.md` — EURUSD edge-first research index; macro driver = DGS2−ESTR differential (pending Phase-2 confirm)
-- `wiki/research/xauusd/concepts/mtf-market-structure.md` — swing trend alignment (HH/HL pivot detection)
-- `wiki/research/xauusd/concepts/stop-loss.md` — stop placement: structural vs ATR
-- `wiki/research/xauusd/concepts/macro-regime.md` — FRED macro vs gold: DFII10, DXY, VIX
-- `wiki/research/xauusd/concepts/atr-compression.md` — volatility cycle detection
-- `wiki/research/xauusd/concepts/r-target.md` — TP ratio optimization
-- `wiki/research/xauusd/concepts/session-timing.md` — hour-of-day, day-of-week, session effects
+- `wiki/research/xauusd/mtf-market-structure.md` — swing trend alignment (HH/HL pivot detection)
+- `wiki/research/xauusd/stop-loss.md` — stop placement: structural vs ATR
+- `wiki/research/xauusd/macro-regime.md` — FRED macro vs gold: DFII10, DXY, VIX
+- `wiki/research/xauusd/atr-compression.md` — volatility cycle detection
+- `wiki/research/xauusd/r-target.md` — TP ratio optimization
+- `wiki/research/xauusd/session-timing.md` — hour-of-day, day-of-week, session effects
 
 ## Forecasts
 

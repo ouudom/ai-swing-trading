@@ -192,14 +192,13 @@ wiki/
     general/                     — cross-instrument research
     xauusd/
       _INDEX.md                  — data sources, scripts, standards, pending research
-      concepts/
-        mtf-market-structure.md  — swing trend alignment (HH/HL pivot detection)
-        stop-loss.md             — stop placement: structural vs ATR
-        macro-regime.md          — FRED macro vs gold: DFII10, DXY, VIX
-        atr-compression.md       — volatility cycle detection, expansion probability
-        r-target.md              — TP ratio optimization (2R vs 2.5R vs 3R)
-        session-timing.md        — hour-of-day, day-of-week, session effects
-        entry-confirmation.md    — H1 trigger ablation: pin vs engulf vs none
+      mtf-market-structure.md    — swing trend alignment (HH/HL pivot detection)
+      stop-loss.md               — stop placement: structural vs ATR
+      macro-regime.md            — FRED macro vs gold: DFII10, DXY, VIX
+      atr-compression.md         — volatility cycle detection, expansion probability
+      r-target.md                — TP ratio optimization (2R vs 2.5R vs 3R)
+      session-timing.md          — hour-of-day, day-of-week, session effects
+      entry-confirmation.md      — H1 trigger ablation: pin vs engulf vs none
     eurusd/
       _INDEX.md                  — EURUSD research index
     source/                      — external research papers (PDFs reviewed as markdown)

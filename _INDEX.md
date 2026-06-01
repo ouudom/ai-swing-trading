@@ -79,6 +79,33 @@
 - `scripts/log_trade.py` — append fills/exits to trades_log; subcommands: fill, exit
 - `scripts/structure.py` — shared fractal pivots, MTF structure, structural_dist (live + backtest parity)
 
+## Scripts — Config & Lib
+- `scripts/config/xauusd/config.py` — XAUUSD instrument config
+- `scripts/config/eurusd/config.py` — EURUSD instrument config
+- `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities
+
+## Database — Schemas (db/schemas/)
+- `db/schemas/weekly.py` — WeeklyForecast Pydantic model
+- `db/schemas/daily.py` — DailyValidation Pydantic model
+- `db/schemas/trade.py` — Trade / ActiveSetup / OpenPosition models
+- `db/schemas/snapshot.py` — market snapshot schema
+- `db/schemas/backtest.py` — backtest result schema
+- `db/schemas/hot.py` — _HOT.md structured state schema
+- `db/schemas/base.py` — shared base types
+
+## Database — Persistence (db/)
+- `db/connection.py` — SQLite connection factory
+- `db/crud.py` — all read/write operations (source of truth writer)
+
+## Render (render/)
+- `render/weekly_md.py` — renders WeeklyForecast → markdown file
+- `render/daily_md.py` — renders DailyValidation → markdown file
+- `render/trade_csv.py` — exports trades DB → trades_log.csv
+
+## App
+- `app/backend/main.py` — FastAPI backend
+- `app/frontend/src/App.tsx` — React frontend root
+- `app/frontend/src/CandleChart.tsx` — candlestick chart component
 
 ## Data
 - `data/trading.db` — source of truth: forecasts, validations, trades, active setups, positions

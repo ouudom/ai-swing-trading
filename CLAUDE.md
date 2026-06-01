@@ -32,7 +32,7 @@ Run the full weekly forecast. Full steps in `.claude/commands/weekly.md`.
 Argument: `xauusd` | `eurusd` | `all`. Default: `xauusd`.
 
 Summary: pull data → 5-agent analysis (macro / technical / confluence / scenarios / writer) →
-build `WeeklyForecast` schema (`schemas/weekly.py`) → write to SQLite DB (`db/crud.py`) →
+build `WeeklyForecast` schema (`db/schemas/weekly.py`) → write to SQLite DB (`db/crud.py`) →
 render markdown `forecasts/weekly/{instrument}/[YEAR]-W[WW].md` (`render/weekly_md.py`) →
 update `wiki/system/core/macro/yield_environment.md` → upsert `ActiveSetup` rows in DB →
 update `_HOT.md` (setups PENDING, tagged with instrument) → update `_INDEX.md`.
@@ -45,21 +45,21 @@ Arguments: date (YYYY-MM-DD), instrument (`xauusd` | `eurusd` | `all`). Default:
 
 Summary: for each PENDING setup → hard blocks (V1/V3) → validation score [XAUUSD D017: G1 4.0 + G3 3.5 + G2 1.5 + V2 1.0, max 10.0; G5/G6 = 0-pt veto/info] → H1 trigger.
 Output is exactly one of: ✅ ORDER LIMIT (score ≥ floor + H1 trigger) | 👁 WATCH (score ≥ floor, no trigger) | ❌ NO TRADE (score < floor or hard block). floor = 6.5 if ADX 20–25 else 6.0.
-Build `DailyValidation` schema (`schemas/daily.py`) → write to SQLite DB (`db/crud.py`) →
+Build `DailyValidation` schema (`db/schemas/daily.py`) → write to SQLite DB (`db/crud.py`) →
 render markdown `forecasts/daily/{instrument}/[DATE].md` (`render/daily_md.py`) → update `_HOT.md`.
 On ORDER LIMIT: update `ActiveSetup` lifecycle to PLACED in DB.
 
 ## Database Architecture (Source of Truth)
 Structured data lives in `data/trading.db` (SQLite). Markdown forecasts/validations and `trades_log.csv` are **generated views** from the DB.
 
-**Write path:** Agent/scripts produce structured data → validated by Pydantic schemas (`schemas/`) → written to SQLite (`db/crud.py`) → rendered to markdown/CSV (`render/`).
+**Write path:** Agent/scripts produce structured data → validated by Pydantic schemas (`db/schemas/`) → written to SQLite (`db/crud.py`) → rendered to markdown/CSV (`render/`).
 
 **Read path:** Agents read markdown files for context. Scripts query the DB directly for structured operations.
 
 Key packages:
-- `schemas/` — Pydantic v2 models: `WeeklyForecast`, `DailyValidation`, `Trade`, `ActiveSetup`, `OpenPosition`
-- `db/` — SQLite persistence: `init_db()`, CRUD operations
-- `render/` — View generation: `render_weekly_forecast()`, `render_daily_validation()`, `export_trades_to_csv()`
+- `db/schemas/` — Pydantic v2 models: `weekly.py`, `daily.py`, `trade.py`, `snapshot.py`, `backtest.py`, `hot.py`, `base.py`
+- `db/` — SQLite persistence: `connection.py`, `crud.py`, `init_db()`
+- `render/` — View generation: `weekly_md.py`, `daily_md.py`, `trade_csv.py`
 
 **Migration:** Existing markdown/CSV data was imported via `scripts/migrate_to_db.py`. Run once.
 
@@ -156,7 +156,7 @@ When macro bias conflicts with technical structure:
 - XAUUSD profile + sessions: wiki/system/xauusd/xauusd_profile.md
 - XAUUSD confluence + gates: wiki/system/xauusd/confluence_criteria.md
 - EURUSD scaffold: wiki/system/eurusd/ (profile, macro_drivers, confluence_criteria, constitution_addendum)
-- Instrument configs: instruments/{instrument}/config.py
+- Instrument configs: scripts/config/{instrument}/config.py
 - System decisions log: wiki/system/core/decisions.md
 - Setup pattern library: wiki/system/core/setup_library.md
 - Macro environment (current): wiki/system/core/macro/yield_environment.md

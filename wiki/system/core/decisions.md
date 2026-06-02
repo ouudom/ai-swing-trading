@@ -14,6 +14,27 @@ When a decision changes, add a new belief_log entry — never delete old ones.
 
 ---
 
+## D019 — v2 Reconstruction: Trading Zones, markdown-only, gold-only
+**Decision (2026-06-02):** Restart the system as structured rules + AI analysis for high-quality
+entry signal generation. Removed app/ (backend+frontend), db/, render/, backtest/sweep scripts,
+all EURUSD, and multi-instrument support. Markdown-only (Claude writes forecasts/validations
+directly). New output unit = **Trading Zone** (max 3/week, ≤1 counter) scored by **Zone Confluence**
+(max 10, floor 5.0). Added **Entry Confluence** at /validate (max 10, floor 5.0; E0 confirmation 3pt).
+New SL (`H4_ATR` floored, blended with 0.5×D1_ATR only when 0.5×D1>H4 — structural pivot dropped),
+new TP (TP1 2.5R manual / TP2 3.0R limit / BE 1.5R), new outward offset
+`max(SL/3, (10−score)×0.2×SL)` anchored on confirmation close or 50% zone midpoint.
+**Rationale:** Old setup/DB/app stack was overhead for a single discretionary operator. Zones +
+two confluence scores keep the edge-first scoring while simplifying storage and execution.
+**belief_log:**
+- date: 2026-06-02
+  belief: "Markdown + scripts pipeline is enough; DB/app removed; zones replace setups"
+  trigger: "Operator restart — redefine system around high-quality entry signals"
+- date: 2026-06-02
+  belief: "Zone Confluence (R1) + Entry Confluence (R2) weights APPROVED by operator and ACTIVE. Pin tail ratio set to ≥2.5×body (between research 2× and stricter 3×)."
+  trigger: "R1/R2 research pass on independent-signal-results.md; operator approved"
+
+---
+
 ## D001 — XAUUSD as Primary Instrument
 **Decision:** Start with XAUUSD only before adding forex pairs.
 **Rationale:** Real volume on CME enables AVWAP. Clear macro drivers (real yields, DXY). High liquidity, tight spreads. One instrument → faster mastery of its character.

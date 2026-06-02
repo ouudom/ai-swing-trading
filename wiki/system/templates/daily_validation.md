@@ -1,151 +1,147 @@
 ---
 type: system
-updated: 2026-05-24
+updated: 2026-06-02
 confidence: high
 tags: [template, validation, daily]
 related: [constitution, weekly_forecast]
 ---
 
-# Daily Validation Template
+# Daily Validation Template (v2)
 
-> **Structured schema:** `schemas/daily.py` (`DailyValidation`, `HardBlock`, `ValidationGate`).
-> Markdown is a rendered view from the SQLite DB (`data/trading.db`).
-> Use `render/daily_md.py` to regenerate from DB, or `db/crud.py` to query programmatically.
+File: `forecasts/daily/xauusd/YYYY-MM-DD.md` — one per day, append-style. Claude writes markdown
+directly (no DB). Runs 07:30 UTC before London open. Zone box/direction never change; Entry
+Confluence + SL + offset + limit recompute daily.
 
-File: `forecasts/daily/YYYY-MM-DD.md` — one per day, append-style.
-Runs 07:30 UTC before London open. Setup params (zone/score/TP anchor) never change — stop_distance + entry_offset + limit_price + SL + lots recompute daily.
+The four questions: (1) forecast still valid? (2) bias flipped? (3) re-forecast? (4) order limit?
 
 ---
 
 ## Frontmatter
-
 ```yaml
 ---
 type: daily_validation
 date: YYYY-MM-DD
 week: YYYY-WNN
-active_setup: A | B | C | NONE
-# Hard blocks
+active_zone: PRIMARY | SECONDARY | COUNTER | NONE
+# Q1/Q2 hard blocks
 v1_structure_intact: true | false
+v1b_intact: true | false
 v3_news_clear: true | false
-# Validation score
-g1_mtf_structure: true | false   # 3.5 pts
-g3_dfii10_slope: true | false    # 3.0 pts
-g5_vix_regime: true | false      # 1.5 pts
-g2_atr_compressed: true | false  # 1.0 pts
-v2_macro_drift: true | false     # 0.5 pts
-g6_asia_compressed: true | false # 0.5 pts
-validation_score: 0.0            # max 10.0
-vix: 00.00
-asia_range: 00.00
+vix_veto_short: true | false       # VIX>35 (fresh) blocks shorts
+vix_stale: true | false
+# Q3 re-forecast
+reforecast_action: NONE | WARN_LOG | REFORECAST_NOW
+reforecast_triggers: []            # e.g. [T1, T3]
+# Q4 entry confluence (max 10.0, floor 5.0)
+e0_entry_confirmation: true | false   # 3.0
+e1_h4h1_structure: true | false       # 2.5
+e2_dfii10_slope: true | false         # 2.0
+e3_macro_drift_ok: true | false       # 1.0
+e4_atr_compressed: true | false       # 1.0
+e5_dxy_slope: true | false            # 0.5
+entry_confluence_score: 0.0
 # Entry
-h1_trigger_present: true | false
-weekly_confluence_score: 0.0
-stop_distance: 0.00      # avg of three
-stop_type: structural | atr_fallback | reused_yesterday_pivot
-pivot_price: 0000.00     # H4 swing pivot price used for structural_dist (long: pivot low; short: pivot high). 0.0 if fallback.
-structural_dist: 0.00    # entry to pivot distance. 0.0 if fallback.
-entry_offset: 0.00       # (10 − score) × 0.25 × stop_distance, OUTWARD
-order_limit: PLACED | WATCH | NO_TRADE | INVALIDATED
-limit_price: 0000.00
-limit_direction: BUY | SELL | N/A
-limit_expires: YYYY-MM-DD 21:00 UTC
+zone_confluence_score: 0.0         # carried from weekly
+e0_pattern: 1H_engulf | 1H_pin | 15M_choch | none
+anchor_type: confirmation_close | zone_50pct
+anchor_price: 0000.00
 h4_atr: 00.00
 d1_atr: 00.00
 d1_atr_compressed: true | false
+sl_distance: 0.00                  # v2: H4ATR floor, blended w/ 0.5×D1ATR only if 0.5×D1>H4
+offset: 0.00                       # max(SL/3, (10−score)×0.2×SL)
+order_limit: PLACED | NO_TRADE | INVALIDATED
+limit_price: 0000.00
+limit_direction: BUY | SELL | N/A
+limit_expires: YYYY-MM-DD 21:00 UTC
+tp1_price: 0000.00                 # 2.5R manual
+tp2_price: 0000.00                 # 3.0R limit
+be_trigger_r: 1.5
+lots: 0.00
+dfii10_now: 0.000
+dfii10_baseline: 0.000
 dfii10_slope: 0.000
-dfii10_drift: 0.000
+dxy_slope: 0.000
+adx_val: 00.0
 ---
 ```
 
 ---
 
 ## Body Skeleton
-
 ```markdown
-# Validation — YYYY-MM-DD (Setup <A|B|C> from [[YYYY-WNN]])
+# Validation — YYYY-MM-DD (<PRIMARY|SECONDARY|COUNTER> zone from [[YYYY-WNN]])
 
 ## Market Snapshot
-
 | | Value | vs Baseline |
 |---|---|---|
 | Spot | $xxxx.xx | — |
 | DFII10 | x.xx% | baseline x.xx%, drift ±x.xxx% |
-| DXY | xxx.x | baseline xxx.x |
-| H4 ATR | $xx.xx | — |
+| DFII10 20d slope | x.xxx | neg=bullish / pos=bearish |
+| DXY 20d slope | x.xxx | neg=bullish / pos=bearish |
+| H4 ATR (trading) | $xx.xx | — |
 | D1 ATR | $xx.xx | median $xx.xx → compressed? ✅/❌ |
-| DFII10 20d slope | x.xxx | negative=bullish / positive=bearish |
+| VIX | xx.xx | veto>35? stale? |
+| ADX(14) D1 | xx.x | trending/transitional/ranging |
 
 _Mon only:_ Weekend gap ±x.xxx% → noise / note / warning / re-forecast
 
-## Hard Blocks (any fail = stop)
-
+## Q1+Q2 — Hard Blocks (any fail = stop)
 | | Block | Result | Note |
 |---|---|---|---|
-| V1 | D1 close beyond zone | ✅/❌ | ❌ = INVALIDATED, remove setup |
-| V3 | Hard news within 2h London/NY open | ✅/❌ | ❌ = NO TRADE, cancel limits |
+| V1 | D1 close beyond zone | ✅/❌ | ❌ = INVALIDATED |
+| V1b | 2 consec H4 closes >$5 past zone | ✅/❌ | ❌ = INVALIDATED, cancel limit |
+| V3 | Hard news within 2h London/NY | ✅/❌ | ❌ = NO TRADE |
+| VETO | VIX>35 (fresh) → shorts | ✅/❌ | VIX xx.xx |
+| Macro flip | DFII10/DXY vs baseline | ✅/❌ | drift ±x.xxx% |
 
-## Validation Score (max 10.0)
+## Q3 — Re-Forecast Check
+Triggers fired: <none / T1,T3...> → action: NONE / WARN_LOG / REFORECAST_NOW
 
+## Q4 — Entry Confluence (max 10.0, floor 5.0)
 | | Condition | Pts | Result | Note |
 |---|---|---|---|---|
-| G1 | H4+H1 structure aligned | 3.5 | ✅/❌ | |
-| G3 | DFII10 slope supports direction | 3.0 | ✅/❌ | Setup C: always ✅ |
-| G5 | VIX regime aligned | 1.5 | ✅/❌ | VIX xx.xx — calm/mixed/risk-off |
-| G2 | D1 ATR compressed (< 20d median) | 1.0 | ✅/❌ | |
-| V2 | DFII10 drift < 0.10% against direction | 0.5 | ✅/❌ | drift ±x.xxx% |
-| G6 | Asia range < $15 (22:00–07:00 UTC) | 0.5 | ✅/❌ | range $xx.xx |
-| | **Total** | **x.x / 10.0** | | ≥ 6.0 to proceed |
+| E0 | Entry confirmation (1H engulf / 1H pin / 15M CHoCH toward dir) | 3.0 | ✅/❌ | <pattern, time> |
+| E1 | H4+H1 structure aligned | 2.5 | ✅/❌ | |
+| E2 | DFII10 slope supports | 2.0 | ✅/❌ | |
+| E3 | Macro drift OK | 1.0 | ✅/❌ | ±x.xxx% |
+| E4 | D1 ATR compressed | 1.0 | ✅/❌ | |
+| E5 | DXY slope supports | 0.5 | ✅/❌ | |
+| | **Total** | **x.x / 10.0** | | ≥ 5.0 to place |
 
-## H1 Trigger
-
-H1 pin bar / engulfing / B&R inside zone? **YES / NO** — <one line description>
-_(Confirmation only — does not change weekly score or offset)_
-
-## Order Limit Calc _(only if score ≥ 6.0)_
-
+## Order Limit Calc _(only if score ≥ 5.0)_
 ```
-structural_dist = last pivot low/high within last 5 trading days (~30 H4 bars) = $xx.xx
-H4_ATR14        = $xx.xx (trading-day filter: range>=$1)
-0.5 × D1_ATR14  = $xx.xx
-stop_distance   = avg(0.5×D1_ATR, H4_ATR, structural_dist) = $xx.xx     ← arithmetic mean
-cap check       = structural_dist $xx.xx < 3 × H4_ATR $xx.xx? ✅/❌
-
-entry_offset    = (10 − score) × 0.25 × stop_distance = $xx.xx
-limit_price     = zone_top + offset (short) | zone_bottom − offset (long)   ← OUTWARD
-SL              = limit_price ± stop_distance = $xxxx.xx
-TP              = $xxxx.xx (locked from weekly — = x.xR)
-lots            = $2000 / ($xx.xx × 100) = x.xx → x.xx lots
+H4_ATR14       = $xx.xx (trading-day filter)
+0.5 × D1_ATR14 = $xx.xx
+SL             = H4_ATR if 0.5×D1 < H4 else avg(0.5×D1, H4) = $xx.xx
+anchor         = <confirmation close $xxxx / 50% zone midpoint $xxxx>
+offset         = max(SL/3, (10 − score) × 0.2 × SL) = $xx.xx
+limit_price    = anchor − offset (long) | anchor + offset (short) = $xxxx.xx
+SL price       = limit ± SL = $xxxx.xx
+TP1 (2.5R)     = $xxxx.xx (manual) | TP2 (3.0R) = $xxxx.xx (limit) | BE @ +1.5R
+lots           = $2000 / ($xx.xx × 100) = x.xx → x.xx lots
 ```
 
 ## Result
-
-### ✅ ORDER LIMIT _(score ≥ 6.0 + H1 trigger present)_
+### ✅ ORDER LIMIT _(score ≥ 5.0)_
 ```
-ORDER LIMIT: BUY/SELL $xxxx.xx | x.xx lots | SL $xxxx.xx | TP $xxxx.xx | expires 21:00 UTC
-Validation: x.x/10  (G1:✅ G3:✅ G5:✅ G2:✅ V2:✅ G6:✅) | H1 trigger: ✅
-Stop: $xx.xx [structural / reused_yesterday_pivot / atr_fallback] | Risk: $2,000 | R:R x.xx
+ORDER LIMIT: BUY/SELL $xxxx.xx | x.xx lots | SL $xxxx.xx | TP1 2.5R $xxxx (manual) | TP2 3.0R $xxxx (limit) | BE @1.5R | expires 21:00 UTC
+Entry Confluence: x.x/10 (E0:✅ E1:✅ E2:✅ E3:✅ E4:✅ E5:✅)
+Anchor: <confirmation close / 50% zone> | SL $xx.xx | offset $xx.xx | R:R x.xx
 "If price reaches $xxxx.xx, order triggers. Cancel if not hit by 21:00 UTC."
 ```
-
-### 👁 WATCH _(score ≥ 6.0, no H1 trigger)_
-```
-WATCH — x.x/10  (G1:✅ G3:✅ G5:✅ G2:✅ V2:✅ G6:✅)
-"Await H1 pin bar / engulfing / B&R inside $xxxx–$xxxx. If trigger forms before 17:00 UTC → set limit at $xxxx.xx."
-```
-
 ### ❌ NO TRADE
 ```
-NO TRADE — [hard block / score x.x < 6.0]: <specific reason>
-[INVALIDATED if V1 fail — remove from _HOT.md]
+NO TRADE — [hard block / score x.x < 5.0]: <reason>
+[INVALIDATED if V1/V1b fail — remove from _HOT.md]
 ```
 ```
 
 ---
 
 ## Rules
-- First gate/check fail → stop, output NO TRADE, note which gate
-- V1 fail = setup invalidated → remove from _HOT.md (not just HOLD)
-- Limit price = zone_extreme + outward_offset (recomputed daily via (10−score)×0.3×stop_distance). stop_distance/SL/lots recompute daily. TP anchor never changes.
-- Order expires 21:00 UTC — never carry forward
-- Multiple setups: validate independently, each taken if gates pass
+- First hard block fail → stop, output NO TRADE/INVALIDATED, note which.
+- No E0 confirmation but score ≥ 5.0 → ORDER LIMIT anchored at 50% zone midpoint.
+- 15M CHoCH must break structure in the zone's direction — against-direction CHoCH does not count.
+- SL/offset/limit/lots recompute daily. TP anchor fixed from weekly. Order expires 21:00 UTC.
+- Validate every PENDING zone independently.

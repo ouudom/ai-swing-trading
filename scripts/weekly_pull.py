@@ -4,8 +4,7 @@ Multi-instrument data pipeline — orchestrator (fetch + compute + snapshot writ
 Usage:
     .venv/bin/python scripts/weekly_pull.py                        # xauusd, honors cache
     .venv/bin/python scripts/weekly_pull.py --force                # xauusd, re-fetch full
-    .venv/bin/python scripts/weekly_pull.py --instrument eurusd    # eurusd
-    .venv/bin/python scripts/weekly_pull.py --instrument all       # all instruments
+    .venv/bin/python scripts/weekly_pull.py --instrument xauusd    # explicit instrument
 
 Split entry points (preferred for granular control):
     scripts/fetch.py    — network IO only (TD 15M + FRED)            → CSVs
@@ -36,8 +35,7 @@ from dotenv import load_dotenv
 # ── INSTRUMENT REGISTRY ───────────────────────────────────────────────────────
 
 REGISTERED_INSTRUMENTS = {
-    "xauusd": "instruments.xauusd.config",
-    "eurusd": "instruments.eurusd.config",
+    "xauusd": "config.xauusd.config",
 }
 
 _instrument_cfg = None  # set by load_instrument()
@@ -613,49 +611,23 @@ def _compute_and_write(out_path):
 
     rsi_now = rsi_vals[-1][1]; rsi_old = rsi_vals[0][1]
 
-    # ── MACRO block + baselines — instrument-aware ────────────────────────────
-    if SYM_CLEAN == "eurusd":
-        # EUR macro = US-EU short-rate differential (DGS2 − ESTR). Context/VETO only (D016),
-        # not a scored directional gate. ny/be kept None (gold-only fields).
-        ny = be = None
-        dgs2 = load_fred_local("DGS2")
-        estr = load_fred_local("ECBESTRVOLWGTTRMDMNRT")
-        merged = (dgs2.rename(columns={"value": "us"})
-                  .join(estr.rename(columns={"value": "eu"}), how="inner")).dropna()
-        diff = (merged["us"] - merged["eu"])
-        rd_now  = float(diff.iloc[-1]); rd_prev = float(diff.iloc[-6])
-        rd_20d  = diff.iloc[-21:]
-        rd_slope = float(np.polyfit(range(len(rd_20d)), rd_20d.values, 1)[0])
-        rd_drift = rd_now - float(diff.iloc[-2])
-        # bind gold-named vars so downstream baseline refs stay valid
-        ry_now = rd_now; ry_prev = rd_prev; ry_slope = rd_slope; ry_drift = rd_drift
-        macro_block = (
-            f"Fed Funds:        {float(ff['value'].iloc[-1]):.2f}%\n"
-            f"US 2Y (DGS2):     {float(dgs2['value'].iloc[-1]):.2f}%\n"
-            f"ESTR (EU o/n):    {float(estr['value'].iloc[-1]):.2f}%\n"
-            f"US−EU rate diff:  {rd_now:+.3f}  (was {rd_prev:+.3f} ~1w ago, Δ {rd_now-rd_prev:+.3f})\n"
-            f"  20d slope: {rd_slope:+.4f} /day  {'(widening → USD bid, EUR bearish ctx)' if rd_slope > 0 else '(narrowing → EUR bullish ctx)'}\n"
-            f"  1d drift:  {rd_drift:+.3f}\n"
-            f"  NOTE: differential is CONTEXT/VETO only — null/regime-unstable as directional gate (D016).\n"
-            f"VIX:              {float(vix['value'].iloc[-1]):.2f}")
-        baseline_label = "baseline_ratediff"; baseline_val = round(rd_now, 3)
-    else:
-        ny  = load_fred_local("DGS10"); be = load_fred_local("T5YIE")
-        ry  = load_fred_local("DFII10")
-        ry_now  = float(ry["value"].iloc[-1]); ry_prev = float(ry["value"].iloc[-6])
-        ry_20d  = ry["value"].iloc[-21:]
-        ry_slope = float(np.polyfit(range(len(ry_20d)), ry_20d.values, 1)[0])
-        ry_drift = ry_now - float(ry["value"].iloc[-2])
-        macro_block = (
-            f"Fed Funds:        {float(ff['value'].iloc[-1]):.2f}%\n"
-            f"10Y Nominal:      {float(ny['value'].iloc[-1]):.2f}%\n"
-            f"10Y Real (TIPS):  {ry_now}% (was {ry_prev}% ~1w ago, Δ {round(ry_now-ry_prev,3):+}%)\n"
-            f"  → {'RISING ⚠  (bearish gold)' if ry_now > ry_prev else 'FALLING ✅ (bullish gold)'}\n"
-            f"  20d slope: {ry_slope:+.4f} %/day  {'(rising trend)' if ry_slope > 0 else '(falling trend)'}\n"
-            f"  1d drift:  {ry_drift:+.3f}%\n"
-            f"5Y Breakeven:     {float(be['value'].iloc[-1]):.2f}%\n"
-            f"VIX:              {float(vix['value'].iloc[-1]):.2f}")
-        baseline_label = "baseline_dfii10"; baseline_val = ry_now
+    # ── MACRO block + baselines (XAUUSD: real-yield driven) ───────────────────
+    ny  = load_fred_local("DGS10"); be = load_fred_local("T5YIE")
+    ry  = load_fred_local("DFII10")
+    ry_now  = float(ry["value"].iloc[-1]); ry_prev = float(ry["value"].iloc[-6])
+    ry_20d  = ry["value"].iloc[-21:]
+    ry_slope = float(np.polyfit(range(len(ry_20d)), ry_20d.values, 1)[0])
+    ry_drift = ry_now - float(ry["value"].iloc[-2])
+    macro_block = (
+        f"Fed Funds:        {float(ff['value'].iloc[-1]):.2f}%\n"
+        f"10Y Nominal:      {float(ny['value'].iloc[-1]):.2f}%\n"
+        f"10Y Real (TIPS):  {ry_now}% (was {ry_prev}% ~1w ago, Δ {round(ry_now-ry_prev,3):+}%)\n"
+        f"  → {'RISING ⚠  (bearish gold)' if ry_now > ry_prev else 'FALLING ✅ (bullish gold)'}\n"
+        f"  20d slope: {ry_slope:+.4f} %/day  {'(rising trend)' if ry_slope > 0 else '(falling trend)'}\n"
+        f"  1d drift:  {ry_drift:+.3f}%\n"
+        f"5Y Breakeven:     {float(be['value'].iloc[-1]):.2f}%\n"
+        f"VIX:              {float(vix['value'].iloc[-1]):.2f}")
+    baseline_label = "baseline_dfii10"; baseline_val = ry_now
 
     # Format blocks
     if cot and "error" not in cot:

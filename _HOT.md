@@ -1,22 +1,32 @@
 # _HOT — Session State
 *Always current. Updated at end of every session.*
 
+## System Status — v2 ACTIVE (2026-06-02)
+Project restarted as **structured + AI-analysis high-quality entry signal generation** (XAUUSD only).
+- REMOVED: app/ (backend+frontend), db/, render/, backtest/sweep scripts, all EURUSD, multi-instrument.
+- Markdown-only: Claude writes forecasts/validations directly (no DB).
+- Unit: **Trading Zone** (max 3/week, ≤1 counter), Zone Confluence (max 10, floor 5).
+- Entry Confluence (max 10, floor 5; E0 confirmation 3pt). New SL/TP/offset (see constitution).
+- **R1 (Zone Confluence) + R2 (Entry Confluence) APPROVED + ACTIVE** in `confluence_criteria.md`.
+  Pin tail ratio = ≥2.5×body. Ready for first v2 `/weekly`.
+
 ## Open Position
 None
 
 ## Active Forecast
-**W22 XAUUSD — CLOSED.** Both setups expired unfilled (CME Fri 2026-05-29 22:00 UTC). 0 trades. Bearish thesis played out but offset limit sat above realized high.
-
-**W23: /weekly needed.** Today 2026-05-31 (Sunday) — run `/weekly xauusd` before Monday open.
+None live. (Legacy W22 v1 forecast closed — both setups expired unfilled.)
 
 ## Week Status
-- Week: 2026-W23 (not started — no forecast yet)
-- Trades taken: 0 (W22)
+- Week: 2026-W23
+- Trades taken: 0
 - Risk allocated: $0
+- weekly_reforecast_count: 0
 
 ## Pending Actions
-- **RUN /weekly xauusd for W23** — Sunday, before Monday CME open
-- Review W22 miss: pin+offset research confirmed offset is load-bearing (PF 3.38). Trigger-only entry rejected (PF 0.65). No system change needed — W22 fill miss is expected cost of edge.
+- **Run first v2 `/weekly xauusd`** — system live, R1/R2 approved.
 
 ## Last Session
-2026-05-31 — Entry confirmation research (`scripts/sweep_trigger.py`). Pin+offset 0.25 = best cell (PF 3.38, win 36.4%, N=22). Trigger-only = loser (PF 0.65). Engulf redundant with pin. Results in `wiki/research/xauusd/entry-confirmation.md`. Wiki restructured: `wiki/instruments/` merged into `wiki/system/` (now has core/, xauusd/, eurusd/, templates/); `wiki/research-papers/` moved to `wiki/research/source/`; `wiki/research/xauusd/concepts/` flattened.
+2026-06-02 — v2 reconstruction. Demolished app/db/render/eurusd/backtest. Rewrote constitution,
+weekly + validate commands, both templates, confluence_criteria (Zone R1 + Entry R2). Decoupled
+check_v1b from DB. Data engine (weekly_pull/fetch/compute/structure) kept, eurusd stripped. R1/R2
+weights derived from measured edges, awaiting operator decision.

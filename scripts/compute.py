@@ -7,8 +7,7 @@ Volume Profile (yfinance), COT (CFTC), ETF flows — all free, no API key requir
 
 Usage:
     .venv/bin/python scripts/compute.py                        # xauusd (default)
-    .venv/bin/python scripts/compute.py --instrument eurusd    # eurusd
-    .venv/bin/python scripts/compute.py --instrument all       # all instruments
+    .venv/bin/python scripts/compute.py --instrument xauusd    # explicit instrument
 
 Reads:
     data/twelvedata/{instrument}/{15min,1h,4h,1day}.csv

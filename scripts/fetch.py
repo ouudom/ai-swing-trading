@@ -7,8 +7,7 @@ Honors cache policy: skip refetch if <15min old OR market closed (Fri 22:00 → 
 Usage:
     .venv/bin/python scripts/fetch.py                        # xauusd, honors cache
     .venv/bin/python scripts/fetch.py --force                # always refetch full history
-    .venv/bin/python scripts/fetch.py --instrument eurusd    # eurusd
-    .venv/bin/python scripts/fetch.py --instrument all       # all instruments
+    .venv/bin/python scripts/fetch.py --instrument xauusd    # explicit instrument
 
 After running, indicators are stale. Run `scripts/compute.py` to rebuild snapshot.
 

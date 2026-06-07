@@ -36,12 +36,12 @@ Implication: limits placed for London or NY execution benefit from higher volati
 ## Key Conclusions
 
 1. **Session edge = volatility, not direction** — London/NY open best execution windows
-2. **G4 gate (08:00–17:00 UTC)** validated: restricts to high-volatility sessions
+2. **Session gate (08:00–17:00 UTC)** validated: restricts to high-volatility sessions
 3. Asia-session limits get triggered on thin moves that can reverse on London open — avoid
 4. Friday new entries carry weekend gap risk — note in weekly forecast no-trade events if applicable
 
 ## Open Questions
 
-- Does filter G4 combined with actual entry zone proximity improve TP% at 3R?
+- Does the session filter combined with actual entry zone proximity improve TP% at 3R?
 - NFP day (1st Friday) — specific day-of-week patterns? (NFP analysis pending)
 - Does trading on days with high previous-day ATR improve or hurt outcomes?

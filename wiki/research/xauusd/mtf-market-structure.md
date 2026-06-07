@@ -8,7 +8,7 @@ related: [confluence_criteria, constitution]
 
 # MTF Market Structure — Findings
 
-**Data**: H1/H4/D1 UTC, 2020-01-24→2026-05-24. Script: `build_edge_report_v2.py`
+**Data**: H1/H4/D1 UTC, 2020-01-24→2026-05-24. Script: Phase-0 research runner (removed in repo cleanup)
 
 ## Method
 
@@ -30,7 +30,7 @@ Pivot detection: bar i = pivot high if `series[i] == rolling max over 2n+1 bars 
 
 ## Key Conclusions
 
-1. **Use H4+H1 only** for gate G1 — adding D1 cuts sample without improving edge
+1. **Use H4+H1 only** for the MTF structure gate — adding D1 cuts sample without improving edge
 2. **All-bear strongest signal**: +10.2pp edge. When all 3 TFs show LH+LL, short bias well-supported
 3. Market spends 82% of time mixed — the gate naturally restricts to high-quality windows
 4. Bull edge (+3.0pp) is modest but real. Needs macro gate to amplify (see macro-regime findings)

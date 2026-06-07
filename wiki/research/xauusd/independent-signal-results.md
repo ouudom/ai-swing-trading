@@ -8,7 +8,7 @@ related: [../phase0b_signal_plan.md, macro-regime.md, atr-compression.md, mtf-ma
 
 # XAUUSD — Independent Signal Results (Phase 0b)
 
-Script: `scripts/research_xauusd_signals.py`  
+Script: Phase 0b signal research runner (removed in repo cleanup)  
 Data: TD 6.3yr 2020-2026 (D1/H4/H1), FRED macro, COT 2019-2026  
 Forward windows: D1 fwd=5, H4 fwd=6 (24h), H1 fwd=4 (4h)  
 Baseline: D1 54.0% | H4 53.9% | H1 52.1%
@@ -17,8 +17,8 @@ Baseline: D1 54.0% | H4 53.9% | H1 52.1%
 
 ## HEADLINE FINDING: GOLD IS MOMENTUM, NOT MEAN-REVERTING
 
-This is the single most important result. EUR is mean-reverting (RSI>70 → fade +6.6pp).
-Gold is the opposite: RSI>70 = momentum CONTINUES. Gold fades from oversold but not from overbought.
+This is the single most important result. Gold is MOMENTUM: RSI>70 = momentum CONTINUES
+(not a fade). Gold fades from oversold but not from overbought.
 **All confluence signals must be pro-trend or macro-regime gated, NOT fade/mean-reversion.**
 
 ---
@@ -29,7 +29,7 @@ Gold is the opposite: RSI>70 = momentum CONTINUES. Gold fades from oversold but 
 
 | Signal | Dir | Edge | t | N | Verdict |
 |---|---|---|---|---|---|
-| E1  DFII10 20d slope < 0 → long | LNG | +5.3pp | 2.95** | 776 | ✅ CONFIRMED — current G3, justified |
+| E1  DFII10 20d slope < 0 → long | LNG | +5.3pp | 2.95** | 776 | ✅ CONFIRMED — current macro gate, justified |
 | C7  EMA20 > EMA50 regime → long | LNG | +4.7pp | 3.13** | 1097 | ✅ EMA regime filter works, promote |
 | D5  Inside bar → long | LNG | +4.4pp | 2.52* | 831 | ✅ D1 pause before continuation |
 | D4  NR7 → long | LNG | +7.4pp | 2.24* | 228 | ✅ Compression precedes up move |
@@ -138,7 +138,7 @@ DETECTION (pin bar, engulfing, B&R), not as a scored gate.
 **DXY:** Measured +5.3pp long (slope<0), t=2.19*. Currently not a scored weekly signal —
 only a re-forecast trigger (T2). Consider adding as context/gate alongside DFII10.
 
-**VIX:** Null as standalone directional signal. G5 correctly demoted to 0-pt veto (D017).
+**VIX:** Null as standalone directional signal. VIX gate correctly demoted to 0-pt veto (D017).
 
 **RSI overbought (gold breakout from 20d high):** Anti-edge. The system must NEVER use
 RSI>70 as a short confluence signal for gold. Breakouts from 20d high (C11) also anti-edge.
@@ -167,7 +167,7 @@ S2 as "Macro Bundle (DFII10 slope + DXY slope, same direction)". Needs discussio
 - **NR7 on D1:** +7.4pp edge (N=228). If current D1 is NR7 → strong compression signal.
   Worth noting in /validate output.
 - **H4 Stoch/WR < -20/-80:** +4.4pp on H4. Confirms H4 oversold = long setup ripe.
-  Already captured by G2 (ATR compressed) and G1 (H4 structure). No scoring change needed.
+  Already captured by the ATR-compression and structure gates. No scoring change needed.
 
 ---
 

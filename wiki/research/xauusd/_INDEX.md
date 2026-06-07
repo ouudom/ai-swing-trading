@@ -13,7 +13,7 @@ tags: [index, xauusd]
 | `mtf-market-structure.md` | H4+H1 swing structure win rates, pivot detection method |
 | `stop-loss.md` | Structural vs ATR stop: MAE survival rates, recommended formula |
 | `macro-regime.md` | DFII10 slope regime split, DXY correlation, VIX buckets |
-| `atr-compression.md` | 82% expansion probability, directional neutrality, G2 gate rationale |
+| `atr-compression.md` | 82% expansion probability, directional neutrality, ATR-compression gate rationale |
 | `r-target.md` | 2R/2.5R/3R EV comparison, filter impact on TP% |
 | `session-timing.md` | Session volatility by hour, day-of-week bias |
 | `independent-signal-results.md` | **Phase 0b** — each signal tested independently D1/H4/H1. Key: gold=momentum not mean-reversion. DFII10 slope confirmed (+5.3pp). RSI>70 anti-fade. EMA regime confirmed. |
@@ -74,17 +74,17 @@ tags: [index, xauusd]
       −$2.2k. Trade frequency is structurally ~1.5–2.5/yr — too low to validate ANY edge.
       Findings: (a) struct_win irrelevant (last-2-pivots stable across windows); (b) bottleneck is
       the SERIAL entry funnel (weekly-bias → zone → in-session → pin-trigger≤8bars → outward-offset
-      fill → R≥1.8), not G1 alone — each stage halves the sample. **Decision needed:** redesign the
+      fill → R≥1.8), not the structure gate alone — each stage halves the sample. **Decision needed:** redesign the
       entry funnel for usable frequency (drop/relax pin-trigger, allow touch-fills, multiple
-      setups/wk) OR accept rare-trade regime + validate over longer history. DO NOT clone to EURUSD
-      until the method itself shows edge.
+      setups/wk) OR accept rare-trade regime + validate over longer history — until the method
+      itself shows edge.
 - [ ] **Funnel diagnosis (2026-05-28, `scripts/diag_funnel.py`).** 314 armed weeks →
       filled: LIVE 2 / best 9 / most 15. **Dominant killer = OUTWARD OFFSET:** fresh_trigger→filled
       drops ~85–95% (65→2, 80→9, 81→15). Pin triggers INSIDE zone but limit sits BEYOND zone extreme
       → price rejects, moves away, never fills. The "commitment filter" (constitution:103) is a
       never-trade filter. **Redesign target: entry fill mechanism** (fill at trigger bar / zero or
       inward offset). Inert rules to delete: recency cap ≤8 bars (got_trigger==fresh_trigger always)
-      and R≥1.8 floor (filled==passed_R always). Also: G1 not truly mandatory — G1-fail + ATR-compressed
+      and R≥1.8 floor (filled==passed_R always). Also: structure gate not truly mandatory — structure-fail + ATR-compressed
       scores exactly 5.5 and proceeds; 5.5 floor lets structure-less setups through.
 - [x] **Entry-mechanism sweep (2026-05-28, `scripts/sweep_entry.py`).** OVERTURNS the fill-at-trigger
       fix. Outward offset is LOAD-BEARING, not a bug. Monotonic across sweep: more offset → fewer
@@ -94,8 +94,8 @@ tags: [index, xauusd]
       method is inherently LOW-FREQUENCY (~2–3 quality trades/yr/instrument); aggregate frequency must
       come from multiple instruments, NOT from loosening any single gate. ACTIONS: (1) consider live
       offset_coef 0.30→0.15; (2) keep offset (do not fill-at-trigger); (3) low per-instrument freq is
-      the rationale for multi-instrument breadth incl. EURUSD.
-- [ ] **G5/G6 backtest gap.** Loader has no VIX or Asia-range data → G5 (1.5) + G6 (0.5) weights
+      the rationale for future multi-instrument breadth.
+- [ ] **VIX/Asia gate backtest gap.** Loader has no VIX or Asia-range data → VIX (1.5) + Asia (0.5) weights
       unvalidated (marked provisional in confluence_criteria). Add VIX + intraday-session to loader,
       run with/without comparison.
 - [ ] NFP event drift (day before / day of / 3 days after)

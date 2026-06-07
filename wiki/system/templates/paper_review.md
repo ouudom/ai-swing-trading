@@ -18,7 +18,7 @@ related: []                       # [[concept]] / [[other-paper-stem]] links
 
 ## Why we kept it
 <Direct line to our system: which gate/rule/concept it informs — DFII10/DXY/VIX gate,
-MTF structure, ATR/structural stop, R-target, gaps, confluence score, risk sizing, EURUSD.>
+MTF structure, ATR/structural stop, R-target, gaps, confluence score, risk sizing.>
 
 ## Method
 - Market / instrument:

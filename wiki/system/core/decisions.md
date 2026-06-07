@@ -12,12 +12,16 @@ related: [constitution]
 Record key system choices here with reasoning.
 When a decision changes, add a new belief_log entry — never delete old ones.
 
+> **Naming lineage:** entries before D019 use the pre-v2 gate labels (weekly `S1–S7`,
+> daily `G1–G6`). v2 replaced these with **Zone Confluence (Z1–Z7)** + **Entry Confluence
+> (E0–E5)** — see `confluence_criteria.md`. Old labels are kept in dated entries as
+> historical record only; they are not active rule names.
+
 ---
 
 ## D019 — v2 Reconstruction: Trading Zones, markdown-only, gold-only
 **Decision (2026-06-02):** Restart the system as structured rules + AI analysis for high-quality
-entry signal generation. Removed app/ (backend+frontend), db/, render/, backtest/sweep scripts,
-all EURUSD, and multi-instrument support. Markdown-only (Claude writes forecasts/validations
+entry signal generation. Markdown-only (Claude writes forecasts/validations
 directly). New output unit = **Trading Zone** (max 3/week, ≤1 counter) scored by **Zone Confluence**
 (max 10, floor 5.0). Added **Entry Confluence** at /validate (max 10, floor 5.0; E0 confirmation 3pt).
 New SL (`H4_ATR` floored, blended with 0.5×D1_ATR only when 0.5×D1>H4 — structural pivot dropped),
@@ -40,7 +44,7 @@ two confluence scores keep the edge-first scoring while simplifying storage and 
 **Rationale:** Real volume on CME enables AVWAP. Clear macro drivers (real yields, DXY). High liquidity, tight spreads. One instrument → faster mastery of its character.
 **belief_log:**
 - date: 2026-05-21
-  belief: "XAUUSD first, add EURUSD/GBPUSD after consistent profitability"
+  belief: "XAUUSD only — single-instrument focus"
   trigger: "System design session — avoid correlation complexity on small account"
 
 ---
@@ -148,7 +152,7 @@ two confluence scores keep the edge-first scoring while simplifying storage and 
 
 ## D014 — Entry-mechanism cleanup: offset 0.3→0.25, delete inert gates
 **Decision:** (1) `entry_offset = (10 − score) × 0.25 × stop_distance` (was 0.3). (2) Deleted two inert rules proven never to bind in backtest: H1 trigger recency cap (≤8 bars; got_trigger==fresh_trigger always) and the R≥1.8 floor (filled==passed_R always). G1 stays SCORED (3.5 pts), NOT mandatory — a G1-fail week can still clear 6.0 via other gates; user opted to keep that flexibility.
-**Rationale:** Phase-0 research (`scripts/sweep_entry.py`, `diag_funnel.py`, 2020–2026). Outward offset is load-bearing — fill-at-trigger loses (PF 0.64); per-trade PF rises monotonically with offset. 0.25 chosen for quality over frequency (user: "fine with no trade than losing; this is backtest not live"). Method is intentionally selective; usable frequency must come from instrument breadth, NOT from loosening gates. Open question flagged: strict 2-pivot fractal on H1 may over-filter vs the human "both trending" intent — revisit G1 H1 definition before relying on live frequency.
+**Rationale:** Phase-0 backtest research (2020–2026). Outward offset is load-bearing — fill-at-trigger loses (PF 0.64); per-trade PF rises monotonically with offset. 0.25 chosen for quality over frequency (user: "fine with no trade than losing; this is backtest not live"). Method is intentionally selective; usable frequency must come from instrument breadth, NOT from loosening gates. Open question flagged: strict 2-pivot fractal on H1 may over-filter vs the human "both trending" intent — revisit G1 H1 definition before relying on live frequency.
 **belief_log:**
 - date: 2026-05-25
   belief: "0.3 coefficient, recency cap + R-floor active"
@@ -200,12 +204,12 @@ two confluence scores keep the edge-first scoring while simplifying storage and 
 
 ## D018 — Weekly confluence reweight from Phase 0b signal research (2026-05-29)
 **Decision:** XAUUSD weekly confluence (S1–S7) reweighted based on measured forward-return edge
-from `scripts/research_xauusd_signals.py` (D1 fwd=5, 6.3yr, 50+ signals × 3 TFs).
+from Phase 0b signal research (D1 fwd=5, 6.3yr, 50+ signals × 3 TFs).
 Changes: Fundamental 2.5→**3.0** (strongest signal: DFII10 slope +5.3pp t=2.95**);
 EMA 0.75→**1.0** (EMA regime +4.7pp t=3.13**); Fib 0.75→**0.5** (no standalone edge);
 Pivot **removed** (0.5→0, no evidence + needed to maintain 10.0 cap). Max stays 10.0.
 **Rationale:** Prior weights were theory-based (literature + Tier A/B/C logic), not measured.
-Phase 0b is the equivalent of EUR Phase-2e: each signal tested independently. Key findings:
+Phase 0b tested each signal independently. Key findings:
 gold is MOMENTUM not mean-reverting (RSI>70 continues, RSI<30 bounces — asymmetric);
 DFII10 slope is the dominant signal; EMA regime is the strongest confirmed filter; Fib and
 Pivot had zero measurable independent edge. Pivot subsumed by structural zone (if pivot
@@ -223,7 +227,7 @@ contrarian fade. RSI divergence (S3, 1.5) kept — divergence ≠ level extreme,
 award ZERO points. G5 retains a hard RISK veto (VIX>35 → shorts NO TRADE); G6 is informational/logged.
 Their 2.0 pts redistributed to backtest-proven anchors: G1 3.5→4.0, G3 3.0→3.5, G2 1.0→1.5, V2 0.5→1.0.
 Max stays 10.0; floor 6.0 still needs ≥1 of G1/G3.
-**Rationale:** `scripts/sweep_g5g6.py` added VIX + Asia-range to the backtest and tagged every executed
+**Rationale:** A Phase-0 backtest sweep added VIX + Asia-range and tagged every executed
 trade. The live-formula strategy fires only ~1.7 trades/yr (11 in 6.3yr) → sample far too small to
 validate a 2.0-pt sub-weight. What signal existed was null/contradictory: Asia-compressed avgR +0.86
 vs normal +1.17 (compression did NOT help); VIX>25 was n=1 (one lucky long). Edge-first: an
@@ -235,30 +239,20 @@ if confirmed," and it was not confirmed.
   trigger: "Daily-validation reweight — VIX/Asia hypothesized to add edge"
 - date: 2026-05-28
   belief: "G5/G6 demoted to 0-pt veto/info; backtest can't validate sub-weights at ~1.7 trades/yr"
-  trigger: "scripts/sweep_g5g6.py — X1 audit; edge not confirmed"
+  trigger: "Phase-0 VIX/Asia backtest sweep — X1 audit; edge not confirmed"
 
 ---
 
 ## D015 — System-audit honesty + ADX wired + G1 floor-math correction (2026-05-28)
-**Decision:** Three audit outcomes recorded as belief: (1) XAUUSD's real edge is THIN — Phase-0 (`scripts/diag_funnel.py`, `sweep_entry.py`) showed the prior "edge" was a hardcoded g1 stub; real signal ≈ 2 trades/yr/instrument, carried by the outward-offset (load-bearing: fill-at-trigger PF 0.64, PF rises monotonically with offset) + mandatory structural. Frequency must come from instrument breadth, never from loosening gates. (2) The ADX(14) regime filter, previously a floating doc rule, is now WIRED: transitional regime (ADX 20–25) raises the daily-validation floor 6.0→6.5; /weekly biases setup type by regime. (3) Corrected a wrong doc claim — daily floor 6.0 needs **at least one** of G1/G3, not both; G1 is scored (3.5) but NOT individually mandatory (a G1-fail week clears 6.0 via G3+G5+G2+V2+G6=6.5).
+**Decision:** Three audit outcomes recorded as belief: (1) XAUUSD's real edge is THIN — Phase-0 backtest showed the prior "edge" was a hardcoded structure-gate stub; real signal ≈ 2 trades/yr/instrument, carried by the outward-offset (load-bearing: fill-at-trigger PF 0.64, PF rises monotonically with offset) + mandatory structural. Frequency must come from instrument breadth, never from loosening gates. (2) The ADX(14) regime filter, previously a floating doc rule, is now WIRED: transitional regime (ADX 20–25) raises the daily-validation floor 6.0→6.5; /weekly biases setup type by regime. (3) Corrected a wrong doc claim — daily floor 6.0 needs **at least one** of G1/G3, not both; G1 is scored (3.5) but NOT individually mandatory (a G1-fail week clears 6.0 via G3+G5+G2+V2+G6=6.5).
 **Rationale:** Honest framing prevents over-trusting the confluence score. Dead/floating rules erode doc trust — wire them or delete them. G5 (VIX 1.5) + G6 (Asia 0.5) remain PROVISIONAL pending backtest-loader validation (D-pending, task X1).
 **belief_log:**
 - date: 2026-05-28
   belief: "XAUUSD edge thin but real (offset + structure); ADX now a live floor modifier; G1 non-mandatory by design and by floor math"
-  trigger: "Deep system audit — user requested weakness review before/alongside EUR build"
+  trigger: "Deep system audit — weakness review"
 
 ---
 
-## D016 — EURUSD ships as RSI-anchored mean-reversion swing; intraday edge shelved (2026-05-28)
-**Decision:** EURUSD goes live on the SAME architecture as XAUUSD (weekly forecast → daily validation → outward-offset limit) but with its OWN, research-derived signals: a MEAN-REVERSION confluence anchored on RSI extremes. Measured edge (`scripts/research_eurusd_indicators.py`, 6.4yr, forward-5d vs 48.9% baseline): RSI>70 short +6.6pp / RSI<30 long +4.4pp (strongest), Bollinger 2σ +1.6pp, structural extreme +1.3–2.3pp; Donchian breakout NEGATIVE (fade, never follow); macro/rate-diff NULL + regime-flipping → context-only, no positive confluence points. The separately-validated intraday NY-overlap fade (Phase 3, PF~1.2, OOS-stable) is SHELVED — it is a different system, not the swing book the user wants now.
-**Rationale:** User explicitly requires the weekly-swing/confluence/offset architecture for every instrument. EUR swing edge is THIN (RSI mean-reversion modest) and conviction is medium-low until thresholds are calibrated — accepted, with eyes open. Honest record so future-self knows EUR swing is not a strong-edge system and the intraday alternative exists if the swing book underperforms.
-**belief_log:**
-- date: 2026-05-28
-  belief: "EUR macro driver (DGS2−ESTR) is THE anchor like DFII10 for gold"
-  trigger: "Initial EUR scaffold (instruments/eurusd/config.py)"
-- date: 2026-05-28
-  belief: "EUR macro is null/regime-unstable; EUR is MEAN-REVERTING; swing confluence = RSI-extreme + structural extreme + Bollinger, macro context-only. Intraday fade shelved."
-  trigger: "Phase-2 research nulls + Phase-2e indicator scan; user-directed architecture"
 
 ---
 

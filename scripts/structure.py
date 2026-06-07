@@ -1,9 +1,8 @@
 """Shared market-structure primitives — fractal pivots, trend state, structural distance.
 
-Single source of truth for G1 (MTF structure gate) and structural_dist (stop sizing),
-used by BOTH live /validate and the backtest (scripts/backtest/strategies.py) so the
-two cannot diverge. All functions operate on CLOSED bars only — the caller must drop
-any forming/open bar before passing a frame in.
+Single source of truth for MTF structure alignment (Z4/E1) and structural_dist (stop
+sizing), used by live /validate. All functions operate on CLOSED bars only — the caller
+must drop any forming/open bar before passing a frame in.
 
 Pivot definition: N=2 fractal. A bar is a pivot high if its `high` is strictly greater
 than the highs of the N bars on each side; pivot low symmetric on `low`. N=2 needs 2
@@ -52,8 +51,8 @@ def structure_state(df, n=PIVOT_N):
     return "mixed"
 
 
-def g1_pass(h4, h1, direction, n=PIVOT_N):
-    """G1: both H4 and H1 structure align with `direction` (+1 long / -1 short)."""
+def mtf_aligned(h4, h1, direction, n=PIVOT_N):
+    """MTF structure (Z4/E1): both H4 and H1 align with `direction` (+1 long / -1 short)."""
     want = "up" if direction > 0 else "down"
     return structure_state(h4, n) == want and structure_state(h1, n) == want
 

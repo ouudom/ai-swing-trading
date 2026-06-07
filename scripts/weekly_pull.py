@@ -104,7 +104,7 @@ SYM_CLEAN = "xauusd"
 TD_DIR    = Path("data/twelvedata/xauusd")
 FRED_DIR  = Path("data/fred")
 PULL_DIR  = Path("data/weekly_pull/xauusd")
-TICK_MULTIPLIER = 100   # $/lot per 1.0 price move (gold). EUR=100000. Overridden by load_instrument.
+TICK_MULTIPLIER = 100   # $/lot per 1.0 price move (gold). Overridden by load_instrument.
 PRICE_DP = 2            # price rounding precision (gold $-scale). FX→5. Overridden by load_instrument.
 
 FRED_SERIES = ["DFII10", "DGS10", "T5YIE", "DFF", "VIXCLS"]
@@ -248,7 +248,7 @@ def calc_ema(series, span):
     return round(float(series.ewm(span=span, adjust=False).mean().iloc[-1]), PRICE_DP)
 
 def calc_bollinger(df, p=20, k=2):
-    """20,2 Bollinger bands on D1 close. EUR mean-reversion S3/G3 input.
+    """20,2 Bollinger bands on D1 close. Context indicator (not scored in v2).
     Returns mid/upper/lower + %B + position vs bands (last close)."""
     c = df["close"]
     mid = c.rolling(p).mean()

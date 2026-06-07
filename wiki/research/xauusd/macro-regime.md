@@ -49,7 +49,7 @@ Do NOT use VIX as hard gate. Use for context only.
 
 ## Key Conclusions
 
-1. **G3 gate = DFII10 slope only** (not combined signal). Simple, high-impact.
+1. **Macro gate = DFII10 slope only** (not combined signal). Simple, high-impact.
 2. VIX >25 = danger, not opportunity. Don't counter a fear spike without RSI divergence.
 3. Combined signal useful for weekly forecast **conviction level** (supports HIGH confidence), not daily gate.
 4. DXY inverse is real but breaks — use as secondary confirmation in weekly write-up, not hard gate.

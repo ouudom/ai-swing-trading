@@ -8,7 +8,7 @@ related: [independent-signal-results.md, mtf-market-structure.md, ../_INDEX.md]
 
 # XAUUSD — Entry Confirmation (H1 trigger ablation)
 
-Script: `scripts/sweep_trigger.py` (adds `trigger_mode` param to `s_weekly_swing_v1`)
+Script: H1 trigger-ablation sweep (removed in repo cleanup)
 Data: TD 6.35yr 2020-01-24 → 2026-05-29 (D1/H4/H1)
 Question: the system gates WATCH→ORDER LIMIT on an H1 trigger (pin/engulf/B&R).
 That gate was never tested. Does requiring confirmation add edge, or just cut frequency?

@@ -10,15 +10,14 @@ related: [_INDEX.md, concepts/macro-regime.md, concepts/atr-compression.md]
 
 ## Why This Exists
 
-XAUUSD confluence signals (S1–S6) were weighted by theory and literature, NOT by measured
-forward-return edge. EUR Phase-2e (`scripts/research_eurusd_indicators.py`) tested each signal
-independently first — that's why EUR weights are justified. Gold never had this scan.
+XAUUSD confluence signals (early version) were weighted by theory and literature, NOT by
+measured forward-return edge.
 
 This plan corrects that. Every signal is tested IN ISOLATION vs the 54% baseline. No combined
 scoring. Signals that fail get cut or demoted. Signals that pass (with sufficient N) get
 weight proportional to measured edge.
 
-**Script:** `scripts/research_xauusd_signals.py`
+**Script:** Phase 0b signal research runner (removed in repo cleanup)
 
 ---
 

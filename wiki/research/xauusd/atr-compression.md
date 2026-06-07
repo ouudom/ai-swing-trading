@@ -30,12 +30,12 @@ Measure: next 5D range (max high − min low over next 5 D1 bars) vs ATR14 at si
 2. **Compression is directionally neutral** — price moves more, not necessarily in any direction
 3. Forward return compressed < normal — price is "coiling," not biased up. Macro + structure decide direction.
 4. The edge: compressed market + correct direction call = bigger move, better R:R (price travels further to TP)
-5. **Gate G2 logic**: only enter setups during compression — 82% chance of explosive move supports 3R target
+5. **ATR-compression gate logic**: only enter setups during compression — 82% chance of explosive move supports 3R target
 
 ## Interpretation
 
 Compression signals WHEN to enter (volatility breakout likely), not WHICH direction.
-Combine with G1 (structure) and G3 (macro) for directional bias, then G2 to confirm timing is right.
+Combine with the structure gate and macro gate for directional bias, then ATR compression to confirm timing is right.
 
 ## Open Questions
 

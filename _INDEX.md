@@ -36,7 +36,7 @@
 - `wiki/research/source/_INDEX.md` — external paper index
 
 ## Forecasts — XAUUSD
-- `forecasts/weekly/xauusd/` — empty (legacy v1 cleared). Next `/weekly` writes `YYYY-WNN.md`.
+- `forecasts/weekly/xauusd/2026-W23.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH.
 
 ## Daily Validations — XAUUSD
 - `forecasts/daily/xauusd/` — empty (legacy v1 cleared). Next `/validate` writes `YYYY-MM-DD.md`.

@@ -18,12 +18,6 @@ __pycache__/
 # Data — regenerable raw pulls
 data
 
-# Frontend
-app/frontend/node_modules/
-app/frontend/dist/
-app/frontend/.next/
-app/frontend/data.json
-
 # Claude local — ignore settings but SHARE commands/
 .claude/*
 !.claude/commands/

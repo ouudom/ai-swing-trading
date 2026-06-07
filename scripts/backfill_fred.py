@@ -20,13 +20,12 @@ from dotenv import load_dotenv
 load_dotenv()
 KEY = os.getenv("FRED_KEY")
 
+# Must match scripts/config/xauusd/config.py FRED_SERIES (the series the weekly pipeline consumes).
 DEFAULT_SERIES = [
     "DFII10",     # 10Y real yield (TIPS)
     "DGS10",      # 10Y nominal
     "T5YIE",      # 5Y breakeven inflation
     "DFF",        # Fed Funds effective
-    "DTWEXBGS",   # Broad USD index
-    "DCOILWTICO", # WTI oil
     "VIXCLS",     # VIX
 ]
 

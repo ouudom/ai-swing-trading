@@ -36,18 +36,18 @@
 - `wiki/research/source/_INDEX.md` — external paper index
 
 ## Forecasts — XAUUSD
-- `forecasts/weekly/xauusd/2026-W22.md` — (legacy v1) BEARISH/MEDIUM-HIGH, expired unfilled
+- `forecasts/weekly/xauusd/` — empty (legacy v1 cleared). Next `/weekly` writes `YYYY-WNN.md`.
 
 ## Daily Validations — XAUUSD
-- `forecasts/daily/xauusd/2026-05-25.md` … `2026-05-29.md` — (legacy v1) W22 runs
+- `forecasts/daily/xauusd/` — empty (legacy v1 cleared). Next `/validate` writes `YYYY-MM-DD.md`.
 
 ## Scripts — Pipeline
 - `scripts/weekly_pull.py` — orchestrator: cache gate → fetch → compute → weekly_pull txt
 - `scripts/fetch.py` — network only: TD 15M + FRED → CSVs
 - `scripts/compute.py` — indicators + snapshot from CSVs (aux VP/COT/GLD network only)
-- `scripts/backfill_twelvedata.py` — pull/update OHLC backward from TD
-- `scripts/resample_twelvedata.py` — M15 → H1/H4/D1
-- `scripts/backfill_fred.py` — pull/update FRED macro series
+- `scripts/backfill_twelvedata.py` — one-off util (not in weekly pipeline): pull/update OHLC backward from TD
+- `scripts/resample_twelvedata.py` — one-off util (not in weekly pipeline): M15 → H1/H4/D1
+- `scripts/backfill_fred.py` — one-off util (not in weekly pipeline): pull/update FRED macro series
 
 ## Scripts — Validation
 - `scripts/check_v1b.py` — V1b intraday H4 invalidation checker (CLI zone args, no DB)

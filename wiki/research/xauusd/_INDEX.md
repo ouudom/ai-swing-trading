@@ -10,14 +10,14 @@ tags: [index, xauusd]
 
 | File | What's in it |
 |---|---|
-| `concepts/mtf-market-structure.md` | H4+H1 swing structure win rates, pivot detection method |
-| `concepts/stop-loss.md` | Structural vs ATR stop: MAE survival rates, recommended formula |
-| `concepts/macro-regime.md` | DFII10 slope regime split, DXY correlation, VIX buckets |
-| `concepts/atr-compression.md` | 82% expansion probability, directional neutrality, G2 gate rationale |
-| `concepts/r-target.md` | 2R/2.5R/3R EV comparison, filter impact on TP% |
-| `concepts/session-timing.md` | Session volatility by hour, day-of-week bias |
-| `concepts/independent-signal-results.md` | **Phase 0b** — each signal tested independently D1/H4/H1. Key: gold=momentum not mean-reversion. DFII10 slope confirmed (+5.3pp). RSI>70 anti-fade. EMA regime confirmed. |
-| `concepts/entry-confirmation.md` | **H1 trigger ablation** (`scripts/sweep_trigger.py`). Pin has NO standalone edge (trigger_fill loses) but +offset lifts PF 2.20→3.38. Offset dominant. Engulf redundant w/ pin. Reject trigger-only entry. |
+| `mtf-market-structure.md` | H4+H1 swing structure win rates, pivot detection method |
+| `stop-loss.md` | Structural vs ATR stop: MAE survival rates, recommended formula |
+| `macro-regime.md` | DFII10 slope regime split, DXY correlation, VIX buckets |
+| `atr-compression.md` | 82% expansion probability, directional neutrality, G2 gate rationale |
+| `r-target.md` | 2R/2.5R/3R EV comparison, filter impact on TP% |
+| `session-timing.md` | Session volatility by hour, day-of-week bias |
+| `independent-signal-results.md` | **Phase 0b** — each signal tested independently D1/H4/H1. Key: gold=momentum not mean-reversion. DFII10 slope confirmed (+5.3pp). RSI>70 anti-fade. EMA regime confirmed. |
+| `entry-confirmation.md` | **H1 trigger ablation.** Pin has NO standalone edge (trigger_fill loses) but +offset lifts PF 2.20→3.38. Offset dominant. Engulf redundant w/ pin. Reject trigger-only entry. |
 | `phase0b_signal_plan.md` | Phase 0b plan doc — signal catalogue, methodology, action thresholds |
 
 ## Data Sources
@@ -40,11 +40,14 @@ tags: [index, xauusd]
 
 | Script | Purpose |
 |---|---|
-| `scripts/build_edge_report_v2.py` | Main research runner → `frontend/edge_report.html` |
-| `scripts/backfill_twelvedata.py` | Pull/update OHLC backward from TD |
-| `scripts/resample_twelvedata.py` | M15 → H1/H4/D1 |
-| `scripts/backfill_fred.py` | Pull/update FRED macro series |
+| `scripts/backfill_twelvedata.py` | Pull/update OHLC backward from TD (one-off util) |
+| `scripts/resample_twelvedata.py` | M15 → H1/H4/D1 (one-off util) |
+| `scripts/backfill_fred.py` | Pull/update FRED macro series (one-off util) |
 | `scripts/lib/ohlc_store.py` | OHLC storage: upsert, manifest, UTC normalization |
+
+> **Note:** Phase 0/0b research runners (`build_edge_report_v2.py`, `sweep_*.py`,
+> `diag_funnel.py`) referenced in *Pending Research* below were removed in the repo cleanup.
+> Findings are preserved as text; the scripts are not in the tree.
 
 ## Research Standards
 

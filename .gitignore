@@ -24,15 +24,16 @@ app/frontend/dist/
 app/frontend/.next/
 app/frontend/data.json
 
-# Claude local (keep commands/ shared)
-.claude
+# Claude local — ignore settings but SHARE commands/
+.claude/*
+!.claude/commands/
+.claude/settings.local.json
 
 # OS / editor
 .DS_Store
 Thumbs.db
 *.swp
 .idea/
-.vscode/data/ohlc/XAUUSD_M1_2018_2026.csv
-data/ohlc/xauusd/XAUUSD_M1.csv
+.vscode/
 
 /wiki/research-papers

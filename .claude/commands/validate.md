@@ -16,8 +16,8 @@ confidence, linked weekly file). Read linked weekly frontmatter. No PENDING zone
 
 ## Step 2 — Fetch Market Data
 ```bash
-.venv/bin/python scripts/weekly_pull.py --instrument xauusd   # orchestrator (canonical for /validate)
-# or: scripts/fetch.py (network only) | scripts/compute.py (recompute, no TD/FRED net)
+bash scripts/pyrun.sh scripts/weekly_pull.py --instrument xauusd   # orchestrator (canonical for /validate)
+# or: bash scripts/pyrun.sh scripts/fetch.py (network only) | bash scripts/pyrun.sh scripts/compute.py (recompute, no TD/FRED net)
 ```
 Fail → stop (never validate on stale data). Cache: refetch unless pull <15min old OR market closed.
 Then read the pull file + CSVs and compute live values:

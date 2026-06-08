@@ -6,6 +6,8 @@
 # Python
 .venv/
 venv/
+.venv-linux/
+.pydeps/
 __pycache__/
 *.pyc
 *.pyo

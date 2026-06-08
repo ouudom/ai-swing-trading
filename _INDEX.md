@@ -39,7 +39,7 @@
 - `forecasts/weekly/xauusd/2026-W23.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH.
 
 ## Daily Validations — XAUUSD
-- `forecasts/daily/xauusd/` — empty (legacy v1 cleared). Next `/validate` writes `YYYY-MM-DD.md`.
+- `forecasts/daily/xauusd/2026-06-08.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). SL $51.08, lots 0.39.
 
 ## Scripts — Pipeline
 - `scripts/weekly_pull.py` — orchestrator: cache gate → fetch → compute → weekly_pull txt

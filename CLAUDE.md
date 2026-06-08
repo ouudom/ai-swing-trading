@@ -55,6 +55,15 @@ TP:     TP1 2.5R (manual), TP2 3.0R (limit), BE at +1.5R; TP at structural ancho
 Entry confirmation (E0): 1H engulfing | 1H pin (tail ≥ 2.5× body) | 15M CHoCH over 60-candle
 structure — toward zone direction, confirmed on candle CLOSE.
 
+## Running the pipeline (IMPORTANT — cross-environment)
+Always invoke Python via the launcher: **`bash scripts/pyrun.sh <script> [args]`**.
+Never hardcode `.venv/bin/python` — that venv is macOS-only and is a **dead symlink inside the
+Linux scheduled-task sandbox**, which silently breaks unattended `/validate` and `/weekly` runs.
+`pyrun.sh` auto-selects: macOS `.venv` locally → system `python3` + persistent `.pydeps` in the
+sandbox. If `.pydeps` is missing (fresh sandbox), rebuild once with `bash scripts/pyrun.sh --setup`.
+Keys live in `.env` (`TWELVE_DATA_KEY`, `FRED_KEY`); the command-doc `.venv/bin/python` examples
+are legacy — substitute `bash scripts/pyrun.sh`.
+
 ## Architecture (markdown-only)
 No database. Claude reads markdown for context and writes forecast/validation markdown directly.
 Structured data engine = the `scripts/` pipeline producing the weekly pull text file:

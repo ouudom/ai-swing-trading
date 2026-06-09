@@ -22,6 +22,10 @@
 - `wiki/system/gbpusd/gbpusd_profile.md` — GBP drivers, ATR regimes, pip econ, sessions, V1b 6pip
 - `wiki/system/gbpusd/confluence_criteria.md` — GBP R1/R2, D1-reversal + H1 + macro gate (ACTIVE)
 
+## System — EURGBP (cross, ACTIVE — onboarding complete, no zones yet)
+- `wiki/system/eurgbp/eurgbp_profile.md` — cross profile: low-vol ATR, USD sizing (no convert), no VIX-veto, ECB/BoE event blocks
+- `wiki/system/eurgbp/confluence_criteria.md` — EURGBP R1/R2 ACTIVE: mean-reversion fade, macro 0.5 tilt, H1 rows validated
+
 ## Templates
 - `wiki/system/templates/weekly_forecast.md` — skeleton for forecasts/weekly/xauusd/YYYY-WNN.md (zones)
 - `wiki/system/templates/daily_validation.md` — skeleton for forecasts/daily/xauusd/YYYY-MM-DD.md (entry confluence)
@@ -30,6 +34,9 @@
 ## Research — EURUSD / GBPUSD (P3 signal scan)
 - `wiki/research/eurusd/signal-results.md` — EUR edges: mean-reverting, H4-centric (+ raw scan)
 - `wiki/research/gbpusd/signal-results.md` — GBP edges: mean-reverting, D1+H1 (+ raw scan)
+
+## Research — EURGBP (EG3 go/no-go)
+- `wiki/research/eurgbp/signal-results.md` — EURGBP cross: mean-reverting (same as majors), edge clears cost → **GO on D1**; macro placeholder dead (EG2 rebuild)
 
 ## Research — XAUUSD
 - `wiki/research/xauusd/_INDEX.md` — data sources, scripts, standards, pending research
@@ -46,12 +53,13 @@
 ## Research — Source Papers
 - `wiki/research/source/_INDEX.md` — external paper index
 
-## Forecasts — EURUSD / GBPUSD
+## Forecasts — EURUSD / GBPUSD / EURGBP
 - `forecasts/weekly/eurusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT fade zones (1.1618–1.1640, 1.1574–1.1593), conviction MEDIUM.
 - `forecasts/weekly/gbpusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT fade zones (1.3400–1.3447, 1.3370–1.3390), conviction MEDIUM.
+- `forecasts/weekly/eurgbp/2026-W24.md` — NEUTRAL/range (ADX 13.8); LONG 0.8608–0.8624 (ZC 8.0) + SHORT 0.8664–0.8682 (ZC 7.5), conviction MEDIUM. First eurgbp forecast.
 
 ## Forecasts — XAUUSD
-- `forecasts/weekly/xauusd/2026-W23.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH.
+- `forecasts/weekly/xauusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH. (renamed W23→W24: files now named by trade week, not run week)
 
 ## Daily Validations — XAUUSD
 - `forecasts/daily/xauusd/2026-06-09.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). SL $46.46, lots 0.43. DFII10 drift +0.08%.
@@ -66,6 +74,9 @@
 - `scripts/resample_twelvedata.py` — one-off util (not in weekly pipeline): M15 → H1/H4/D1
 - `scripts/backfill_fred.py` — one-off util (not in weekly pipeline): pull/update FRED macro series
 
+## Scripts — Risk / Portfolio
+- `scripts/fx_exposure.py` — FX currency-leg netting ledger (D022 Architecture B core); USD + EURGBP-cross risk axes, per-axis $2000 cap, netting gate (keep-best-drop-weaker). `--selftest` / `--orders` / `--candidate`.
+
 ## Scripts — Validation
 - `scripts/check_v1b.py` — V1b intraday H4 invalidation checker (CLI zone args, no DB)
 - `scripts/check_structured_news_event.py` — T4-X structured news event check
@@ -76,6 +87,7 @@
 - `scripts/config/xauusd/config.py` — XAUUSD instrument config (real_yield macro)
 - `scripts/config/eurusd/config.py` — EURUSD config (DGS2 + DFF−ECBDFR, COT 6E, VP 6E=F)
 - `scripts/config/gbpusd/config.py` — GBPUSD config (DGS2 + DFF−SONIA, COT 6B, VP 6B=F)
+- `scripts/config/eurgbp/config.py` — EURGBP CROSS config (EG1; no USD leg, macro PLACEHOLDER pending EG2, COT off)
 - `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities
 
 ## Data

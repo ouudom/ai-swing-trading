@@ -73,7 +73,11 @@ def backfill(symbol: str, tf: str, since: str, forward_only: bool, max_calls: in
         end   = now
         print(f"[{tf}] forward-only {start} → {end}")
         while start < end and calls < max_calls:
-            df = fetch_page(symbol, tf, start.strftime("%Y-%m-%d %H:%M:%S"), end.strftime("%Y-%m-%d %H:%M:%S"))
+            try:
+                df = fetch_page(symbol, tf, start.strftime("%Y-%m-%d %H:%M:%S"), end.strftime("%Y-%m-%d %H:%M:%S"))
+            except RuntimeError as e:
+                # e.g. "No data available" at the future/weekend edge — non-fatal, data already saved.
+                print(f"  forward edge: {e} → done"); break
             calls += 1
             if df.empty: break
             info = upsert(SOURCE, symbol, tf, df)
@@ -97,6 +101,7 @@ def backfill(symbol: str, tf: str, since: str, forward_only: bool, max_calls: in
     bpd  = BARS_PER_DAY.get(tf, 24)
     chunk_days = max(3, int(PAGE / bpd)) if bpd > 0 else 365
     total_added = 0
+    prev_earliest = None   # progress guard — stop when first_dt stops decreasing
 
     while end > since_ts and calls < max_calls:
         start = max(end - pd.Timedelta(days=chunk_days), since_ts)
@@ -118,6 +123,14 @@ def backfill(symbol: str, tf: str, since: str, forward_only: bool, max_calls: in
         total_added += added
         earliest = pd.Timestamp(info["first_dt"])
         print(f"+{added} rows  first={earliest}  total={info['rows']}")
+        # Progress guard: if the store's earliest bar didn't move earlier this call, the page only
+        # returned the boundary bar we already have → we've reached the symbol's true history start.
+        # Stop (otherwise `end` re-clamps to the same window and the loop spins forever — the EURGBP
+        # 2010-edge bug that burned 240+ calls).
+        if prev_earliest is not None and earliest >= prev_earliest:
+            print(f"  no earlier data than {earliest} (history start reached) → done")
+            break
+        prev_earliest = earliest
         end = earliest - pd.Timedelta(seconds=1)
         if end > since_ts:
             time.sleep(THROTTLE)

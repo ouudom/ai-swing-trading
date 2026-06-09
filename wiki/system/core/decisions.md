@@ -24,6 +24,24 @@ later decision but still in force).
 
 ---
 
+## D023 — EURGBP added as a tradable CROSS: mean-reversion, macro-light, no VIX-veto, USD-sized
+**Status:** ACTIVE (2026-06-09). See `wiki/system/eurgbp/` + `wiki/research/eurgbp/signal-results.md`.
+**Decision:** Onboarded EURGBP (EG0–EG5). It is a **cross, not a USD-major** — distinct rules:
+(1) **Mean-reverting**, validated D1 16yr (near-20d-low long +9.3pp t=4.61, RSI<30 +16.7 t=3.32) +
+H4/H1 2020→now (H1 t up to 7.45, both directions); edge clears cost despite low vol (D1 ATR ~half a
+major; spread 1–1.5pip = 6–10% of edge). (2) **Macro thin/DEAD** (EG2): no free daily German/UK
+market yields → ECB−BoE differential is one-sided; all rate slopes noise. Macro = 0.5 tilt, NOT a
+gate. (3) **🔑 NO VIX-veto** — risk-off bids EUR over GBP → EURGBP UP, *inverted* vs the USD-majors'
+USD-bid; the FX VIX-LONG-veto must not transfer. (4) **Hard-block events = ECB/BoE/UK/EZ**, US =
+caution only (no USD leg). (5) **Netting prerequisite:** EURGBP IS the cross risk-axis (D022) — every
+order routes through `scripts/fx_exposure.py` or it can stack on an implied cross. (6) **Sizing in
+USD, no GBP→USD conversion** (operator decision; assumes broker settles EURGBP pips in USD — caveat
+documented). Confluence ACTIVE; ready for first `/weekly eurgbp`.
+**Rationale:** Triangular arbitrage (EURGBP=EURUSD/GBPUSD) is HFT-latency territory, not capturable
+retail. But the triangle's mean-reverting relative-value structure IS tradable on a swing horizon,
+and the netting ledger (D022) makes a third correlated instrument safe to add. Deferred: derived
+6E/6B COT, EG2b Bund–Gilt daily macro gate (only if a macro gate is later wanted).
+
 ## D022 — FX risk is per currency-factor, not per instrument; EURUSD+GBPUSD net via leg algebra (Architecture A)
 **Status:** ACTIVE (2026-06-09). See [[currency_exposure]] + constitution "Portfolio Currency-Leg Netting".
 **Decision:** EURUSD, GBPUSD, EURGBP form a triangle (`EURGBP = EURUSD/GBPUSD`) — two majors share

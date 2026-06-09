@@ -53,6 +53,12 @@ carry-diff / 2s10s are DEAD (context only).
 - Policy diff US−EZ +1.62% / US−UK −0.11% — context only.
 - Both pairs BEARISH / MEDIUM-HIGH → sell bounces into resistance (mean-reversion fade).
 
+### EURGBP cross (2026-W24, added 2026-06-09 — first forecast)
+Macro thin/DEAD for the cross (EG2): no DXY, no US rates. EUR−GBP rate diff (ECBDFR 2.00 − SONIA 3.73)
+= **−1.73, flat** → non-directional. VIX 21.51 spiked → weak EURGBP-**up** tilt (risk-off favors EUR
+over GBP, INVERTED vs majors; no VIX-veto). Price action: **NEUTRAL/range** (ADX 13.8, 0.8614–0.8682),
+spot 0.86352. Fade both edges. `baseline_rate_diff` = −1.73.
+
 ## Belief Log
 | Date | Bias | Real Yield | DXY | Trigger |
 |---|---|---|---|---|

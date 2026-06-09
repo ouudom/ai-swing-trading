@@ -38,6 +38,7 @@ REGISTERED_INSTRUMENTS = {
     "xauusd": "config.xauusd.config",
     "eurusd": "config.eurusd.config",
     "gbpusd": "config.gbpusd.config",
+    "eurgbp": "config.eurgbp.config",   # cross — EG1 (data); macro placeholder, see D022
 }
 
 _instrument_cfg = None  # set by load_instrument()
@@ -646,6 +647,26 @@ def _compute_and_write(out_path):
             f"VIX:              {float(vix['value'].iloc[-1]):.2f}")
         baseline_label = "baseline_dgs2"; baseline_val = us_now
         baseline_extra = f"baseline_policy_diff: {round(pol_diff,3)}\n"
+    elif macro_mode == "cross_rate_diff":
+        # EUR/GBP CROSS: no USD leg. Direction tilt = EUR−GBP rate differential (ECBDFR − SONIA).
+        # EG2: cross macro is THIN/DEAD on free daily data → LOW-weight, NON-SCORING tilt only.
+        # See wiki/research/eurgbp/signal-results.md.
+        eur = load_fred_local(cfg.RATE_EUR)   # ECB Deposit Facility Rate (ECBDFR)
+        gbp = load_fred_local(cfg.RATE_GBP)   # GBP SONIA (IUDSOIA)
+        eur_now = float(eur["value"].iloc[-1]); gbp_now = float(gbp["value"].iloc[-1])
+        diff_now  = eur_now - gbp_now
+        eur_20d   = float(eur["value"].iloc[-21]); gbp_20d = float(gbp["value"].iloc[-21])
+        diff_20d  = eur_20d - gbp_20d
+        diff_chg  = diff_now - diff_20d
+        # diff rising (EUR rates up rel to GBP) → EURGBP UP.
+        macro_block = (
+            f"⚠ EUR/GBP CROSS — macro = LOW-weight NON-SCORING tilt (EG2: cross macro thin/dead).\n"
+            f"  ECB Deposit (ECBDFR): {eur_now:.2f}%\n"
+            f"  GBP SONIA (IUDSOIA):  {gbp_now:.2f}%\n"
+            f"  Rate diff (EUR−GBP):  {diff_now:+.2f}%  (was {diff_20d:+.2f}% 20d ago, Δ {diff_chg:+.2f}%)\n"
+            f"  → {f'WIDENING (EUR carry up, bullish EURGBP)' if diff_chg > 0 else f'NARROWING (EUR carry down, bearish EURGBP)' if diff_chg < 0 else 'FLAT'}\n"
+            f"VIX:              {float(vix['value'].iloc[-1]):.2f}  (EG4: risk-off polarity INVERTED vs USD-majors)")
+        baseline_label = "baseline_rate_diff"; baseline_val = round(diff_now, 3)
     else:
         # XAUUSD: real-yield driven (single driver).
         ny  = load_fred_local("DGS10"); be = load_fred_local("T5YIE")
@@ -709,7 +730,7 @@ def _compute_and_write(out_path):
 
 ━━━ PRICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 {display}:{' '*max(1,16-len(display))}${gc:.{PRICE_DP}f} (was ${gp:.{PRICE_DP}f}, {round(((gc/gp)-1)*100,2):+.2f}% ~1w chg)
-DXY (ICE 6-cur):  {dc:.3f}  (was {dp:.3f},  {round(((dc/dp)-1)*100,2):+.2f}% ~1w chg)
+{'' if macro_mode == 'cross_rate_diff' else f'DXY (ICE 6-cur):  {dc:.3f}  (was {dp:.3f},  {round(((dc/dp)-1)*100,2):+.2f}% ~1w chg)'}
 
 ━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ATR(14) Daily:    ${atr_d}

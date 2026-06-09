@@ -1,17 +1,18 @@
 Run the full weekly forecast → produce Trading Zones.
 
-Argument: `[instrument]` ∈ {xauusd, eurusd, gbpusd} (default xauusd). One instrument per invocation.
+Argument: `[instrument]` ∈ {xauusd, eurusd, gbpusd, eurgbp} (default xauusd). One instrument per invocation.
+(eurgbp = CROSS, DRAFT/not-live: macro-light mean-reversion, no VIX-veto, GBP-quoted sizing, European event blocks.)
 
 Goal: a weekly forecast that publishes up to **3 Trading Zones** (at most 1 counter-trend), each
 scored by **Zone Confluence** (max 10, floor 5.0 — `wiki/system/{instrument}/confluence_criteria.md` R1).
 
 ## Step 0 — Instrument parametrization
-| Param | xauusd | eurusd | gbpusd |
-|---|---|---|---|
-| Character | momentum (pro-trend) | mean-reversion (fade) | mean-reversion (fade) |
-| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` |
-| Profile | xauusd_profile.md | eurusd_profile.md | gbpusd_profile.md |
-| Confluence R1 | xauusd | eurusd | gbpusd |
+| Param | xauusd | eurusd | gbpusd | eurgbp (cross) |
+|---|---|---|---|---|
+| Character | momentum (pro-trend) | mean-reversion (fade) | mean-reversion (fade) | mean-reversion (fade), macro-light |
+| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` | `baseline_rate_diff` (ECBDFR−SONIA, weak) |
+| Profile | xauusd_profile.md | eurusd_profile.md | gbpusd_profile.md | eurgbp_profile.md |
+| Confluence R1 | xauusd | eurusd | gbpusd | eurgbp |
 
 ## Prerequisites — Read First
 1. `wiki/system/core/macro/yield_environment.md` — prior macro baseline
@@ -45,8 +46,11 @@ Read the full `weekly_pull_{YEAR}_W{WW}.txt` before analysis.
 
 **1. Fundamental / Macro** —
 - xauusd: DFII10 (level + 20d slope vs `baseline_dfii10`), DXY, Fed posture. Falling real yield = bullish.
-- FX: US2Y (DGS2) 20d slope vs `baseline_dgs2`, DXY 1d jumps, VIX, policy-diff CONTEXT (not scored).
+- FX majors (eurusd/gbpusd): US2Y (DGS2) 20d slope vs `baseline_dgs2`, DXY 1d jumps, VIX, policy-diff CONTEXT (not scored).
   Falling US2Y = pair-bullish. **DXY 1d jump>0.5 → pair-bearish (strongest signal). VIX spike → pair-bearish.**
+- eurgbp (CROSS — no USD leg): macro is **thin/DEAD (EG2)** → price/structure only. No DXY, no US rates.
+  Direction tilt (low weight): EUR−GBP rate diff (ECBDFR−SONIA) widening → bullish; **VIX spike → EURGBP UP** (risk-off
+  favors EUR over GBP — INVERTED vs majors). Bias is set by structure/oscillator extremes, not macro.
 Bias: BULLISH/BEARISH/NEUTRAL + confidence. Flag regime shift vs baseline.
 
 **2. News Analysis** — scheduled high-impact calendar next week (UTC, mark hard blocks),
@@ -70,11 +74,14 @@ differs by instrument**:
 - **xauusd:** Z1 Structural 2.0 (MAND) | Z2 DFII10 slope 2.5 | Z3 DXY slope 1.5 | Z4 MTF 2.0 | Z5 EMA regime 1.0 | Z6 ATR compression 0.5 | Z7 VP node 0.5.
 - **eurusd:** Z1 Structural 2.0 (MAND) | Z2 H4 oscillator extreme 2.0 | Z3 band over-extension 1.5 | Z4 big-figure 1.0 | Z5 macro/intermarket (DXY-jump/US2Y-slope/VIX-spike) 1.5 | Z6 non-trend ADX<25 1.0 | Z7 compression 1.0.
 - **gbpusd:** Z1 Structural D1-extreme 2.5 (MAND) | Z2 D1 oscillator extreme 2.0 | Z3 H1 oscillator 1.5 | Z4 macro/intermarket 1.5 | Z5 non-trend ADX<25 1.0 | Z6 band/compression 0.5 | Z7 seasonal/Williams 1.0.
+- **eurgbp (cross):** Z1 Structural D1-extreme 3.0 (MAND) | Z2 D1 oscillator extreme 2.5 | Z3 H1 oscillator 1.5 (validated) | Z4 macro/sentiment TILT 0.5 | Z5 non-trend ADX<25 1.0 | Z6 band/compression 0.5 | Z7 Williams/Stoch 1.0. (Macro NOT a gate — EG2 dead.)
 
 Rules: publish if score ≥ 5.0 (Z1 mandatory). Max 3 zones, ≤1 counter.
 - Counter zone (xauusd): macro Z2+Z3 score 0; RSI divergence MANDATORY; macro conf LOW/MEDIUM.
-- Vetoes: xauusd VIX>35 blocks shorts + never score RSI>70/COT>200k short. **FX: VIX>35 or VIX
+- Vetoes: xauusd VIX>35 blocks shorts + never score RSI>70/COT>200k short. **FX majors: VIX>35 or VIX
   spike>3 blocks LONGs; DXY 1d jump against a zone blocks it; never score trend-follow.**
+  **eurgbp (cross): NO VIX veto, NO DXY block** (risk-off → EURGBP up, inverted; DXY irrelevant). Only
+  veto = D1 ADX>30 trending against the fade. Never score trend-follow.
 - Write IF/THEN in one sentence + name zone (Primary/Secondary/Counter), direction, box, score, signals.
 - SL/offset/TP computed at `/validate`, not here — but name the TP structural anchor + indicative R.
 
@@ -82,7 +89,7 @@ Rules: publish if score ≥ 5.0 (Z1 mandatory). Max 3 zones, ≤1 counter.
 Template `wiki/system/templates/weekly_forecast.md`. Frontmatter (instrument-aware baseline):
 ```yaml
 type: weekly_forecast
-instrument: xauusd | eurusd | gbpusd
+instrument: xauusd | eurusd | gbpusd | eurgbp
 week: YYYY-WNN
 generated: YYYY-MM-DD
 macro_bias: BULLISH | BEARISH | NEUTRAL
@@ -91,8 +98,9 @@ mtf_alignment: ALIGNED | MIXED | OPPOSING
 best_zone: PRIMARY | SECONDARY | NONE
 conviction: HIGH | MEDIUM-HIGH | MEDIUM | MEDIUM-LOW | LOW
 baseline_dfii10: x.xx        # xauusd only
-baseline_dgs2: x.xx          # FX only
-baseline_policy_diff: x.xx   # FX context only
+baseline_dgs2: x.xx          # FX majors only
+baseline_policy_diff: x.xx   # FX majors context only
+baseline_rate_diff: x.xx     # eurgbp only (ECBDFR−SONIA; weak/context)
 baseline_dxy: xxx.xxx
 weekend_gap_pct: x.xxx
 cot_net: ±xxxxx
@@ -105,6 +113,12 @@ Body: 5 sections, then each Trading Zone with box + Zone Confluence + signals + 
 macro/technical/positioning conflict (lower conviction to MEDIUM per Contradiction Protocol).
 
 Save to `forecasts/weekly/<INSTRUMENT>/YYYY-WNN.md` (Claude writes markdown directly).
+
+> **WNN = TARGET trade week the forecast governs — NOT the run-date week.**
+> Weekend run (Fri 22:00 → Sun) forecasts the **upcoming** week → use next ISO week (the Monday it opens).
+> Mid-week refresh forecasts the **current** week → use the current ISO week.
+> `week:` frontmatter + title + filename must all match the trade week. Compute from the Monday the
+> zones go live: `WNN = isocalendar(next_monday).week`. (E.g. run Sun 06-07 → trades Mon 06-08 → W24.)
 
 ## Post-Forecast Updates
 1. Rewrite `wiki/system/core/macro/yield_environment.md` with this week's macro snapshot (note which instrument).

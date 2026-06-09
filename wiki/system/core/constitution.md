@@ -19,19 +19,23 @@ related: [xauusd_profile, confluence_criteria]
 The rules below are written in their **XAUUSD instantiation** (gold $-units, real-yield macro,
 momentum bias). They generalize via each instrument's profile — never hardcode gold values for FX:
 
-| Generic rule term | XAUUSD | EURUSD / GBPUSD | Source |
-|---|---|---|---|
-| Lot multiplier | ×100 | ×100000 | `TICK_MULTIPLIER` (config / profile) |
-| H4-ATR flatline filter | $1 | 0.0003 (3 pips) | `MIN_BAR_RANGE` |
-| V1b "past zone" threshold | $5 | EUR 5 pips / GBP 6 pips | profile |
-| Macro baseline (frontmatter) | `baseline_dfii10` | `baseline_dgs2` (+ `baseline_policy_diff` context) | snapshot |
-| Macro direction model | real-yield (momentum) | DXY-jump→short + US2Y-slope + VIX-spike→short (mean-reversion); carry-diff/2s10s DEAD | profile / D021 |
-| VIX veto direction | block SHORTs (safe-haven) | block **LONGs** (risk-off USD bid) | profile |
-| Re-forecast T1/T5 series | DFII10 | US2Y (DGS2) | profile |
-| Confluence philosophy | pro-trend / macro-gated | **fade extremes; never trend-follow** | per-pair confluence_criteria |
+| Generic rule term | XAUUSD | EURUSD / GBPUSD | EURGBP (cross) | Source |
+|---|---|---|---|---|
+| Lot multiplier | ×100 | ×100000 | ×100000 (USD-sized, no GBP convert — operator) | `TICK_MULTIPLIER` |
+| H4-ATR flatline filter | $1 | 0.0003 (3 pips) | 0.0002 (2 pips) | `MIN_BAR_RANGE` |
+| V1b "past zone" threshold | $5 | EUR 5 pips / GBP 6 pips | 4 pips | profile |
+| Macro baseline (frontmatter) | `baseline_dfii10` | `baseline_dgs2` (+ `baseline_policy_diff`) | `baseline_rate_diff` (weak) | snapshot |
+| Macro direction model | real-yield (momentum) | DXY-jump→short + US2Y-slope + VIX-spike→short; carry-diff/2s10s DEAD | **thin/DEAD — price-only; macro = 0.5 tilt** | profile / D021 / EG2 |
+| VIX veto direction | block SHORTs (safe-haven) | block **LONGs** (risk-off USD bid) | **NONE** (risk-off → EURGBP UP, inverted) | profile / EG2 |
+| Hard-block events | US tier-1 | US tier-1 (shared) | **ECB + BoE + UK/EZ data** (US = caution only) | profile |
+| Re-forecast T1/T5 series | DFII10 | US2Y (DGS2) | EUR−GBP rate diff (weak); leans on T3 price | profile |
+| Confluence philosophy | pro-trend / macro-gated | **fade extremes; never trend-follow** | **fade extremes; macro-light** | per-pair confluence_criteria |
 
-All formulas (SL, offset, TP, R) are unit-agnostic — they operate on price distance and apply
-to any instrument unchanged. Only the constants above and the macro/confluence content differ.
+All formulas (SL, offset, TP, R) are unit-agnostic across instruments. EURGBP is nominally GBP-quoted
+but — **operator decision** — is sized in USD with the same formula as the majors
+(`lots = $2000/(SL × 100000)`, no GBP→USD conversion; assumes broker settles EURGBP pips in USD).
+Every EURGBP order routes through the FX netting ledger (`scripts/fx_exposure.py`) — EURGBP IS the
+cross risk-axis (see [[currency_exposure]]).
 
 ## Risk Rules — Non-Negotiable
 - Risk per trade: $2000

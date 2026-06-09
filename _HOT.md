@@ -28,7 +28,8 @@ Both generated Tue 2026-06-09 (mid-week instantiation; re-anchor next Sunday). B
 **sell the bounce into resistance** (limits rest ABOVE spot; do not chase the low). **CPI Wed 06-10 = hard block.**
 - **EURUSD** [W24](forecasts/weekly/eurusd/2026-W24.md): PRIMARY SHORT **1.1618–1.1640** (ZC 7.5), SECONDARY SHORT **1.1574–1.1593** (ZC 6.5). Counter NONE (VIX veto). Spot 1.1539, RSI 35.9.
 - **GBPUSD** [W24](forecasts/weekly/gbpusd/2026-W24.md): PRIMARY SHORT **1.3400–1.3447** (ZC 8.0), SECONDARY SHORT **1.3370–1.3390** (ZC 6.5). Counter NONE (VIX veto). Spot 1.3350, RSI 40.1, ADX 16.1.
-- To place orders: `/validate eurusd` / `/validate gbpusd` each morning (need a bounce into a zone + bearish reversal confirm). No FX orders placed yet (price below all short zones).
+- **EURGBP** [W24](forecasts/weekly/eurgbp/2026-W24.md): **NEUTRAL/range** (ADX 13.8, 0.8614–0.8682). PRIMARY LONG **0.8608–0.8624** (ZC 8.0), SECONDARY SHORT **0.8664–0.8682** (ZC 7.5). Counter NONE. Spot 0.86352 mid-range, RSI 43.7. First eurgbp forecast (D023). Fade both edges; macro non-scoring; **NO VIX-veto**; sizing USD; route via netting ledger.
+- To place orders: `/validate eurusd` / `/validate gbpusd` / `/validate eurgbp` each morning (need price at a zone + oscillator-extreme reversal confirm). No FX orders placed yet.
 - **06-09 05:36 UTC `/validate all` — BOTH PAIRS, ALL 4 ZONES = ❌ NO TRADE (PENDING held).** EUR EC 2.0/10 (RSI oversold not OB, ADX 39.3 trending); GBP EC 3.0/10 (D1 RSI 41.6, H1 RSI 64.0 shy of >65). Price below all short zones — no fade setup. Hard blocks all pass (V1/V1b intact, V3 clear=CPI is Wed, VIX stale→veto suspended, DGS2 0 drift, DXY 1d −0.119). Files: [eurusd](forecasts/daily/eurusd/2026-06-09.md) / [gbpusd](forecasts/daily/gbpusd/2026-06-09.md).
 - Known: backfill forward-catch-up throws non-fatal `No data available` at the future/weekend edge — data lands fine.
 - EURUSD DXY near-circular (EUR=58% of DXY) — context only, weight in P3. GBP cleaner (~12%).
@@ -43,11 +44,59 @@ Full framework + Architecture B roadmap: `wiki/system/core/currency_exposure.md`
 - ⚠️ **Latent now:** both W24 FX forecasts are SHORT → SHORT+SHORT = **2× long USD** if both fill.
   Today both = NO TRADE so not yet exposed; gate engages the moment both reach ORDER LIMIT.
 
+## EURGBP Onboarding (2026-06-09) — EG0 + EG1 + EG3 DONE; EG3 = GO
+Adding EURGBP as tradable (plan in `wiki/system/core/currency_exposure.md` "Architecture B / onboarding").
+- **EG0 DONE** — `scripts/fx_exposure.py` FX netting ledger (Architecture B core). USD + EURGBP-cross
+  risk axes, $2000/axis cap, keep-best-drop-weaker gate. Selftest PASS. **Prereq for trading EURGBP**
+  (EURGBP = the cross factor → would stack on an implied cross without the ledger).
+- **EG1 DONE (D1)** — `config/eurgbp/config.py` (cross; no USD leg; macro PLACEHOLDER; COT off);
+  registered in `weekly_pull` + `backtest_signals`. D1 data 2010→now (4287 bars). ⏳ H4/H1 pull
+  stalled (backfill edge-loop bug — D1 fine).
+- **EG3 DONE = GO (D1)** — `wiki/research/eurgbp/signal-results.md`. Strongly mean-reverting (same as
+  majors): near-20d-low long +9.3pp t=4.61, Keltner-low +11.9 t=4.51, RSI<30 +16.7 t=3.32; trend-follow
+  = anti-edge. Edge clears cost: D1 ATR 25–41 pips, spread 1–1.5 pip = 6–10% of edge (~10×). Macro
+  rows dead (placeholder, wrong for cross) → confirms EG2 rebuild needed.
+- **EG2 DONE = macro THIN/DEAD** — built cross model `MACRO_MODE="cross_rate_diff"` (ECBDFR−SONIA,
+  X-series in `backtest_signals`); DXY gated off for cross. Backtest D1: all 20d rate slopes noise;
+  only X3 diff-widen (t=1.50) + E16 VIX-spike (t=1.68) hint, sub-significant. Data limit (no free
+  daily German/UK market yields). ⇒ **EURGBP confluence = price/structure mean-reversion; macro =
+  LOW-weight tilt, NOT a gate.** 🔑 **VIX polarity INVERTED vs majors** (risk-off → EURGBP UP) →
+  FX VIX-veto-LONGS does NOT apply to EURGBP (key EG4 input). EG2b optional: wire Bund–Gilt daily.
+- **EG4 DONE (DRAFT)** — `wiki/system/eurgbp/eurgbp_profile.md` + `confluence_criteria.md`. Low-vol
+  ATR regimes (16yr D1: normal 47–76 pips, ~half a major). 🔑 **GBP-quoted sizing fix**: `lots =
+  $2000/(SL×100000×GBPUSD_spot)` — uncorrected is ~35% oversized; config `SIZING_FX_CONVERT=True`,
+  EG5 implements. Constants: MIN_BAR_RANGE 2pip, V1b 4pip. R1/R2 = mean-reversion fade (Z1 structure
+  3.0 + Z2 D1 osc 2.5 mandatory), macro demoted to 0.5 tilt, **NO VIX-veto**, **European event
+  blocks** (ECB/BoE/UK/EZ; US = caution only). H1 rows (Z3/E2) PROVISIONAL — need H4/H1 pull.
+  Constitution multi-instrument table + EURGBP column added.
+- **EG5 DONE** — wired EURGBP into both command docs. `weekly.md`: instrument {…,eurgbp}, Step-0 row,
+  cross macro note, Z-table (Z1 3.0/Z2 2.5/macro 0.5 tilt), no-veto, frontmatter (`baseline_rate_diff`,
+  `gbpusd_spot`). `validate.md`: Step-0 row (TICK×GBPUSD convert, 2pip/4pip, veto NONE), macro python
+  branch (ECBDFR−SONIA diff + loads gbpusd_spot), DXY skipped, **GBP→USD lot-sizing conversion**
+  `lots=2000//(SL×100000×gbpusd_spot)`, European event blocks (US=caution), eurgbp R2 row, **FX netting
+  gate** (run `fx_exposure.py` before any FX order). `forecasts/{weekly,daily}/eurgbp/` created.
+  Smoke-tested: macro diff −1.731 (flat, dead-confirmed), gbpusd_spot 1.33631, sizing 5→4 lots
+  (uncorrected $2339 → corrected $1871), check_v1b accepts eurgbp.
+- **Sizing = USD, NO GBP convert (operator decision 2026-06-09).** Reverted the GBP→USD pip
+  conversion across config/validate/profile/confluence/constitution. EURGBP sizes like the majors:
+  `lots = $2000/(SL×100000)`. Caveat noted: assumes broker settles EURGBP pips in USD (if GBP, ~33%
+  over — revisit). `SIZING_FX_CONVERT=False`.
+- **Backfill bug FIXED (2026-06-09)** — `backfill_twelvedata.py`: (1) backward progress-guard (stop
+  when `first_dt` stops decreasing → no more 2010-edge infinite loop), (2) forward-only now catches
+  the "No data available" edge error gracefully (was a traceback). Verified backward guard stops.
+- **H4/H1 PULLED + VALIDATED** (H4 9785, H1 39217 bars, 2020→now). Intraday confirms mean-reversion
+  both directions: H1 RSI<30 long +7.7 t=6.47, %R<−80 long t=7.42, RSI>65/Stoch>80 short t≈3.4; H4
+  RSI<30 long t=3.36, Stoch>80 short t=3.54. Z3/E2 H1 rows VALIDATED (short side, thin on D1, is
+  significant on intraday). **Confluence flipped DRAFT→ACTIVE.**
+- ✅ **EURGBP ONBOARDING COMPLETE (EG0–EG5 + data).** Confluence ACTIVE, all docs/code wired, netting
+  ledger enforced, sizing USD (no convert). **Ready for first `/weekly eurgbp`** — no zones published
+  yet. Optional later: derived 6E/6B COT, EG2b Bund–Gilt macro gate.
+
 ## Open Position
 None
 
 ## Active Forecast
-[2026-W23](forecasts/weekly/xauusd/2026-W23.md) — **BEARISH / MEDIUM-HIGH, conviction HIGH.** Sell bounces into resistance; price $4330 in strong downtrend.
+[2026-W24](forecasts/weekly/xauusd/2026-W24.md) — **BEARISH / MEDIUM-HIGH, conviction HIGH.** Sell bounces into resistance; price $4330 in strong downtrend. (file renamed W23→W24: named by trade week now)
 
 ### LIVE ORDER LIMITS (refreshed 2026-06-09 05:36 UTC pre-London `/validate all`, expire 21:00 UTC — re-validate each morning)
 - **PRIMARY SHORT** [9.5/10] — box **$4367–$4390**. **SELL LIMIT $4415.34 | 0.43 lots | SL $4461.39** | TP1 2.5R $4300.22 (manual) / TP2 3.0R $4277.19 (limit) / BE@1.5R $4346.27. Entry Confluence 6.0 (no E0, midpoint anchor). Invalidate: D1 close > $4390.
@@ -56,7 +105,7 @@ None
 - ⚠️ Both resting limits well above spot ($4341, oversold bounce) — fill only on a strong bounce. H4 ATR eased to $41.69 so SL tightened $46.46→$46.05, lots 0.43. **CPI Wed 06-10 = cancel any unfilled limit within 2h of London/NY open.**
 
 ## Week Status
-- Week: 2026-W23
+- Week: 2026-W24
 - Trades taken: 0 (2 XAUUSD limits placed, unfilled; 0 FX orders)
 - Risk allocated: $3,960 (2 × $1,980.15 unfilled XAUUSD limits)
 - weekly_reforecast_count: 0
@@ -105,9 +154,9 @@ all hard blocks pass, no re-forecast triggers, both zones score **6.0/10 (no E0)
 midpoint SELL limits** (PRIMARY $4417.11, SECONDARY $4506.11; SL $48.26 / 0.41 lots each; ~$3,957
 risk). Spot fell to $4310 (away from zones) — resting catch-the-bounce limits. Wrote
 `forecasts/daily/xauusd/2026-06-08.md`.
-- NOTE for user: `weekly_pull.py` names today's file `weekly_pull_2026_W24.txt` (ISO week 24) while
-  the active forecast is labelled `2026-W23`. Pre-existing week-numbering mismatch — cosmetic for
-  /validate (reads CSVs), but check before next `/weekly` so it doesn't write a W24 file.
+- RESOLVED 2026-06-09: forecast files now named by **trade week**, not run week. Gold Sun-06-07 run
+  forecasts Mon-06-08 = W24 → renamed `2026-W23.md`→`2026-W24.md`, matching the FX W24 files + the
+  `weekly_pull_2026_W24.txt` pull. Rule codified in `.claude/commands/weekly.md` (WNN = target week).
 2026-06-07 — First v2 `/weekly` (W23). Published 2 SHORT zones (Primary $4367–$4390, Secondary
 $4450–$4485, both 9.5/10), no counter. BEARISH MEDIUM-HIGH / conviction HIGH after NFP-shock −5.08%
 week. Rewrote yield_environment (W23), updated _INDEX. CPI Wed 06-10 hard block flagged.

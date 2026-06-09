@@ -35,6 +35,7 @@ REGISTERED = {
     "xauusd": "config.xauusd.config",
     "eurusd": "config.eurusd.config",
     "gbpusd": "config.gbpusd.config",
+    "eurgbp": "config.eurgbp.config",
 }
 FWD = {"D1": 5, "H4": 6, "H1": 4}
 TF_FILE = {"D1": "1day.csv", "H4": "4h.csv", "H1": "1h.csv"}
@@ -313,14 +314,17 @@ def macro_signals(df, cfg):
     """D1-only macro signals aligned to the OHLC daily index. Returns list like build_signals."""
     idx = df.index
     sig = []; A = sig.append
-    rate_diff = cfg and getattr(cfg, "MACRO_MODE", "") == "rate_diff"
+    mode = getattr(cfg, "MACRO_MODE", "") if cfg else ""
+    rate_diff = mode == "rate_diff"
+    cross = mode == "cross_rate_diff"
 
-    dxy = align_daily(load_dxy(), idx)
-    if dxy is not None:
-        dxy_s = pd.Series(dxy, index=idx)
-        dsl = rolling_slope(dxy_s, 20)
-        A(("E8","DXY 20d slope<0", "LNG", dsl < 0)); A(("E9","DXY 20d slope>0", "SHT", dsl > 0))
-        A(("E10","DXY 1d jump>0.5", "SHT", dxy_s.diff() > 0.5))
+    if not cross:                       # DXY is a USD index — irrelevant to a non-USD cross
+        dxy = align_daily(load_dxy(), idx)
+        if dxy is not None:
+            dxy_s = pd.Series(dxy, index=idx)
+            dsl = rolling_slope(dxy_s, 20)
+            A(("E8","DXY 20d slope<0", "LNG", dsl < 0)); A(("E9","DXY 20d slope>0", "SHT", dsl > 0))
+            A(("E10","DXY 1d jump>0.5", "SHT", dxy_s.diff() > 0.5))
 
     vix = align_daily(load_fred("VIXCLS"), idx)
     if vix is not None:
@@ -349,6 +353,26 @@ def macro_signals(df, cfg):
             # widening US carry → USD strength → pair DOWN (short)
             A(("M7","US-foreign carry widening", "SHT", dsl > 0)); A(("M8","US-foreign carry narrowing", "LNG", dsl < 0))
             A(("M9","US carry premium falling 1d", "LNG", diff.diff() < 0))
+    elif cross:
+        # EURGBP cross macro — EUR (ECB) vs GBP (SONIA). No USD leg. EG2 model.
+        eu = align_daily(load_fred(getattr(cfg, "RATE_EUR", "ECBDFR")), idx)
+        gb = align_daily(load_fred(getattr(cfg, "RATE_GBP", "IUDSOIA")), idx)
+        if eu is not None and gb is not None:
+            diff = pd.Series(eu - gb, index=idx)      # EUR−GBP rate gap; rising → EURGBP UP
+            dsl = rolling_slope(diff, 20)
+            A(("X1","EUR-GBP rate diff 20d slope>0", "LNG", dsl > 0)); A(("X2","EUR-GBP diff 20d slope<0", "SHT", dsl < 0))
+            A(("X3","EUR-GBP diff 5d widen>+0.05", "LNG", (diff - diff.shift(5)) > 0.05))
+            A(("X4","EUR-GBP diff 5d narrow>0.05", "SHT", (diff.shift(5) - diff) > 0.05))
+        if gb is not None:
+            gb_s = pd.Series(gb, index=idx); gsl = rolling_slope(gb_s, 20)
+            # GBP rate rising → GBP strength → EURGBP DOWN
+            A(("X5","GBP rate(SONIA) 20d slope>0", "SHT", gsl > 0)); A(("X6","GBP rate 20d slope<0", "LNG", gsl < 0))
+            A(("X7","GBP rate 5d jump>+0.05", "SHT", (gb_s - gb_s.shift(5)) > 0.05))
+            A(("X8","GBP rate 5d drop>0.05", "LNG", (gb_s.shift(5) - gb_s) > 0.05))
+        if eu is not None:
+            eu_s = pd.Series(eu, index=idx); esl = rolling_slope(eu_s, 20)
+            # EUR policy rate rising → EUR strength → EURGBP UP (sparse: ECBDFR is a step)
+            A(("X9","EUR rate(ECB) 20d slope>0", "LNG", esl > 0)); A(("X10","EUR rate 20d slope<0", "SHT", esl < 0))
     else:
         # gold real-yield macro (for parity / xauusd runs)
         ry = align_daily(load_fred("DFII10"), idx)

@@ -8,6 +8,7 @@
 ## System — Core
 - `wiki/system/core/constitution.md` — risk, SL/TP/offset, zone rules, re-forecast triggers (v2)
 - `wiki/system/core/decisions.md` — key system choices belief log
+- `wiki/system/core/currency_exposure.md` — FX currency-leg netting (Architecture A); per-factor risk cap; B roadmap (D022)
 - `wiki/system/core/setup_library.md` — recurring zone patterns (grows with experience)
 - `wiki/system/core/macro/yield_environment.md` — current Fed posture, real-yield trend, DXY structure
 

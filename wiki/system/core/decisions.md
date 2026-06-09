@@ -24,6 +24,23 @@ later decision but still in force).
 
 ---
 
+## D022 — FX risk is per currency-factor, not per instrument; EURUSD+GBPUSD net via leg algebra (Architecture A)
+**Status:** ACTIVE (2026-06-09). See [[currency_exposure]] + constitution "Portfolio Currency-Leg Netting".
+**Decision:** EURUSD, GBPUSD, EURGBP form a triangle (`EURGBP = EURUSD/GBPUSD`) — two majors share
+the USD leg, so two simultaneous orders concentrate onto ONE factor, never diversify. Risk unit for
+FX becomes **$2000 per currency-factor**. `/validate` runs a netting gate before writing an FX
+ORDER LIMIT: if the other major is already live today, resolve **keep best, drop weaker** by Entry
+Confluence (new EC > existing → cancel+replace; else new = ❌ SKIP, a new verdict distinct from NO
+TRADE — zone stays PENDING). Same direction → doubled-USD bet; opposite → EURGBP-cross bet. EURGBP
+is **reference-only, never traded** (true triangular arb is HFT-latency territory, not capturable
+on a retail feed). Scope = cross-instrument FX only; gold excluded (real-yield driver, not a USD
+leg); within-instrument stacking + full exposure ledger deferred to **Architecture B** (planned).
+**Rationale:** Both W24 FX forecasts are SHORT → SHORT+SHORT = 2× long USD. Without netting, filling
+both = a $4000 single-factor bet masquerading as two independent $2000 trades. The gate closes a
+live hidden-concentration hole the moment both pairs can fill. Chose A (pairwise tie-break, pure leg
+algebra, zero new data/infra) over B (exposure accounting) and C (cointegration stat-arb engine) to
+ship the safety fix immediately and reuse all existing infrastructure.
+
 ## D021 — FX majors (EURUSD/GBPUSD) are mean-reverting; macro = DXY-jump + US2Y-slope + VIX-spike, NOT carry-diff
 **Status:** ACTIVE (research basis; confluence PROPOSED, pending operator approval).
 **Decision (2026-06-09):** Reverses D001's gold-only scope — add EURUSD + GBPUSD. Their edge

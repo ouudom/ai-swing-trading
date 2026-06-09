@@ -40,6 +40,27 @@ to any instrument unchanged. Only the constants above and the macro/confluence c
 - Never widen a stop after entry. Never move stop against the trade.
 - All entries are **order limits** (buy limit long / sell limit short). No market orders.
 
+## Portfolio Currency-Leg Netting — FX only (see [[currency_exposure]])
+EURUSD, GBPUSD, EURGBP form a triangle (`EURGBP = EURUSD / GBPUSD`) — two majors share the USD
+leg, so trading both at once does NOT diversify, it concentrates onto one factor. Risk unit for
+FX is **$2000 per currency-factor, not per instrument.**
+
+| EURUSD | GBPUSD | Net | Factor |
+|---|---|---|---|
+| same direction | | `±2·USD` (USD stacks) | doubled USD bet |
+| opposite direction | | `±EUR ∓GBP` (USD cancels) | EURGBP cross bet |
+
+**Netting gate (at `/validate`, before writing an FX ORDER LIMIT):** if the OTHER FX major
+already has a LIVE limit / Open Position dated today, the two concentrate onto one factor → it is
+**one unit of risk**, never two. Resolve **keep best, drop weaker** by Entry Confluence:
+new EC > existing → cancel existing limit, place new; new EC ≤ existing → new = **❌ SKIP
+(concentration)**, existing stays. SKIP ≠ NO TRADE — the zone stays PENDING, just lost the
+tie-break. Always emit a `> [!warning] Concentration:` callout in the daily file + mirror to
+`_HOT.md`. **Scope:** cross-instrument FX only. Gold is NOT netted (driver = real yields, not a
+USD leg) — note its USD co-movement as context. Within-instrument zone stacking + an exposure
+ledger = Architecture B (planned, see [[currency_exposure]]). EURGBP is reference-only — never
+traded under A.
+
 ## Two scores — do not conflate (see [[confluence_criteria]])
 - **Zone Confluence** (at `/weekly`, max 10, floor 5.0): rates a zone's inherent quality. Publishes PENDING zones.
 - **Entry Confluence** (at `/validate`, max 10, floor 5.0): rates whether TODAY justifies the order.

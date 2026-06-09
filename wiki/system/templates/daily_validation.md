@@ -8,9 +8,9 @@ related: [constitution, weekly_forecast]
 
 # Daily Validation Template (v2)
 
-File: `forecasts/daily/xauusd/YYYY-MM-DD.md` — one per day, append-style. Claude writes markdown
-directly (no DB). Runs 07:30 UTC before London open. Zone box/direction never change; Entry
-Confluence + SL + offset + limit recompute daily.
+File: `forecasts/daily/<instrument>/YYYY-MM-DD.md` — one per day, append-style. Claude writes
+markdown directly (no DB). Runs 07:30 UTC before London open. Zone box/direction never change; Entry
+Confluence + SL + offset + limit recompute daily. Instrument ∈ {xauusd, eurusd, gbpusd}.
 
 The four questions: (1) forecast still valid? (2) bias flipped? (3) re-forecast? (4) order limit?
 
@@ -20,6 +20,7 @@ The four questions: (1) forecast still valid? (2) bias flipped? (3) re-forecast?
 ```yaml
 ---
 type: daily_validation
+instrument: xauusd | eurusd | gbpusd
 date: YYYY-MM-DD
 week: YYYY-WNN
 active_zone: PRIMARY | SECONDARY | COUNTER | NONE
@@ -27,18 +28,18 @@ active_zone: PRIMARY | SECONDARY | COUNTER | NONE
 v1_structure_intact: true | false
 v1b_intact: true | false
 v3_news_clear: true | false
-vix_veto_short: true | false       # VIX>35 (fresh) blocks shorts
+vix_veto: true | false             # xauusd: VIX>35 blocks SHORTs | FX: VIX>35 or spike>3 blocks LONGs
 vix_stale: true | false
 # Q3 re-forecast
 reforecast_action: NONE | WARN_LOG | REFORECAST_NOW
 reforecast_triggers: []            # e.g. [T1, T3]
-# Q4 entry confluence (max 10.0, floor 5.0)
-e0_entry_confirmation: true | false   # 3.0
-e1_h4h1_structure: true | false       # 2.5
-e2_dfii10_slope: true | false         # 2.0
-e3_macro_drift_ok: true | false       # 1.0
-e4_atr_compressed: true | false       # 1.0
-e5_dxy_slope: true | false            # 0.5
+# Q4 entry confluence (max 10.0, floor 5.0) — E1–E5 meaning differs by instrument (see confluence_criteria R2)
+e0_entry_confirmation: true | false   # 3.0  (xauusd: continuation | FX: reversal turn into zone)
+e1: true | false                      # 2.5  xauusd H4 structure | FX oscillator still extreme
+e2: true | false                      # xauusd 2.0 DFII10 slope | FX 1.5 band/H1 oscillator
+e3: true | false                      # 1.0  xauusd macro drift | FX non-trend ADX<25
+e4: true | false                      # 1.0  ATR compression (both) | FX structure/band intact
+e5: true | false                      # xauusd 0.5 DXY slope | FX 1.0 compression holds
 entry_confluence_score: 0.0
 # Entry
 zone_confluence_score: 0.0         # carried from weekly

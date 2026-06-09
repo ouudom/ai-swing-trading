@@ -8,8 +8,9 @@ related: [constitution, confluence_criteria]
 
 # Weekly Forecast Template (v2 — Trading Zones)
 
-File: `forecasts/weekly/xauusd/YYYY-WNN.md` — immutable after Monday open. Claude writes markdown
-directly (no DB). Goal: publish up to 3 Trading Zones (≤1 counter), each scored by Zone Confluence.
+File: `forecasts/weekly/<instrument>/YYYY-WNN.md` — immutable after Monday open. Claude writes
+markdown directly (no DB). Goal: publish up to 3 Trading Zones (≤1 counter), each scored by Zone
+Confluence. Instrument ∈ {xauusd, eurusd, gbpusd}; xauusd=momentum, FX=mean-reversion (D021).
 
 ---
 
@@ -17,6 +18,7 @@ directly (no DB). Goal: publish up to 3 Trading Zones (≤1 counter), each score
 ```yaml
 ---
 type: weekly_forecast
+instrument: xauusd | eurusd | gbpusd
 week: YYYY-WNN
 generated: YYYY-MM-DD
 macro_bias: BULLISH | BEARISH | NEUTRAL
@@ -24,13 +26,15 @@ macro_confidence: HIGH | MEDIUM-HIGH | MEDIUM | MEDIUM-LOW | LOW
 mtf_alignment: ALIGNED | MIXED | OPPOSING
 best_zone: PRIMARY | SECONDARY | NONE
 conviction: HIGH | MEDIUM-HIGH | MEDIUM | MEDIUM-LOW | LOW
-baseline_dfii10: x.xx
+baseline_dfii10: x.xx        # xauusd only
+baseline_dgs2: x.xx          # FX only (US 2Y rate-momentum leg)
+baseline_policy_diff: x.xx   # FX context only (not scored)
 baseline_dxy: xxx.xxx
 weekend_gap_pct: x.xxx
-cot_mm_net: ±xxxxx
-cot_mm_net_chg: ±xxxxx
-etf_gld_tonnes: xxxx.xx
-etf_gld_wk_chg: ±xx.xx
+cot_net: ±xxxxx
+cot_net_chg: ±xxxxx
+etf_gld_tonnes: xxxx.xx       # xauusd only
+etf_gld_wk_chg: ±xx.xx        # xauusd only
 adx_val: xx.x
 ---
 ```

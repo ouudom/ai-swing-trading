@@ -16,9 +16,9 @@ RATE_US           = "DGS2"      # US 2Y nominal — rate-momentum leg (drives pa
 POLICY_US         = "DFF"       # Fed funds effective — US carry leg
 # RATE_FOREIGN, RATE_FOREIGN_NAME, FOREIGN_CCY → set per pair.
 
-# FRED series to fetch. DGS2 (direction) + DFF (US carry) + VIXCLS (risk gate);
-# the foreign policy rate is appended per pair.
-FRED_SERIES_BASE  = ["DGS2", "DFF", "VIXCLS"]
+# FRED series to fetch. DGS2 (direction) + DGS10 (2s10s curve) + DFF (US carry)
+# + VIXCLS (risk gate); the foreign policy rate is appended per pair.
+FRED_SERIES_BASE  = ["DGS2", "DGS10", "DFF", "VIXCLS"]
 
 # ── COT — CME currency futures exist (EUR=6E, GBP=6B). Contract name per pair. ──
 COT_ENABLED       = True

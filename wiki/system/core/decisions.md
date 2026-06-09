@@ -24,6 +24,34 @@ later decision but still in force).
 
 ---
 
+## D021 — FX majors (EURUSD/GBPUSD) are mean-reverting; macro = DXY-jump + US2Y-slope + VIX-spike, NOT carry-diff
+**Status:** ACTIVE (research basis; confluence PROPOSED, pending operator approval).
+**Decision (2026-06-09):** Reverses D001's gold-only scope — add EURUSD + GBPUSD. Their edge
+structure is the **inverse of gold**: gold is momentum, FX majors are **mean-reverting**. Fade
+oscillator/band/structure extremes; trend-following (EMA regime, ADX-gated trend, Supertrend,
+PSAR, Aroon, Donchian breakout) is a measured ANTI-edge (|t| up to 5.6). Macro is NOT the
+rate-differential carry model originally planned (P2): carry-diff slope + 2s10s curve are
+measured DEAD (t<0.3 even on 16yr). The real macro/intermarket edges are **DXY 1d jump>0.5 →
+short the pair** (dominant, EUR t=9.29 / GBP t=7.27), **US 2Y (DGS2) 20d slope** (t≈2.1–2.4),
+and **VIX 1d spike>3 → short** (risk-off USD bid; GBP −22pp t=−5.60).
+**Rationale:** Built `scripts/backtest_signals.py` (extended Phase-0b catalogue), ran D1 2010→now
+(16yr) + H4/H1 2020→now. The 2022-only sample showed macro null — that was a hawkish-regime
+artifact; the 16yr sample revives US2Y-slope/DXY/VIX. Carry-diff genuinely carries no edge at the
+weekly horizon. Confluence rewritten as mean-reversion R1/R2 per pair.
+**belief_log:**
+- date: 2026-06-09
+  belief: "FX majors mean-revert (opposite of gold); score fades, never trend-follow; macro = DXY-jump + US2Y-slope + VIX-spike, not carry-diff/2s10s"
+  trigger: "P3 independent signal backtest, EURUSD + GBPUSD, 16yr D1 / 6.4yr intraday"
+- date: 2026-06-09
+  belief: "P2 rate-differential macro thesis is reporting-only context; not a scored direction gate"
+  trigger: "carry-diff + 2s10s measured t<0.3 on both 3.5yr and 16yr samples"
+
+**Related files:** `wiki/research/{eurusd,gbpusd}/signal-results.md`,
+`wiki/system/{eurusd,gbpusd}/confluence_criteria.md`, `scripts/backtest_signals.py`,
+`scripts/config/_fx_base.py`.
+
+---
+
 ## D020 — Weekly-pull stays plain-text; add JSON only on first programmatic consumer
 **Status:** ACTIVE.
 **Decision (2026-06-07):** Keep `data/weekly_pull/xauusd/weekly_pull_{YEAR}_W{WW}.txt` as the
@@ -305,7 +333,7 @@ ACTIVE; the specific offset formula (0.20 × H4 ATR × missing signals) is repla
 ---
 
 ## D001 — XAUUSD as Primary Instrument
-**Status:** ACTIVE — gold-only is the current scope (reaffirmed by D019).
+**Status:** SUPERSEDED by D021 (2026-06-09 — EURUSD + GBPUSD added). XAUUSD remains primary/most-mature.
 **Decision:** Start with XAUUSD only before adding forex pairs.
 **Rationale:** Real volume on CME enables AVWAP. Clear macro drivers (real yields, DXY). High liquidity, tight spreads. One instrument → faster mastery of its character.
 **belief_log:**

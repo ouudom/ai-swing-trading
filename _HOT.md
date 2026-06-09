@@ -13,7 +13,22 @@ Project restarted as **structured + AI-analysis high-quality entry signal genera
 Adding **EURUSD + GBPUSD** alongside XAUUSD. Pipeline is now multi-instrument.
 - **P1 DONE** — shared FX base config `scripts/config/_fx_base.py`; `config/eurusd/config.py` + `config/gbpusd/config.py`; registered in `REGISTERED_INSTRUMENTS`. Backfilled 2022→now (1day/4h/1h). `fetch.py`/`compute.py --instrument eurusd|gbpusd` produce clean snapshots.
 - **P2 DONE** — pluggable macro block (`MACRO_MODE`): gold=`real_yield` unchanged; FX=`rate_diff` = US 2Y (DGS2) slope direction + policy diff (DFF − ECBDFR/SONIA) carry gate. COT parametrized (EUR=6E, GBP=6B). ETF disabled for FX. Lot sizing TICK_MULTIPLIER=100000 verified.
-- **P3 TODO (next)** — per-pair edge backtest. Do NOT reuse gold confluence weights (gold=momentum; FX may mean-revert). Write `wiki/system/eurusd/confluence_criteria.md` + `gbpusd/` from measured edges. Then P4 profiles/constitution, P5 multi-instrument commands.
+- **P3 DONE (analysis)** — built `scripts/backtest_signals.py` (multi-instrument, extended catalogue: Connors RSI2, z-score, Keltner, TTM squeeze, Aroon, Supertrend, PSAR, ROC, ATR-pctile, big-figure, engulf/pin, 2s10s, carry-diff slope). Validated vs gold. Ran both pairs 2022→now D1/H4/H1. Backfilled FRED DGS2/ECBDFR/IUDSOIA/DGS10 full history (were stub-length). Results: `wiki/research/{eurusd,gbpusd}/signal-results.md` + `signal-scan-raw.txt`.
+  - **🔑 EURUSD + GBPUSD are MEAN-REVERTING — inverse of gold.** Fade oscillator/band/structure extremes; trend-following (EMA/ADX/Supertrend/PSAR/Aroon) is measured ANTI-edge (many t<−2.6). EUR richest on H4 (RSI>70 short +10pp t=4.66); GBP on D1 reversal (near-20d-low long +13.8pp t=4.61) + H1 oscillators.
+  - **DEEP-BACKFILL DONE** — D1 now 2010→now (16yr, 4279 bars); H4/H1 to 2020 (TD free intraday cap); DXY to 2009. Re-ran all scans (`--since 2010-01-01`).
+  - **🔑 Macro REVIVED on 16yr (was null on 2022-only = regime artifact):** **DXY 1d jump>0.5 → SHORT the pair is the strongest signal found (EUR +23pp t=9.29, GBP +18pp t=7.27).** US2Y(DGS2) 20d slope now significant (t≈2.1–2.4). VIX 1d spike>3 → pair DOWN (risk-off USD bid; GBP −22pp t=−5.60) = SHORT gate. **Carry-diff + 2s10s stay DEAD (t<0.3).**
+  - **Confluence APPROVED + ACTIVE (D021, 2026-06-09)** with scored macro/intermarket gate (DXY-jump, US2Y slope, VIX-spike). `wiki/system/{eurusd,gbpusd}/confluence_criteria.md`.
+- **P4 DONE** — `{eurusd,gbpusd}_profile.md` written (TICK_MULTIPLIER 100000, pip econ, ATR regimes from 16yr, V1b 5/6 pips, sessions, events, FX VIX-veto-LONGS). Constitution generalized: multi-instrument table, lots=$2000/(SL×TICK_MULTIPLIER), MIN_BAR_RANGE/V1b/baseline/veto parametrized. D001 superseded by D021.
+- **P5 DONE** — `/weekly` + `/validate` command docs parametrized by `[instrument]` (Step-0 param table, branched macro + per-pair R1/R2 + FX VIX-veto-longs + DXY-jump block). `check_v1b.py` FX display fixed (5dp) + `--buffer` per pair. Per-instrument forecast dirs created (`forecasts/{weekly,daily}/{eurusd,gbpusd}/`). Smoke-tested check_v1b + validate macro branch on eurusd. **Legacy `.venv/bin/python` in weekly.md replaced with `pyrun.sh`.**
+- **READY + LIVE:** first `/weekly eurusd` + `/weekly gbpusd` published (W24). Templates now carry `instrument` field.
+
+## FX Active Forecasts — 2026-W24 (PENDING, mean-reversion)
+Both generated Tue 2026-06-09 (mid-week instantiation; re-anchor next Sunday). Bearish bias both
+(USD strength: US2Y rising, DXY +0.75% wk, VIX spiked +6 to 21.5 → short bias + LONG veto). Strategy =
+**sell the bounce into resistance** (limits rest ABOVE spot; do not chase the low). **CPI Wed 06-10 = hard block.**
+- **EURUSD** [W24](forecasts/weekly/eurusd/2026-W24.md): PRIMARY SHORT **1.1618–1.1640** (ZC 7.5), SECONDARY SHORT **1.1574–1.1593** (ZC 6.5). Counter NONE (VIX veto). Spot 1.1539, RSI 35.9.
+- **GBPUSD** [W24](forecasts/weekly/gbpusd/2026-W24.md): PRIMARY SHORT **1.3400–1.3447** (ZC 8.0), SECONDARY SHORT **1.3370–1.3390** (ZC 6.5). Counter NONE (VIX veto). Spot 1.3350, RSI 40.1, ADX 16.1.
+- To place orders: `/validate eurusd` / `/validate gbpusd` each morning (need a bounce into a zone + bearish reversal confirm). No FX orders placed yet (price below all short zones).
 - Known: backfill forward-catch-up throws non-fatal `No data available` at the future/weekend edge — data lands fine.
 - EURUSD DXY near-circular (EUR=58% of DXY) — context only, weight in P3. GBP cleaner (~12%).
 

@@ -47,9 +47,11 @@ def main():
         return
 
     c1, c2 = float(last2["close"].iloc[0]), float(last2["close"].iloc[1])
+    # Display precision: $-scale instruments (gold) 2dp; pip-scale FX (price < 100) 5dp.
+    dp = 2 if args.zone_top >= 100 else 5
     print(f"V1b check ({args.instrument}{' ' + args.label if args.label else ''}) — last 2 H4 closes: "
-          f"${c1:.2f} @ {last2['datetime'].iloc[0]} | "
-          f"${c2:.2f} @ {last2['datetime'].iloc[1]}")
+          f"{c1:.{dp}f} @ {last2['datetime'].iloc[0]} | "
+          f"{c2:.{dp}f} @ {last2['datetime'].iloc[1]}")
 
     if args.direction == "SHORT":
         extreme = args.zone_top + args.buffer
@@ -59,8 +61,8 @@ def main():
         breach = (c1 < extreme) and (c2 < extreme)
 
     verdict = "❌ V1b BREACH — INVALIDATE" if breach else "✅ intact"
-    print(f"{args.direction} zone ${args.zone_bottom:.2f}–${args.zone_top:.2f} | "
-          f"threshold ${extreme:.2f} | {verdict}")
+    print(f"{args.direction} zone {args.zone_bottom:.{dp}f}–{args.zone_top:.{dp}f} | "
+          f"threshold {extreme:.{dp}f} | {verdict}")
 
     if breach:
         print("\n→ Cancel live limit for this zone. Remove zone from _HOT.md.")

@@ -44,6 +44,15 @@ DFII10 20d slope: +0.0081 %/day (rising trend, decelerating vs prior +0.013). Br
 - DXY (ICE) below 98 = pressure relieves
 - EMA200 daily ($4,389.94) overhead — price below; doubles as PRIMARY zone resistance cluster
 
+## FX Macro Snapshot — EURUSD / GBPUSD (2026-W24, added 2026-06-09)
+FX driver set differs from gold (D021): scored = **US 2Y (DGS2) slope + DXY 1d jump + VIX spike**;
+carry-diff / 2s10s are DEAD (context only).
+- **US 2Y (DGS2) 4.17%**, +0.19% wk, 20d slope **+0.0213/day RISING** → USD-rate momentum up = **bearish EUR & GBP**. `baseline_dgs2` = 4.17.
+- **DXY 99.96, +0.75% wk** (>100 intraday). No fresh 1d jump today (Δ −0.09).
+- **VIX 21.51, spiked +6.1 today** → risk-off USD bid = bearish both pairs + **blocks all LONG zones**.
+- Policy diff US−EZ +1.62% / US−UK −0.11% — context only.
+- Both pairs BEARISH / MEDIUM-HIGH → sell bounces into resistance (mean-reversion fade).
+
 ## Belief Log
 | Date | Bias | Real Yield | DXY | Trigger |
 |---|---|---|---|---|

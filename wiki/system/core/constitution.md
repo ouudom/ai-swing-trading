@@ -9,11 +9,29 @@ related: [xauusd_profile, confluence_criteria]
 # Trading System Constitution (v2 — Trading Zones)
 
 ## Identity
-- Instrument: XAUUSD (single instrument)
+- Instruments: **XAUUSD, EURUSD, GBPUSD** (per-instrument config + profile + confluence). XAUUSD = momentum; FX majors = mean-reversion (see D021).
 - Style: Swing trading, discretionary, structured + AI-analysis driven
 - Hold period: 2–10 days
 - Timeframes: Weekly/Daily (bias) → Daily→H4→1H (top-down) → 1H/15M (entry confirmation)
-- Output unit: **Trading Zone** (not "setup"). Max 3 zones/week, at most 1 counter-trend.
+- Output unit: **Trading Zone** (not "setup"). Max 3 zones/week per instrument, at most 1 counter-trend.
+
+## Multi-Instrument Generalization (read first)
+The rules below are written in their **XAUUSD instantiation** (gold $-units, real-yield macro,
+momentum bias). They generalize via each instrument's profile — never hardcode gold values for FX:
+
+| Generic rule term | XAUUSD | EURUSD / GBPUSD | Source |
+|---|---|---|---|
+| Lot multiplier | ×100 | ×100000 | `TICK_MULTIPLIER` (config / profile) |
+| H4-ATR flatline filter | $1 | 0.0003 (3 pips) | `MIN_BAR_RANGE` |
+| V1b "past zone" threshold | $5 | EUR 5 pips / GBP 6 pips | profile |
+| Macro baseline (frontmatter) | `baseline_dfii10` | `baseline_dgs2` (+ `baseline_policy_diff` context) | snapshot |
+| Macro direction model | real-yield (momentum) | DXY-jump→short + US2Y-slope + VIX-spike→short (mean-reversion); carry-diff/2s10s DEAD | profile / D021 |
+| VIX veto direction | block SHORTs (safe-haven) | block **LONGs** (risk-off USD bid) | profile |
+| Re-forecast T1/T5 series | DFII10 | US2Y (DGS2) | profile |
+| Confluence philosophy | pro-trend / macro-gated | **fade extremes; never trend-follow** | per-pair confluence_criteria |
+
+All formulas (SL, offset, TP, R) are unit-agnostic — they operate on price distance and apply
+to any instrument unchanged. Only the constants above and the macro/confluence content differ.
 
 ## Risk Rules — Non-Negotiable
 - Risk per trade: $2000
@@ -28,13 +46,15 @@ related: [xauusd_profile, confluence_criteria]
 
 ## Stop Loss (v2)
 ```
-H4_ATR14 = ATR(14) on trading-day H4 bars only (range >= $1 filter; drop weekend/holiday flatline)
+H4_ATR14 = ATR(14) on trading-day H4 bars only (range >= MIN_BAR_RANGE; drop weekend/holiday flatline)
 D1_ATR14 = ATR(14) on D1 bars
 
 if (0.5 × D1_ATR14) < H4_ATR14 :  SL = H4_ATR14
 else                           :  SL = avg(0.5 × D1_ATR14, H4_ATR14)
 
-lots = $2000 / (SL × 100), round DOWN   (min 0.01)
+lots = $2000 / (SL × TICK_MULTIPLIER), round DOWN   (min 0.01)
+       TICK_MULTIPLIER = 100 (XAUUSD) | 100000 (EURUSD, GBPUSD)
+       MIN_BAR_RANGE   = $1 (XAUUSD)  | 0.0003 (FX)
 ```
 **v2 change:** structural pivot removed from the stop formula. Stop is volatility-based:
 H4 ATR is the floor; half-D1 ATR only lifts it when half-D1 exceeds H4. SL is the base unit for
@@ -49,9 +69,10 @@ Daily workflow (07:30 UTC, before London open):
   1. /validate [date]
   2. Hard blocks (any fail = stop):
        V1  D1 close beyond zone           → INVALIDATED
-       V1b 2 consecutive H4 closes >$5 past zone → INVALIDATED (scripts/check_v1b.py)
+       V1b 2 consecutive H4 closes > [V1b threshold] past zone → INVALIDATED (scripts/check_v1b.py)
+           threshold = $5 (XAUUSD) | 5 pips EUR / 6 pips GBP (profile)
        V3  hard news event within 2h      → NO TRADE
-       VETO VIX > 35                       → all SHORTs NO TRADE
+       VETO VIX > 35 → XAUUSD: all SHORTs NO TRADE | FX: all LONGs NO TRADE (risk-off USD bid)
   3. Entry Confluence score (max 10, floor 5.0) — see confluence_criteria.md R2
        E0 entry confirmation 3.0 | E1 H4 struct 2.5 | E2 DFII10 slope 2.0
        E3 macro drift 1.0 | E4 ATR compression 1.0 | E5 DXY slope 0.5
@@ -96,9 +117,11 @@ name it, compute R. After entry the stop is fixed except the one-time BE move at
 
 ## Invalidation
 - **V1** — any D1 close beyond zone extreme → cancel.
-- **V1b** — 2 consecutive H4 closes >$5 past zone extreme → cancel live limit, remove from `_HOT.md`.
-  Check at each H4 boundary (00/04/08/12/16/20 UTC).
-- Macro bias reverses (real yields spike against direction) or weekly structure breaks.
+- **V1b** — 2 consecutive H4 closes past zone extreme by > [V1b threshold] → cancel live limit,
+  remove from `_HOT.md`. Threshold = $5 (XAUUSD) | 5 pips EUR / 6 pips GBP. Check at each H4
+  boundary (00/04/08/12/16/20 UTC).
+- Macro bias reverses (XAUUSD: real yields spike against direction; FX: DXY 1d jump or US2Y
+  slope flips against direction) or weekly structure breaks.
 
 > **Liquidity Sweep Exception:** a wick that penetrates the zone but CLOSES back inside (same or
 > next candle) is NOT invalidation — it's a Wyckoff Spring / stop hunt. Require a D1 *close*

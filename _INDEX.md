@@ -61,9 +61,12 @@
 ## Forecasts — XAUUSD
 - `forecasts/weekly/xauusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH. (renamed W23→W24: files now named by trade week, not run week)
 
-## Daily Validations — XAUUSD
-- `forecasts/daily/xauusd/2026-06-09.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). SL $46.46, lots 0.43. DFII10 drift +0.08%.
+## Daily Validations
+- `forecasts/daily/xauusd/2026-06-09.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). 13:47 UTC NY run: SL $46.45, lots 0.43, limits $4415.66 / $4504.66. VIX fresh.
 - `forecasts/daily/xauusd/2026-06-08.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). SL $51.08, lots 0.39.
+- `forecasts/daily/eurusd/2026-06-09.md` — both SHORT zones NO TRADE, EC 2.0/10 (price below resistance, ADX 39.3 trending).
+- `forecasts/daily/gbpusd/2026-06-09.md` — both SHORT zones NO TRADE, EC 4.5/10 (price IN primary short zone, H1 RSI 87.3, only E0 missing — near-trigger, watch).
+- `forecasts/daily/eurgbp/2026-06-09.md` — first EURGBP validate; both zones NO TRADE (LONG 4.5 / SHORT 3.0, spot mid-range).
 
 ## Scripts — Pipeline
 - `scripts/backtest_signals.py` — multi-instrument signal edge backtest (P3 runner; extended catalogue)

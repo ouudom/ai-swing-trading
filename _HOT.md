@@ -30,6 +30,7 @@ Both generated Tue 2026-06-09 (mid-week instantiation; re-anchor next Sunday). B
 - **GBPUSD** [W24](forecasts/weekly/gbpusd/2026-W24.md): PRIMARY SHORT **1.3400–1.3447** (ZC 8.0), SECONDARY SHORT **1.3370–1.3390** (ZC 6.5). Counter NONE (VIX veto). Spot 1.3350, RSI 40.1, ADX 16.1.
 - **EURGBP** [W24](forecasts/weekly/eurgbp/2026-W24.md): **NEUTRAL/range** (ADX 13.8, 0.8614–0.8682). PRIMARY LONG **0.8608–0.8624** (ZC 8.0), SECONDARY SHORT **0.8664–0.8682** (ZC 7.5). Counter NONE. Spot 0.86352 mid-range, RSI 43.7. First eurgbp forecast (D023). Fade both edges; macro non-scoring; **NO VIX-veto**; sizing USD; route via netting ledger.
 - To place orders: `/validate eurusd` / `/validate gbpusd` / `/validate eurgbp` each morning (need price at a zone + oscillator-extreme reversal confirm). No FX orders placed yet.
+- **06-09 13:47 UTC `/validate all` (scheduled NY-session) — ALL FX ZONES = ❌ NO TRADE (PENDING held).** EUR EC 2.0/10 (H4 RSI 37.2 not OB, ADX 39.3 trending, price below short zones); **GBP EC 4.5/10 — NOW 0.5 SHORT: price rallied INTO primary short zone $1.3400–1.3447 (H1 high 1.34080), H1 RSI 87.3 extreme OB, ADX 24.9, compression — only missing E0 (no confirmed bearish H1 reversal close yet). WATCH for a close-confirmed 1H pin/engulf at ~1.340 → E0 +3.0 → 7.5 ORDER LIMIT**; EURGBP first validate — both zones NO TRADE (LONG 4.5 / SHORT 3.0, spot 0.86329 mid-range, at neither zone). Hard blocks all pass (V1/V1b intact, V3 clear=CPI Wed, VIX 18.92 fresh→no veto, DGS2/rate-diff flat, DXY 1d −0.321). Files: [eurusd](forecasts/daily/eurusd/2026-06-09.md) / [gbpusd](forecasts/daily/gbpusd/2026-06-09.md) / [eurgbp](forecasts/daily/eurgbp/2026-06-09.md).
 - **06-09 05:36 UTC `/validate all` — BOTH PAIRS, ALL 4 ZONES = ❌ NO TRADE (PENDING held).** EUR EC 2.0/10 (RSI oversold not OB, ADX 39.3 trending); GBP EC 3.0/10 (D1 RSI 41.6, H1 RSI 64.0 shy of >65). Price below all short zones — no fade setup. Hard blocks all pass (V1/V1b intact, V3 clear=CPI is Wed, VIX stale→veto suspended, DGS2 0 drift, DXY 1d −0.119). Files: [eurusd](forecasts/daily/eurusd/2026-06-09.md) / [gbpusd](forecasts/daily/gbpusd/2026-06-09.md).
 - Known: backfill forward-catch-up throws non-fatal `No data available` at the future/weekend edge — data lands fine.
 - EURUSD DXY near-circular (EUR=58% of DXY) — context only, weight in P3. GBP cleaner (~12%).
@@ -98,16 +99,16 @@ None
 ## Active Forecast
 [2026-W24](forecasts/weekly/xauusd/2026-W24.md) — **BEARISH / MEDIUM-HIGH, conviction HIGH.** Sell bounces into resistance; price $4330 in strong downtrend. (file renamed W23→W24: named by trade week now)
 
-### LIVE ORDER LIMITS (refreshed 2026-06-09 05:36 UTC pre-London `/validate all`, expire 21:00 UTC — re-validate each morning)
-- **PRIMARY SHORT** [9.5/10] — box **$4367–$4390**. **SELL LIMIT $4415.34 | 0.43 lots | SL $4461.39** | TP1 2.5R $4300.22 (manual) / TP2 3.0R $4277.19 (limit) / BE@1.5R $4346.27. Entry Confluence 6.0 (no E0, midpoint anchor). Invalidate: D1 close > $4390.
-- **SECONDARY SHORT** [9.5/10] — box **$4450–$4485**. **SELL LIMIT $4504.34 | 0.43 lots | SL $4550.39** | TP1 2.5R $4389.22 (manual) / TP2 3.0R $4366.19 (limit) / BE@1.5R $4435.27. Entry Confluence 6.0 (no E0, midpoint anchor). Invalidate: D1 close > $4485.
+### LIVE ORDER LIMITS (refreshed 2026-06-09 13:47 UTC scheduled NY-session `/validate all`, expire 21:00 UTC — re-validate each morning)
+- **PRIMARY SHORT** [9.5/10] — box **$4367–$4390**. **SELL LIMIT $4415.66 | 0.43 lots | SL $4462.11** | TP1 2.5R $4299.53 (manual) / TP2 3.0R $4276.31 (limit) / BE@1.5R $4345.98. Entry Confluence 6.0 (no E0, midpoint anchor). Invalidate: D1 close > $4390.
+- **SECONDARY SHORT** [9.5/10] — box **$4450–$4485**. **SELL LIMIT $4504.66 | 0.43 lots | SL $4551.11** | TP1 2.5R $4388.53 (manual) / TP2 3.0R $4365.31 (limit) / BE@1.5R $4434.98. Entry Confluence 6.0 (no E0, midpoint anchor). Invalidate: D1 close > $4485.
 - COUNTER — NONE (macro MEDIUM-HIGH + no RSI divergence).
-- ⚠️ Both resting limits well above spot ($4341, oversold bounce) — fill only on a strong bounce. H4 ATR eased to $41.69 so SL tightened $46.46→$46.05, lots 0.43. **CPI Wed 06-10 = cancel any unfilled limit within 2h of London/NY open.**
+- ⚠️ Both resting limits well above spot ($4332, oversold bounce) — fill only on a strong bounce. H4 ATR firmed to $42.48 so SL widened $46.05→$46.45, lots 0.43. VIX refreshed 18.92 (06-08, no longer stale). **CPI Wed 06-10 = cancel any unfilled limit within 2h of London/NY open.**
 
 ## Week Status
 - Week: 2026-W24
 - Trades taken: 0 (2 XAUUSD limits placed, unfilled; 0 FX orders)
-- Risk allocated: $3,960 (2 × $1,980.15 unfilled XAUUSD limits)
+- Risk allocated: $3,995 (2 × $1,997.35 unfilled XAUUSD limits)
 - weekly_reforecast_count: 0
 
 ## Pending Actions
@@ -118,6 +119,16 @@ None
 - **FX netting gate (D022):** when EURUSD AND GBPUSD both reach ✅ ORDER LIMIT same day → apply leg netting, keep higher-EC zone at $2000, SKIP the other. Currently both SHORT = 2× USD if unnetted.
 
 ## Last Session
+2026-06-09 (13:47 UTC, scheduled NY-session `/validate all` — XAUUSD + EURUSD + GBPUSD + EURGBP) — Data
+pulled 06-09 13:41 UTC. **XAUUSD** spot $4332.21 (oversold bounce, RSI D1 26.3, ADX 43.1), well below both
+SHORT zones. All hard blocks pass (V1/V1b intact — last D1 close $4316.93; V3 CPI is Wed; VIX 18.92 FRESH 06-08
+→ veto cleanly off; DFII10 +0.08% WITH bias <0.15). No re-forecast triggers. Both zones 6.0/10 (no E0) →
+**refreshed both midpoint SELL limits**: H4 ATR firmed to $42.48 so SL $46.05→$46.45, lots 0.43, PRIMARY
+$4415.34→$4415.66, SECONDARY $4504.34→$4504.66 (~$3,995 risk). **FX: all zones ❌ NO TRADE** — EUR EC 2.0/10
+(price below short zones, H4 not OB, ADX 39.3 trending); **GBP EC 4.5/10 = NOW NEAR-TRIGGER — price rallied into
+primary short zone $1.3400–1.3447 (H1 high 1.34080), H1 RSI 87.3, ADX 24.9, only E0 missing; WATCH for a
+close-confirmed bearish H1 reversal → 7.5 ORDER LIMIT**; EURGBP first validate (LONG 4.5 / SHORT 3.0, spot 0.86329
+mid-range, at neither zone). No FX orders placed → netting gate not engaged. Wrote all 4 daily files.
 2026-06-09 (05:36 UTC, `/validate all` — XAUUSD + EURUSD + GBPUSD) — Pulled LIVE bars to 06-09 05:36 UTC.
 **XAUUSD** spot $4341.24 (oversold bounce, RSI D1 26.3, ADX 43.1), still well below both SHORT zones. All hard
 blocks pass (V1/V1b intact — last D1 close $4316.93 < zone tops; V3 clear — CPI is Wed; VIX 21.51 STALE 06-05 →

@@ -36,6 +36,8 @@ from dotenv import load_dotenv
 
 REGISTERED_INSTRUMENTS = {
     "xauusd": "config.xauusd.config",
+    "eurusd": "config.eurusd.config",
+    "gbpusd": "config.gbpusd.config",
 }
 
 _instrument_cfg = None  # set by load_instrument()
@@ -362,9 +364,12 @@ def volume_profile(ticker="GC=F", period="3mo", bins=50):
 
 def fetch_cot():
     """CFTC Legacy report (non-commercial long/short). Source: cftc.gov yearly zip.
-    Caches deahistfo{YEAR}.zip in data/cftc/. Returns latest two weekly reports for GOLD-COMEX.
+    Caches deahistfo{YEAR}.zip (combined Futures-Only, all markets) in data/cftc/.
+    Returns latest two weekly reports for the instrument's COT contract.
     """
     import zipfile, io
+    contract = (_instrument_cfg.COT_CONTRACT_NAME if _instrument_cfg
+                else "GOLD - COMMODITY EXCHANGE INC.")
     try:
         COT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
         year = datetime.utcnow().year
@@ -379,13 +384,13 @@ def fetch_cot():
             zip_path.write_bytes(r.content)
         z = zipfile.ZipFile(zip_path)
         df = pd.read_csv(z.open(z.namelist()[0]), low_memory=False)
-        # Exact match: main GOLD contract only (excludes MICRO GOLD which shares same date rows)
-        mask = df["Market and Exchange Names"].astype(str).str.strip() == "GOLD - COMMODITY EXCHANGE INC."
+        # Exact match: main contract only (excludes MICRO variants sharing same date rows)
+        mask = df["Market and Exchange Names"].astype(str).str.strip() == contract
         g = df[mask].copy()
         g["date"] = pd.to_datetime(g["As of Date in Form YYYY-MM-DD"], errors="coerce")
         g = g.dropna(subset=["date"]).sort_values("date").reset_index(drop=True)
         if g.empty:
-            return {"error": "no GOLD-COMEX rows in zip"}
+            return {"error": f"no rows for contract '{contract}' in zip"}
         long_col  = "Noncommercial Positions-Long (All)"
         short_col = "Noncommercial Positions-Short (All)"
         latest = g.iloc[-1]; prev = g.iloc[-2] if len(g) >= 2 else None
@@ -611,32 +616,64 @@ def _compute_and_write(out_path):
 
     rsi_now = rsi_vals[-1][1]; rsi_old = rsi_vals[0][1]
 
-    # ── MACRO block + baselines (XAUUSD: real-yield driven) ───────────────────
-    ny  = load_fred_local("DGS10"); be = load_fred_local("T5YIE")
-    ry  = load_fred_local("DFII10")
-    ry_now  = float(ry["value"].iloc[-1]); ry_prev = float(ry["value"].iloc[-6])
-    ry_20d  = ry["value"].iloc[-21:]
-    ry_slope = float(np.polyfit(range(len(ry_20d)), ry_20d.values, 1)[0])
-    ry_drift = ry_now - float(ry["value"].iloc[-2])
-    macro_block = (
-        f"Fed Funds:        {float(ff['value'].iloc[-1]):.2f}%\n"
-        f"10Y Nominal:      {float(ny['value'].iloc[-1]):.2f}%\n"
-        f"10Y Real (TIPS):  {ry_now}% (was {ry_prev}% ~1w ago, Δ {round(ry_now-ry_prev,3):+}%)\n"
-        f"  → {'RISING ⚠  (bearish gold)' if ry_now > ry_prev else 'FALLING ✅ (bullish gold)'}\n"
-        f"  20d slope: {ry_slope:+.4f} %/day  {'(rising trend)' if ry_slope > 0 else '(falling trend)'}\n"
-        f"  1d drift:  {ry_drift:+.3f}%\n"
-        f"5Y Breakeven:     {float(be['value'].iloc[-1]):.2f}%\n"
-        f"VIX:              {float(vix['value'].iloc[-1]):.2f}")
-    baseline_label = "baseline_dfii10"; baseline_val = ry_now
+    # ── MACRO block + baselines — driver depends on instrument MACRO_MODE ──────
+    display = _instrument_cfg.DISPLAY_NAME if _instrument_cfg else SYM_CLEAN.upper()
+    macro_mode = getattr(cfg, "MACRO_MODE", "real_yield")
+    baseline_extra = ""  # optional extra baseline lines (e.g. FX policy diff)
+
+    if macro_mode == "rate_diff":
+        # FX major: US 2Y slope = direction (USD rate momentum); DFF − foreign policy = carry regime.
+        us  = load_fred_local(cfg.RATE_US)        # US 2Y (DGS2)
+        fp  = load_fred_local(cfg.RATE_FOREIGN)   # foreign policy rate (ECBDFR / SONIA)
+        us_now  = float(us["value"].iloc[-1]); us_prev = float(us["value"].iloc[-6])
+        us_20d  = us["value"].iloc[-21:]
+        us_slope = float(np.polyfit(range(len(us_20d)), us_20d.values, 1)[0])
+        us_drift = us_now - float(us["value"].iloc[-2])
+        ffr      = float(ff["value"].iloc[-1]); fpr = float(fp["value"].iloc[-1])
+        pol_diff = ffr - fpr
+        pol_diff_prev = float(ff["value"].iloc[-6]) - float(fp["value"].iloc[-6])
+        pol_dd   = pol_diff - pol_diff_prev
+        # Pair rises when USD softens: falling US 2Y = bullish pair; narrowing US carry = bullish pair.
+        macro_block = (
+            f"US 2Y (DGS2):     {us_now}% (was {us_prev}% ~1w ago, Δ {round(us_now-us_prev,3):+}%)\n"
+            f"  → {f'RISING ⚠  (USD strength, bearish {display})' if us_now > us_prev else f'FALLING ✅ (USD softness, bullish {display})'}\n"
+            f"  20d slope: {us_slope:+.4f} %/day  {'(rising trend)' if us_slope > 0 else '(falling trend)'}\n"
+            f"  1d drift:  {us_drift:+.3f}%\n"
+            f"Fed Funds:        {ffr:.2f}%\n"
+            f"{cfg.RATE_FOREIGN_NAME + ':':<18}{fpr:.2f}%\n"
+            f"Policy diff (US−{cfg.FOREIGN_CCY}): {pol_diff:+.2f}% (was {pol_diff_prev:+.2f}%, Δ {pol_dd:+.2f}%)\n"
+            f"  → {f'WIDENING (USD carry up, bearish {display})' if pol_dd > 0 else f'NARROWING (USD carry down, bullish {display})'}\n"
+            f"VIX:              {float(vix['value'].iloc[-1]):.2f}")
+        baseline_label = "baseline_dgs2"; baseline_val = us_now
+        baseline_extra = f"baseline_policy_diff: {round(pol_diff,3)}\n"
+    else:
+        # XAUUSD: real-yield driven (single driver).
+        ny  = load_fred_local("DGS10"); be = load_fred_local("T5YIE")
+        ry  = load_fred_local("DFII10")
+        ry_now  = float(ry["value"].iloc[-1]); ry_prev = float(ry["value"].iloc[-6])
+        ry_20d  = ry["value"].iloc[-21:]
+        ry_slope = float(np.polyfit(range(len(ry_20d)), ry_20d.values, 1)[0])
+        ry_drift = ry_now - float(ry["value"].iloc[-2])
+        macro_block = (
+            f"Fed Funds:        {float(ff['value'].iloc[-1]):.2f}%\n"
+            f"10Y Nominal:      {float(ny['value'].iloc[-1]):.2f}%\n"
+            f"10Y Real (TIPS):  {ry_now}% (was {ry_prev}% ~1w ago, Δ {round(ry_now-ry_prev,3):+}%)\n"
+            f"  → {'RISING ⚠  (bearish gold)' if ry_now > ry_prev else 'FALLING ✅ (bullish gold)'}\n"
+            f"  20d slope: {ry_slope:+.4f} %/day  {'(rising trend)' if ry_slope > 0 else '(falling trend)'}\n"
+            f"  1d drift:  {ry_drift:+.3f}%\n"
+            f"5Y Breakeven:     {float(be['value'].iloc[-1]):.2f}%\n"
+            f"VIX:              {float(vix['value'].iloc[-1]):.2f}")
+        baseline_label = "baseline_dfii10"; baseline_val = ry_now
 
     # Format blocks
     if cot and "error" not in cot:
         net_str = f"{cot['net']:+,}"; chg_str = f"{cot['net_chg']:+,}" if cot["net_chg"] is not None else "N/A"
-        cot_block = (f"━━━ COT — CFTC GOLD FUTURES (non-commercial, as of {cot['date']}) ━━━━━━\n"
+        cot_label = (_instrument_cfg.COT_CONTRACT_NAME if _instrument_cfg else "GOLD").split(" - ")[0]
+        cot_block = (f"━━━ COT — CFTC {cot_label} FUTURES (non-commercial, as of {cot['date']}) ━━━━━━\n"
                      f"Spec Long:      {cot['long']:,}\nSpec Short:     {cot['short']:,}\n"
                      f"Net Position:   {net_str}  ({'BULLISH (spec long)' if cot['net']>0 else 'BEARISH (spec short)'})\n"
                      f"W/W Change:     {chg_str}  ({'INCREASING' if (cot['net_chg'] or 0)>0 else 'DECREASING'})\n"
-                     f"Note: extreme net longs (>200k) = crowded = reversal risk")
+                     f"Note: net-position extremes vs 1y range = crowded = reversal risk (per-instrument threshold)")
     else:
         cot_block = f"━━━ COT — CFTC FUTURES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFetch failed: {(cot or {}).get('error','no data')}"
 
@@ -662,7 +699,6 @@ def _compute_and_write(out_path):
     vp_block = (f"VAH: ${vp['VAH']}\nPOC: ${vp['POC']}  ← highest volume node\nVAL: ${vp['VAL']}"
                 if "error" not in vp else f"VP fetch failed: {vp['error']}")
 
-    display = _instrument_cfg.DISPLAY_NAME if _instrument_cfg else SYM_CLEAN.upper()
     out = f"""
 ╔══════════════════════════════════════════════════════╗
   {display} WEEKLY DATA — {TODAY.strftime('%Y-%m-%d')} (W{WEEK_NUM})
@@ -712,7 +748,7 @@ VP check: zone within ~8 units of POC/VAH/VAL = confluent
 
 ━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
 {baseline_label}: {baseline_val}
-baseline_dxy:    {dc:.3f}
+{baseline_extra}baseline_dxy:    {dc:.3f}
 weekend_gap_pct: {gap['gap_pct'] if gap and 'gap_pct' in gap else 'N/A'}
 
 ━━━ WEEKLY PIVOTS (prior week OHLC) ━━━━━━━━━━━━━━━━━━

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XAUUSD — S/R Calculation, Week 24 (2026-06-09)</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --panel2:#1c2230; --line:#2b3340;
+    --txt:#e6edf3; --mut:#9aa7b4; --acc:#e8b54a; --buy:#3fb950; --sell:#f85149;
+    --blue:#58a6ff; --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.6 -apple-system,Segoe UI,Roboto,sans-serif;padding:32px 18px}
+  .wrap{max-width:980px;margin:0 auto}
+  h1{font-size:24px;margin:0 0 4px}
+  h2{font-size:18px;margin:34px 0 12px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--acc)}
+  .sub{color:var(--mut);margin:0 0 8px}
+  .price{font-family:var(--mono);color:var(--acc);font-weight:600}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:14px 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:680px){.grid{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13.5px;margin:6px 0}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  td.num{text-align:right}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;font-family:var(--mono)}
+  .res{background:rgba(248,81,73,.15);color:var(--sell)}
+  .sup{background:rgba(63,185,80,.15);color:var(--buy)}
+  .neu{background:rgba(88,166,255,.15);color:var(--blue)}
+  code{font-family:var(--mono);background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:13px}
+  .step{display:flex;gap:12px;margin:10px 0}
+  .step .n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--acc);color:#000;
+    font-weight:700;display:grid;place-items:center;font-size:13px}
+  .mut{color:var(--mut)}
+  .formula{background:var(--panel2);border-left:3px solid var(--acc);padding:10px 14px;
+    font-family:var(--mono);font-size:13px;border-radius:0 6px 6px 0;overflow-x:auto;white-space:pre}
+  .zone-bar{position:relative;height:480px;background:linear-gradient(180deg,#1a1f29,#12161d);
+    border:1px solid var(--line);border-radius:10px;margin:14px 0}
+  .lvl{position:absolute;left:0;right:0;border-top:1px dashed var(--line);font-family:var(--mono);font-size:12px}
+  .lvl span{position:absolute;left:10px;top:-9px;background:var(--bg);padding:0 6px}
+  .lvl b{position:absolute;right:10px;top:-9px;background:var(--bg);padding:0 6px}
+  .lvl.r{border-top-color:var(--sell)} .lvl.r span,.lvl.r b{color:var(--sell)}
+  .lvl.s{border-top-color:var(--buy)} .lvl.s span,.lvl.s b{color:var(--buy)}
+  .lvl.p{border-top-color:var(--acc);border-top-style:solid} .lvl.p span,.lvl.p b{color:var(--acc)}
+  .lvl.now{border-top:2px solid var(--blue)} .lvl.now span,.lvl.now b{color:var(--blue);font-weight:700}
+  .foot{color:var(--mut);font-size:12px;margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>XAUUSD — How S/R Is Calculated</h1>
+  <p class="sub">Week 24 · snapshot 2026-06-09 · spot <span class="price">$4335.90</span>
+  · D1 ATR14 <span class="price">$100.83</span> · VIX 21.51</p>
+  <p class="mut">Source: <code>data/weekly_pull/xauusd/weekly_pull_2026_W24.txt</code> (IMMUTABLE).
+  Method: <code>scripts/structure.py</code> + Z1 zone-qualifier rules.</p>
+
+  <!-- ===================== METHOD ===================== -->
+  <h2>1 · The method — two layers</h2>
+  <div class="card">
+    <p>Raw levels come from <b>code</b> (fractal pivots). They only become tradeable
+    <b>S/R zones</b> after passing the <b>Z1 qualifier</b> rules. Confluence (Z2–Z7) does
+    <i>not</i> draw the box — it only scores an already-located zone.</p>
+
+    <div class="step"><div class="n">1</div><div>
+      <b>Fractal pivot detection</b> (<code>find_pivots</code>, N=2). A bar is a pivot
+      <span class="tag res">HIGH</span> if its <code>high</code> is strictly greater than the
+      highs of the 2 bars on each side; pivot <span class="tag sup">LOW</span> symmetric on
+      <code>low</code>. Needs 2 confirming bars right → newest pivot lags ~2 bars (intended).</div></div>
+
+    <div class="step"><div class="n">2</div><div>
+      <b>Swing scan at N=5</b> for the published table (wider half-width = only major turns).
+      Daily on raw bars, H4 on trading-day bars only.</div></div>
+
+    <div class="step"><div class="n">3</div><div>
+      <b>Weekly pivots</b> computed from <i>prior week</i> OHLC — pure arithmetic, not fractals
+      (see formula below).</div></div>
+
+    <div class="step"><div class="n">4</div><div>
+      <b>Z1 qualify → zone.</b> A pivot/pivot-cluster becomes valid S/R only if D1/W1 AND one of:
+      <span class="mut">prior swing H/L with 2+ reactions · role-reversal retest · round# at structure.</span>
+      Dedup: two levels at same price = ONE zone.</div></div>
+  </div>
+
+  <div class="formula">Weekly pivot formula (prior-week OHLC):
+  PP = (H + L + C) / 3
+  R1 = 2·PP − L     S1 = 2·PP − H
+  R2 = PP + (H−L)   S2 = PP − (H−L)
+  R3 = H + 2·(PP−L) S3 = L − 2·(H−PP)</div>
+
+  <!-- ===================== RAW LEVELS ===================== -->
+  <h2>2 · Raw levels for this week</h2>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Weekly pivots (from prior-week OHLC)</h3>
+      <table>
+        <tr><th>Level</th><th class="num">Price</th><th></th></tr>
+        <tr><td>R3</td><td class="num">4597.81</td><td><span class="tag res">resist</span></td></tr>
+        <tr><td>R2</td><td class="num">4537.11</td><td><span class="tag res">resist</span></td></tr>
+        <tr><td>R1</td><td class="num">4433.62</td><td><span class="tag res">resist</span></td></tr>
+        <tr><td>PP</td><td class="num">4372.91</td><td><span class="tag neu">pivot</span></td></tr>
+        <tr><td>S1</td><td class="num">4269.43</td><td><span class="tag sup">support</span></td></tr>
+        <tr><td>S2</td><td class="num">4208.72</td><td><span class="tag sup">support</span></td></tr>
+        <tr><td>S3</td><td class="num">4105.24</td><td><span class="tag sup">support</span></td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Volume profile (GC=F, 3mo)</h3>
+      <table>
+        <tr><th>Node</th><th class="num">Price</th><th></th></tr>
+        <tr><td>VAH</td><td class="num">4552.36</td><td><span class="tag res">resist</span></td></tr>
+        <tr><td>POC</td><td class="num">4450.76</td><td><span class="tag neu">vol node</span></td></tr>
+        <tr><td>VAL</td><td class="num">4394.31</td><td><span class="tag sup">support</span></td></tr>
+      </table>
+      <p class="mut" style="font-size:12px">Z7 confluence: zone within ~8 units of a node = confluent.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Daily swing points (N=5 fractal)</h3>
+    <table>
+      <tr><th>Type</th><th class="num">Price</th><th class="num">Date</th></tr>
+      <tr><td><span class="tag res">HIGH</span></td><td class="num">5597.23</td><td class="num">2026-01-29</td></tr>
+      <tr><td><span class="tag res">HIGH</span></td><td class="num">5417.76</td><td class="num">2026-03-02</td></tr>
+      <tr><td><span class="tag res">HIGH</span></td><td class="num">4887.93</td><td class="num">2026-04-17</td></tr>
+      <tr><td><span class="tag res">HIGH</span></td><td class="num">4773.50</td><td class="num">2026-05-12</td></tr>
+      <tr><td><span class="tag sup">LOW</span></td><td class="num">4503.72</td><td class="num">2026-05-04</td></tr>
+      <tr><td><span class="tag sup">LOW</span></td><td class="num">4410.85</td><td class="num">2026-02-02</td></tr>
+      <tr><td><span class="tag sup">LOW</span></td><td class="num">4104.82</td><td class="num">2026-03-23</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>H4 swing points (N=5, trading days)</h3>
+    <table>
+      <tr><th>Type</th><th class="num">Price</th><th class="num">Date</th></tr>
+      <tr><td><span class="tag res">HIGH</span></td><td class="num">4580.94</td><td class="num">2026-05-25</td></tr>
+      <tr><td><span class="tag res">HIGH</span></td><td class="num">4519.86</td><td class="num">2026-05-29</td></tr>
+      <tr><td><span class="tag sup">LOW</span></td><td class="num">4367.19</td><td class="num">2026-05-28</td></tr>
+      <tr><td><span class="tag sup">LOW</span></td><td class="num">4268.19</td><td class="num">2026-06-08</td></tr>
+    </table>
+    <p class="mut" style="font-size:12px">Newest H4 low 4268.19 (06-08) = freshest reaction below spot.</p>
+  </div>
+
+  <!-- ===================== MAP ===================== -->
+  <h2>3 · Levels mapped vs spot</h2>
+  <p class="sub">Range ~4100–4600. Spot <span class="price">$4335.90</span> sits between PP (4372.91)
+  and weekly S1 (4269.43).</p>
+  <div class="zone-bar">
+    <!-- scale: top=4600, bottom=4100, span=500 -->
+    <div class="lvl r"  style="top:0.4%"><span>R3 / Daily struct</span><b>4597.81</b></div>
+    <div class="lvl r"  style="top:9.5%"><span>VAH</span><b>4552.36</b></div>
+    <div class="lvl r"  style="top:12.6%"><span>R2</span><b>4537.11</b></div>
+    <div class="lvl r"  style="top:29.8%"><span>POC (vol node)</span><b>4450.76</b></div>
+    <div class="lvl r"  style="top:33.3%"><span>R1</span><b>4433.62</b></div>
+    <div class="lvl s"  style="top:41.1%"><span>VAL</span><b>4394.31</b></div>
+    <div class="lvl p"  style="top:45.4%"><span>PP (weekly)</span><b>4372.91</b></div>
+    <div class="lvl now" style="top:52.8%"><span>◀ SPOT</span><b>4335.90</b></div>
+    <div class="lvl s"  style="top:66.1%"><span>S1 / H4 low 06-08</span><b>4269.43</b></div>
+    <div class="lvl s"  style="top:78.3%"><span>S2</span><b>4208.72</b></div>
+    <div class="lvl s"  style="top:98.9%"><span>S3</span><b>4105.24</b></div>
+  </div>
+
+  <!-- ===================== QUALIFY ===================== -->
+  <h2>4 · Which raw levels qualify as S/R zones</h2>
+  <div class="card">
+    <table>
+      <tr><th>Candidate zone</th><th class="num">Price</th><th>Why it qualifies (Z1)</th><th>Confluence</th></tr>
+      <tr>
+        <td><span class="tag sup">SUPPORT</span> S1 cluster</td>
+        <td class="num">4269</td>
+        <td>Weekly S1 4269.43 <b>+</b> fresh H4 swing low 4268.19 (06-08) at same price = 1 zone, 2 touches</td>
+        <td>Bollinger lower 4290.81 nearby</td>
+      </tr>
+      <tr>
+        <td><span class="tag sup">SUPPORT</span> VAL/PP band</td>
+        <td class="num">4373–4394</td>
+        <td>Weekly PP 4372.91 + Volume VAL 4394.31 stacked → confluent demand shelf</td>
+        <td>Z7 vol node ✓</td>
+      </tr>
+      <tr>
+        <td><span class="tag res">RESIST</span> POC/R1 band</td>
+        <td class="num">4434–4451</td>
+        <td>Weekly R1 4433.62 + POC 4450.76 (highest vol node) = supply overhead, role-reversal candidate</td>
+        <td>Z7 POC ✓</td>
+      </tr>
+      <tr>
+        <td><span class="tag res">RESIST</span> VAH/R2 band</td>
+        <td class="num">4537–4552</td>
+        <td>Weekly R2 4537.11 + VAH 4552.36 stacked</td>
+        <td>Z7 VAH ✓</td>
+      </tr>
+      <tr>
+        <td><span class="tag sup">SUPPORT</span> S2/S3</td>
+        <td class="num">4105–4209</td>
+        <td>Weekly S2/S3; S3 4105.24 ≈ Daily swing low 4104.82 (03-23) = role-reversal level w/ history</td>
+        <td>deep — tail risk only</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <p><b>Context this week:</b> price <span class="price">BELOW</span> EMA50 (4617) and EMA200 (4388),
+    RSI 34.7 falling, MACD bearish, ADX 36.8 (trending), D1 ATR expanding. Structure = downtrend.
+    Nearest live decision levels: <span class="tag sup">support 4269</span> (S1 + fresh H4 low) and
+    <span class="tag res">resistance 4434–4451</span> (R1 + POC). Spot wedged between PP and S1.</p>
+    <p class="mut" style="font-size:12px">Reminder: this maps S/R only. Whether a zone becomes a tradeable
+    PENDING setup needs full Zone Confluence ≥5.0 at <code>/weekly</code>, then Entry Confluence at
+    <code>/validate</code>. Z1 locates the box; Z2–Z7 score it.</p>
+  </div>
+
+  <p class="foot">Generated from immutable weekly pull W24 (2026-06-09). Pivot half-widths: N=2 (engine),
+  N=5 (published swings). Weekly pivots = prior-week OHLC arithmetic. All prices USD/oz.</p>
+
+</div>
+</body>
+</html>

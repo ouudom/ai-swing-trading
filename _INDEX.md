@@ -39,6 +39,7 @@
 - `forecasts/weekly/xauusd/2026-W23.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH.
 
 ## Daily Validations — XAUUSD
+- `forecasts/daily/xauusd/2026-06-09.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). SL $46.46, lots 0.43. DFII10 drift +0.08%.
 - `forecasts/daily/xauusd/2026-06-08.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). SL $51.08, lots 0.39.
 
 ## Scripts — Pipeline
@@ -55,14 +56,17 @@
 - `scripts/structure.py` — shared fractal pivots, MTF structure helpers
 
 ## Scripts — Config & Lib
-- `scripts/config/xauusd/config.py` — XAUUSD instrument config
+- `scripts/config/_fx_base.py` — shared FX-major defaults (rate_diff macro, COT on, ETF off, TICK 100000)
+- `scripts/config/xauusd/config.py` — XAUUSD instrument config (real_yield macro)
+- `scripts/config/eurusd/config.py` — EURUSD config (DGS2 + DFF−ECBDFR, COT 6E, VP 6E=F)
+- `scripts/config/gbpusd/config.py` — GBPUSD config (DGS2 + DFF−SONIA, COT 6B, VP 6B=F)
 - `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities
 
 ## Data
 - `data/trades_log.csv` — manual trade log (plain CSV)
 - `data/gld_holdings.csv` — daily GLD ETF tonnage (auto-appended by weekly_pull)
-- `data/weekly_pull/xauusd/` — IMMUTABLE weekly pull text files
-- `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1)
+- `data/weekly_pull/xauusd/` — IMMUTABLE weekly pull text files (also eurusd/, gbpusd/)
+- `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/ (backfilled 2022→now)
 - `data/fred/` — macro series CSVs (DFII10, VIXCLS, DGS10, T5YIE, FEDFUNDS, etc.)
 - `data/yahoo/` — ICE DXY daily
 - `data/cftc/deahistfo{year}.zip` — COT yearly archives (24h refresh)

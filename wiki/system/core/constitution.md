@@ -53,7 +53,7 @@ Daily workflow (07:30 UTC, before London open):
        V3  hard news event within 2h      → NO TRADE
        VETO VIX > 35                       → all SHORTs NO TRADE
   3. Entry Confluence score (max 10, floor 5.0) — see confluence_criteria.md R2
-       E0 entry confirmation 3.0 | E1 H4+H1 struct 2.5 | E2 DFII10 slope 2.0
+       E0 entry confirmation 3.0 | E1 H4 struct 2.5 | E2 DFII10 slope 2.0
        E3 macro drift 1.0 | E4 ATR compression 1.0 | E5 DXY slope 0.5
   → OUTPUT (exactly one):
      ✅ ORDER LIMIT — score ≥ 5.0

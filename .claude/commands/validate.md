@@ -77,7 +77,7 @@ T5 cumulative drift). REFORECAST_NOW → cancel limits, void PENDING zones, run 
 | # | Signal | Wt | Pass |
 |---|---|---|---|
 | E0 | Entry confirmation | 3.0 | see below |
-| E1 | H4+H1 structure aligned today | 2.5 | both HH+HL (long) / LH+LL (short) |
+| E1 | H4 structure aligned today | 2.5 | H4 HH+HL (long) / LH+LL (short) |
 | E2 | DFII10 20d slope supports | 2.0 | slope<0 long / >0 short |
 | E3 | Macro drift OK | 1.0 | \|DFII10 now − baseline\| < 0.10 against direction |
 | E4 | D1 ATR compressed today | 1.0 | `compressed == True` |
@@ -134,5 +134,5 @@ writes markdown directly — no DB). Then update `_HOT.md`: per-zone verdict; re
 record limit/SL/TP/expiry on ORDER LIMIT; move filled to Open Position; update Week Risk Used.
 
 ## Multi-Zone Handling
-Validate every PENDING zone independently. Multiple ORDER LIMITs allowed if zones distinct AND
-cumulative open risk + closed loss ≤ $4,000/week. Same-day fill priority: Primary → Secondary → Counter.
+Validate every PENDING zone independently. Multiple ORDER LIMITs allowed if zones distinct (each
+zone risks $2000; no weekly cap — constitution). Same-day fill priority: Primary → Secondary → Counter.

@@ -102,7 +102,7 @@ Triggers fired: <none / T1,T3...> → action: NONE / WARN_LOG / REFORECAST_NOW
 | | Condition | Pts | Result | Note |
 |---|---|---|---|---|
 | E0 | Entry confirmation (1H engulf / 1H pin / 15M CHoCH toward dir) | 3.0 | ✅/❌ | <pattern, time> |
-| E1 | H4+H1 structure aligned | 2.5 | ✅/❌ | |
+| E1 | H4 structure aligned | 2.5 | ✅/❌ | |
 | E2 | DFII10 slope supports | 2.0 | ✅/❌ | |
 | E3 | Macro drift OK | 1.0 | ✅/❌ | ±x.xxx% |
 | E4 | D1 ATR compressed | 1.0 | ✅/❌ | |

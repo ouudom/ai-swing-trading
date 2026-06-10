@@ -26,6 +26,10 @@
 - `wiki/system/eurgbp/eurgbp_profile.md` — cross profile: low-vol ATR, USD sizing (no convert), no VIX-veto, ECB/BoE event blocks
 - `wiki/system/eurgbp/confluence_criteria.md` — EURGBP R1/R2 ACTIVE: mean-reversion fade, macro 0.5 tilt, H1 rows validated
 
+## System — AUDUSD (ACTIVE — D024 pair #1, no zones yet)
+- `wiki/system/audusd/audusd_profile.md` — AUD profile: H4-centric fade, NO VIX-veto (level inverted), NO DXY block, RBA/AU/China events, V1b 4pip
+- `wiki/system/audusd/confluence_criteria.md` — AUDUSD R1/R2 ACTIVE: H4 fade + VIX-level/US2Y regime tilt
+
 ## Templates
 - `wiki/system/templates/weekly_forecast.md` — skeleton for forecasts/weekly/xauusd/YYYY-WNN.md (zones)
 - `wiki/system/templates/daily_validation.md` — skeleton for forecasts/daily/xauusd/YYYY-MM-DD.md (entry confluence)
@@ -37,6 +41,9 @@
 
 ## Research — EURGBP (EG3 go/no-go)
 - `wiki/research/eurgbp/signal-results.md` — EURGBP cross: mean-reverting (same as majors), edge clears cost → **GO on D1**; macro placeholder dead (EG2 rebuild)
+
+## Research — AUDUSD (D024 pair #1)
+- `wiki/research/audusd/signal-results.md` — AUDUSD: mean-reverting H4-centric → **GO**; 🔑 DXY-jump DEAD, VIX LEVEL inverted (VIX>20→long t=6.14) (+ raw scan)
 
 ## Research — XAUUSD
 - `wiki/research/xauusd/_INDEX.md` — data sources, scripts, standards, pending research
@@ -62,6 +69,7 @@
 - `forecasts/weekly/xauusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH. (renamed W23→W24: files now named by trade week, not run week)
 
 ## Daily Validations
+- `forecasts/daily/{xauusd,eurusd,gbpusd,eurgbp}/2026-06-10.md` — **CPI day, V3 HARD BLOCK** (US May CPI 12:30 UTC). 08:06 UTC London run: ALL 4 instruments, ALL zones = NO TRADE, held PENDING, no orders. XAU spot $4162 EC 6.0 (V3 override); EUR 1.1549 EC 2.0; GBP 1.33836 EC 2.0 (in-zone, bounce faded); EURGBP 0.86296 EC 3.0 (above LONG support, D1 osc not extreme).
 - `forecasts/daily/xauusd/2026-06-09.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). 13:47 UTC NY run: SL $46.45, lots 0.43, limits $4415.66 / $4504.66. VIX fresh.
 - `forecasts/daily/xauusd/2026-06-08.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). SL $51.08, lots 0.39.
 - `forecasts/daily/eurusd/2026-06-09.md` — both SHORT zones NO TRADE, EC 2.0/10 (price below resistance, ADX 39.3 trending).
@@ -78,7 +86,7 @@
 - `scripts/backfill_fred.py` — one-off util (not in weekly pipeline): pull/update FRED macro series
 
 ## Scripts — Risk / Portfolio
-- `scripts/fx_exposure.py` — FX currency-leg netting ledger (D022 Architecture B core); USD + EURGBP-cross risk axes, per-axis $2000 cap, netting gate (keep-best-drop-weaker). `--selftest` / `--orders` / `--candidate`.
+- `scripts/fx_exposure.py` — FX currency-leg ledger, ADVISORY (D024): all 10 FX instruments / 8 currency legs; flags shared-leg concentration + suggests cleaner trade (highest EC); no caps, no auto-skip. `--selftest` / `--orders` / `--candidate`.
 
 ## Scripts — Validation
 - `scripts/check_v1b.py` — V1b intraday H4 invalidation checker (CLI zone args, no DB)
@@ -91,14 +99,15 @@
 - `scripts/config/eurusd/config.py` — EURUSD config (DGS2 + DFF−ECBDFR, COT 6E, VP 6E=F)
 - `scripts/config/gbpusd/config.py` — GBPUSD config (DGS2 + DFF−SONIA, COT 6B, VP 6B=F)
 - `scripts/config/eurgbp/config.py` — EURGBP CROSS config (EG1; no USD leg, macro PLACEHOLDER pending EG2, COT off)
+- `scripts/config/audusd/config.py` — AUDUSD config (D024 pair #1; no daily RBA series → carry leg off, COT 6A, VP 6A=F)
 - `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities
 
 ## Data
 - `data/trades_log.csv` — manual trade log (plain CSV)
 - `data/gld_holdings.csv` — daily GLD ETF tonnage (auto-appended by weekly_pull)
 - `data/weekly_pull/xauusd/` — IMMUTABLE weekly pull text files (also eurusd/, gbpusd/)
-- `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/ (D1 2010→now, intraday 2020→now)
-- `forecasts/{weekly,daily}/{eurusd,gbpusd}/` — FX forecast output dirs (created P5)
+- `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/ (D1 2010→now, intraday 2020→now)
+- `forecasts/{weekly,daily}/{eurusd,gbpusd,eurgbp,audusd}/` — FX forecast output dirs
 - `data/fred/` — macro series CSVs (DFII10, VIXCLS, DGS10, T5YIE, FEDFUNDS, etc.)
 - `data/yahoo/` — ICE DXY daily
 - `data/cftc/deahistfo{year}.zip` — COT yearly archives (24h refresh)

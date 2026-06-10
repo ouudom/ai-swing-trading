@@ -1,8 +1,9 @@
 Run daily validation on PENDING Trading Zones, 07:30 UTC before London open.
 
-Arguments: `[instrument] [date]`. Instrument ∈ {xauusd, eurusd, gbpusd, eurgbp} (default xauusd).
+Arguments: `[instrument] [date]`. Instrument ∈ {xauusd, eurusd, gbpusd, eurgbp, audusd} (default xauusd).
 Date YYYY-MM-DD (default today). Validate one instrument per invocation.
-(eurgbp = CROSS, DRAFT/not-live: GBP-quoted sizing convert, NO VIX-veto, European event blocks, macro-light.)
+(eurgbp = CROSS: NO VIX-veto, European event blocks, macro-light. audusd: NO VIX-veto + NO DXY
+block — both signals measured dead/inverted for AUD, see its confluence_criteria.)
 
 **The four questions /validate answers, per zone:**
 1. **Is the forecast still valid?** (V1/V1b structure intact, V3 news clear)
@@ -13,16 +14,17 @@ Date YYYY-MM-DD (default today). Validate one instrument per invocation.
 Output per zone is exactly one of: ✅ ORDER LIMIT | ❌ NO TRADE / INVALIDATED.
 
 ## Step 0 — Instrument parametrization (set ALL of these first)
-| Param | xauusd | eurusd | gbpusd | eurgbp (cross) |
-|---|---|---|---|---|
-| `TICK_MULTIPLIER` | 100 | 100000 | 100000 | 100000 (USD sizing, no GBP convert — operator) |
-| `MIN_BAR_RANGE` (H4 filter) | 1.0 | 0.0003 | 0.0003 | 0.0002 |
-| `PRICE_DP` | 2 | 5 | 5 | 5 |
-| `V1B_BUFFER` | 5.0 | 0.0005 | 0.0006 | 0.0004 |
-| Character | momentum | mean-reversion | mean-reversion | mean-reversion, macro-light |
-| Confluence R2 | xauusd | eurusd | gbpusd | eurgbp |
-| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` | `baseline_rate_diff` (weak) |
-| VIX veto blocks | SHORTs | LONGs | LONGs | **NONE** (risk-off→EURGBP up) |
+| Param | xauusd | eurusd | gbpusd | eurgbp (cross) | audusd |
+|---|---|---|---|---|---|
+| `TICK_MULTIPLIER` | 100 | 100000 | 100000 | 100000 (USD sizing, no GBP convert — operator) | 100000 |
+| `MIN_BAR_RANGE` (H4 filter) | 1.0 | 0.0003 | 0.0003 | 0.0002 | 0.0003 |
+| `PRICE_DP` | 2 | 5 | 5 | 5 | 5 |
+| `V1B_BUFFER` | 5.0 | 0.0005 | 0.0006 | 0.0004 | 0.0004 |
+| Character | momentum | mean-reversion | mean-reversion | mean-reversion, macro-light | mean-reversion, H4-centric |
+| Confluence R2 | xauusd | eurusd | gbpusd | eurgbp | audusd |
+| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` | `baseline_rate_diff` (weak) | `baseline_dgs2` |
+| VIX veto blocks | SHORTs | LONGs | LONGs | **NONE** (risk-off→EURGBP up) | **NONE** (VIX level scores, inverted) |
+| DXY-jump block | — | AGAINST zone | AGAINST zone | NONE (no USD leg) | **NONE** (dead, t=−0.85) |
 
 Read the instrument's `wiki/system/{instrument}/confluence_criteria.md` (R2) and
 `wiki/system/{instrument}/{instrument}_profile.md` before scoring. FX uses a DIFFERENT R2 than
@@ -64,11 +66,12 @@ elif INSTRUMENT == "eurgbp":
     macro_now  = round(float(eu.value.iloc[-1]) - float(gb.value.iloc[-1]), 3)          # EUR−GBP diff now
     macro_prev = round(float(eu.value.iloc[-2]) - float(gb.value.iloc[-2]), 3)
     macro_slope= round(macro_now - (float(eu.value.iloc[-20]) - float(gb.value.iloc[-20])), 3)  # 20d diff change
-else:  # eurusd / gbpusd majors
-    s = pd.read_csv("data/fred/DGS2.csv").dropna()      # US 2Y = rate-momentum leg
+else:  # USD pairs (eurusd / gbpusd / audusd): US 2Y = rate-momentum leg
+    s = pd.read_csv("data/fred/DGS2.csv").dropna()
     macro_now = round(float(s.value.iloc[-1]),3); macro_prev = round(float(s.value.iloc[-2]),3)
     macro_slope = round(float(s.value.iloc[-1]) - float(s.value.iloc[-20]),3)
-# DXY: irrelevant to eurgbp (USD index) — skip the jump signal/block for the cross.
+# DXY jump: scored/blocked for eurusd+gbpusd ONLY. eurgbp = no USD leg; audusd = measured DEAD
+# (t=−0.85) → compute for context, never block.
 if INSTRUMENT != "eurgbp":
     dxy = pd.read_csv("data/yahoo/DXY.csv").dropna(); dxy_jump = round(float(dxy.value.iloc[-1]) - float(dxy.value.iloc[-2]), 3)
 else:
@@ -92,8 +95,9 @@ print(spot, h4_atr, d1_atr, d1_median, compressed, macro_now, macro_slope, dxy_j
 ```
 
 ## Step 3 — News + Mid-Week Re-Forecast Check
-**Query A (V3 hard block):** economic calendar [DATE]. xauusd + FX majors share US events (NFP/FOMC/
-CPI/Retail). Majors also: ECB rate decision (eurusd), BoE rate decision (gbpusd) — own central bank.
+**Query A (V3 hard block):** economic calendar [DATE]. xauusd + USD pairs share US events (NFP/FOMC/
+CPI/Retail). Pairs also: ECB rate decision (eurusd), BoE rate decision (gbpusd), RBA decision +
+AU CPI/employment (audusd; China tier-1 = caution→hard if commodity move in progress) — own central bank.
 **eurgbp (cross): hard blocks = ECB + BoE rate decisions + UK/EZ tier-1 (CPI/GDP/jobs/PMI). US
 events = CAUTION ONLY, not a hard block (no USD leg).** Hard-block events within 2h of 08:00 or 13:00 UTC.
 **Query B (T4-X):** breaking news [DATE] — central-bank emergency / war / sanctions / sovereign
@@ -116,10 +120,14 @@ counter-move (gold 2.5% / FX 1.5%), T4 = shock, T5 = cumulative macro drift vs b
   - eurusd/gbpusd → all LONG zones NO TRADE (risk-off USD bid drives pair down)
   - **eurgbp (cross) → NO VIX VETO** (risk-off bids EUR over GBP → EURGBP UP, inverted; EG2). VIX spike
     is instead a weak LONG *tilt* (Z4, 0.5). Only hard veto for eurgbp = D1 ADX>30 trending against the fade.
+  - **audusd → NO VIX VETO** — polarity INVERTED as a *level* regime (VIX>20 → LONG tilt t=6.14,
+    VIX<15 → SHORT tilt t=5.29; spike dead). VIX level scores in R2 E4 instead. Only hard veto for
+    audusd = D1 ADX>30 trending against the fade.
   - FRED VIXCLS freshness guard: latest date < today−1 → suspend veto, log `vix_stale=true`.
 - **Macro flip** — macro series vs baseline (constitution drift table): >0.15% any dir → force re-forecast.
-  FX majors: DXY 1d jump > 0.5 AGAINST a zone → that zone NO TRADE (strongest measured signal).
+  eurusd/gbpusd: DXY 1d jump > 0.5 AGAINST a zone → that zone NO TRADE (strongest measured signal).
   **eurgbp: NO DXY block** (USD index irrelevant); rate-diff drift is weak/informational, not a flip gate.
+  **audusd: NO DXY block** (DXY-jump measured DEAD for AUD, t=−0.85 — context only).
 
 ### Q4 — Entry Confluence (max 10, floor 5.0)
 **Use `wiki/system/{INSTRUMENT}/confluence_criteria.md` R2 — the table differs by instrument.**
@@ -133,6 +141,10 @@ counter-move (gold 2.5% / FX 1.5%), T4 = shock, T5 = cumulative macro drift vs b
   extreme 2.5 | E2 H1 oscillator extreme 1.5 (validated — H1 t up to 7.45) | E3 non-trending ADX<25
   1.0 | E4 structure/band intact 1.0 | E5 compression holds 1.0. Macro NOT scored at entry. Short
   trigger leans on intraday extremes (D1 short thinner). (See eurgbp `confluence_criteria.md` R2.)
+- **audusd (mean-reversion, H4-centric):** E0 reversal confirm 3.0 | E1 H4 oscillator still extreme
+  2.5 | E2 H1 oscillator (short, t 5.2–6.5) / H4 band touch (long) 1.5 | E3 non-trending ADX<25 1.0 |
+  E4 macro regime aligned (VIX level inverted + US2Y slope) 1.0 | E5 structure intact 1.0.
+  D1 oscillators NOT scored (thin, t=−0.71). (See audusd `confluence_criteria.md` R2.)
 
 **E0 entry confirmation (confirm on candle CLOSE):**
 - xauusd: 1H engulfing / 1H pin (wick ≥2.5×body) / 15M CHoCH — TOWARD zone direction (continuation).
@@ -186,16 +198,18 @@ Validate every PENDING zone for the instrument independently. Multiple ORDER LIM
 distinct (each risks $2000; no weekly cap). Same-day fill priority: Primary → Secondary → Counter.
 To validate all instruments, invoke `/validate` once per instrument.
 
-## FX Currency-Leg Netting Gate (D022 — see [[currency_exposure]])
-**Before writing ANY FX ORDER LIMIT** (eurusd / gbpusd / eurgbp), net against the other FX majors'/
-cross live orders dated today — they share currency legs and concentrate onto one risk axis (USD or
-EURGBP-cross). Run:
+## FX Currency-Leg Netting — ADVISORY (D022 as amended by D024 — see [[currency_exposure]])
+**Before writing ANY FX ORDER LIMIT**, run the ledger against today's other live FX orders —
+pairs sharing a currency leg in the same direction concentrate onto one factor (e.g. two USD-pair
+shorts = 2× long USD; usdjpy long + eurjpy long = 2× short JPY). Run:
 ```bash
 bash scripts/pyrun.sh scripts/fx_exposure.py --live "<other live FX orders>" \
      --candidate "<this inst:dir:risk>" --new-ec <EC> --live-ecs "<inst:ec,...>"
 ```
-- Verdict `PLACE` → no concentration, place normally.
-- `PLACE_CANCEL_OTHER` → candidate EC higher → cancel the named live limit, place candidate.
-- `SKIP` → candidate EC ≤ live → **❌ SKIP (concentration)**, zone stays PENDING (NOT invalidated).
-Emit a `> [!warning] Concentration:` callout + mirror to `_HOT.md`. **eurgbp IS the cross axis** —
-a direct eurgbp order can stack on an implied cross from held eurusd/gbpusd; it MUST pass this gate.
+- `INDEPENDENT` → no shared leg-direction, place normally.
+- `CONCENTRATED` → **ADVISORY only (D024): no auto-skip, no auto-cancel.** Place the order if it
+  passed Entry Confluence, but emit a `> [!warning] Concentration:` callout in the daily file
+  naming the shared leg + the ledger's **suggested cleaner trade** (highest EC), and mirror to
+  `_HOT.md`. The operator chooses whether to drop the weaker one.
+Crosses (eurgbp/eurjpy/gbpjpy) can stack on an implied cross from held majors — always run the
+ledger for them. Antipodean note: audusd + nzdusd same direction ≈ one bet (corr ~0.85).

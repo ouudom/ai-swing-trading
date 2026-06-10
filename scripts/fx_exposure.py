@@ -1,26 +1,27 @@
 #!/usr/bin/env python3
-"""FX currency-leg netting ledger — Architecture B core (D022, see wiki/system/core/currency_exposure.md).
+"""FX currency-leg netting ledger — ADVISORY (D022 as amended by D024).
 
-The EUR/GBP/USD triangle (EURGBP = EURUSD/GBPUSD) has exactly TWO degrees of freedom,
-so all FX-major + cross exposure collapses onto two orthogonal risk axes:
+Generalized from the original 3-instrument / 2-axis cap model to a per-currency-leg
+ledger over all FX instruments (8 currencies). Every pair = +base / −quote leg;
+a SHORT flips the signs. Orders weighted by risk_units = risk_usd / 2000.
 
-  USD axis    — "bet USD down"  = Σ dir over {eurusd, gbpusd}     (eurgbp has no USD leg → 0)
-  CROSS axis  — "bet EURGBP up" = eurusd_dir − gbpusd_dir + eurgbp_dir
+OPERATOR DECISION (D024, 2026-06-10): this is a SIGNAL system, not a risk manager.
+No hard $ cap is enforced. When two or more orders load the same currency leg in the
+same direction (e.g. EURUSD short + GBPUSD short = 2× long USD), the ledger FLAGS the
+concentration and SUGGESTS the cleaner trade (highest Entry Confluence). The operator
+decides. Nothing is auto-skipped.
 
-dir = +1 (long) / −1 (short); each order weighted by risk_units = risk_usd / 2000.
+Soft advisory extras:
+  - antipodean bloc: AUDUSD + NZDUSD same direction ≈ one bet (corr ~0.85) even though
+    AUD and NZD are distinct legs — flagged as a note.
+  - triangle identities (EURGBP=EURUSD/GBPUSD, EURJPY=EURUSD×USDJPY, GBPJPY=GBPUSD×USDJPY)
+    fall out of the leg algebra automatically — an explicit cross stacking on an implied
+    cross shows up as a doubled leg.
 
-Risk unit = $2000 per AXIS (not per instrument). |axis units| > 1 ⇒ concentration:
-two "separate" trades that load the same factor = one bet at >1×, never two.
-
-  same-direction majors  → USD axis stacks   (±2)  → doubled USD bet
-  opposite-direction majors → CROSS axis stacks (±2) → EURGBP cross bet
-  explicit eurgbp on an implied cross → CROSS axis → 3×, invisible to pairwise gate
-
-This module is the N-order/N-axis generalization of the pairwise /validate netting gate,
-and the prerequisite for ever trading EURGBP directly (EG0 in the onboarding plan).
+Gold (xauusd) stays OUT of the ledger — USD-priced but real-yield driven.
 
 Usage:
-  bash scripts/pyrun.sh scripts/fx_exposure.py --orders "eurusd:long:2000,gbpusd:short:2000"
+  bash scripts/pyrun.sh scripts/fx_exposure.py --orders "eurusd:short:2000,gbpusd:short:2000"
   bash scripts/pyrun.sh scripts/fx_exposure.py --live "eurusd:short:2000" --candidate "gbpusd:short:2000" --new-ec 6.5 --live-ecs "eurusd:7.5"
   bash scripts/pyrun.sh scripts/fx_exposure.py --selftest
 """
@@ -29,24 +30,27 @@ import argparse
 import sys
 from dataclasses import dataclass
 
-RISK_UNIT = 2000.0          # $ per axis (one unit)
+RISK_UNIT = 2000.0          # $ per risk unit (reporting only — no cap enforced)
 EPS = 1e-9
-CAP_UNITS = 1.0             # max |axis units| before concentration
 
-# Per-instrument contribution to each axis for a LONG position (short = negate).
-# USD axis = "bet USD down"; CROSS axis = "bet EURGBP up" (long EUR / short GBP).
-AXIS = {
-    "eurusd": {"usd": +1, "cross": +1},   # long EUR vs USD: USD down, EUR up → +cross
-    "gbpusd": {"usd": +1, "cross": -1},   # long GBP vs USD: USD down, GBP up → −cross
-    "eurgbp": {"usd":  0, "cross": +1},   # long EUR vs GBP: no USD leg → +cross
-}
-# Raw currency legs (audit view only — the axes above are what the cap acts on).
+# Per-instrument currency legs for a LONG position (short = negate).
 LEGS = {
+    # USD-quote majors (long pair = short USD)
     "eurusd": {"EUR": +1, "USD": -1},
     "gbpusd": {"GBP": +1, "USD": -1},
+    "audusd": {"AUD": +1, "USD": -1},
+    "nzdusd": {"NZD": +1, "USD": -1},
+    # USD-base pairs (long pair = long USD)
+    "usdcad": {"USD": +1, "CAD": -1},
+    "usdchf": {"USD": +1, "CHF": -1},
+    "usdjpy": {"USD": +1, "JPY": -1},
+    # Crosses (no USD leg)
     "eurgbp": {"EUR": +1, "GBP": -1},
+    "eurjpy": {"EUR": +1, "JPY": -1},
+    "gbpjpy": {"GBP": +1, "JPY": -1},
 }
-FX_INSTRUMENTS = set(AXIS)
+CURRENCIES = sorted({c for legs in LEGS.values() for c in legs})
+FX_INSTRUMENTS = set(LEGS)
 
 
 @dataclass
@@ -62,6 +66,10 @@ class Order:
     @property
     def units(self) -> float:
         return self.risk / RISK_UNIT
+
+    def leg(self, ccy: str) -> float:
+        """Signed leg contribution in risk-units for currency `ccy`."""
+        return self.dir_sign * LEGS[self.instrument].get(ccy, 0) * self.units
 
 
 def parse_orders(spec: str) -> list[Order]:
@@ -81,86 +89,75 @@ def parse_orders(spec: str) -> list[Order]:
     return out
 
 
-def axis_net(orders: list[Order]) -> dict[str, float]:
-    """Net exposure on each risk axis, in risk-units."""
-    net = {"usd": 0.0, "cross": 0.0}
-    for o in orders:
-        for ax, w in AXIS[o.instrument].items():
-            net[ax] += o.dir_sign * w * o.units
-    return net
-
-
 def currency_net(orders: list[Order]) -> dict[str, float]:
-    """Net per-currency legs in risk-units (human audit)."""
-    net = {"EUR": 0.0, "GBP": 0.0, "USD": 0.0}
+    """Net per-currency legs in risk-units."""
+    net = {c: 0.0 for c in CURRENCIES}
     for o in orders:
-        for ccy, w in LEGS[o.instrument].items():
-            net[ccy] += o.dir_sign * w * o.units
+        for ccy in LEGS[o.instrument]:
+            net[ccy] += o.leg(ccy)
     return net
 
 
-def concentration(orders: list[Order]) -> dict:
-    """Classify the portfolio: which axes breach the 1-unit cap, and by how much."""
-    net = axis_net(orders)
+def shared_legs(orders: list[Order]) -> list[dict]:
+    """Currencies where ≥2 orders contribute the SAME sign — the concentration signal.
+
+    Net alone isn't enough (two opposite orders net to 0 but that's a cross bet on the
+    OTHER legs, which this still catches on those legs).
+    """
     flags = []
-    for ax, u in net.items():
-        if abs(u) > CAP_UNITS + EPS:
-            label = ("USD" if ax == "usd" else "EURGBP cross")
-            side = _axis_side(ax, u)
-            flags.append({"axis": ax, "label": label, "units": u, "side": side,
-                          "excess_risk": (abs(u) - CAP_UNITS) * RISK_UNIT})
-    return {"axis_net": net, "currency_net": currency_net(orders),
-            "flags": flags, "concentrated": bool(flags)}
+    for ccy in CURRENCIES:
+        contribs = [(o, o.leg(ccy)) for o in orders if abs(o.leg(ccy)) > EPS]
+        pos = [(o, u) for o, u in contribs if u > 0]
+        neg = [(o, u) for o, u in contribs if u < 0]
+        for side, group in (("long", pos), ("short", neg)):
+            if len(group) >= 2:
+                total = sum(u for _, u in group)
+                flags.append({
+                    "currency": ccy, "side": side, "units": total,
+                    "orders": [o.instrument for o, _ in group],
+                })
+    return flags
 
 
-def _axis_side(ax: str, u: float) -> str:
-    if ax == "usd":
-        return "short USD (pair-up bias)" if u > 0 else "long USD (pair-down bias)"
-    return "long EURGBP" if u > 0 else "short EURGBP"
+def antipodean_note(orders: list[Order]) -> str | None:
+    """AUD + NZD same direction ≈ one bet (corr ~0.85) even with distinct legs."""
+    dirs = {o.instrument: o.dir_sign for o in orders}
+    if "audusd" in dirs and "nzdusd" in dirs and dirs["audusd"] == dirs["nzdusd"]:
+        d = "long" if dirs["audusd"] > 0 else "short"
+        return (f"antipodean bloc: AUDUSD + NZDUSD both {d} — distinct legs but corr ~0.85, "
+                f"effectively one bet.")
+    return None
 
 
-def gate(candidate: Order, live: list[Order],
-         new_ec: float | None = None, live_ecs: dict[str, float] | None = None) -> dict:
-    """Pairwise/N-order netting gate (Architecture A/B resolution: keep best, drop weaker).
-
-    Would placing `candidate` alongside `live` breach a cap? If so, resolve by Entry Confluence.
-    Returns the verdict + which live order(s) to cancel, if any.
+def advise(candidate: Order, live: list[Order],
+           new_ec: float | None = None, live_ecs: dict[str, float] | None = None) -> dict:
+    """ADVISORY gate (D024): no enforcement. Would `candidate` share a leg-direction with a
+    live order? If so, flag it and suggest the cleaner trade (highest EC). Operator decides.
     """
     live_ecs = live_ecs or {}
-    before = concentration(live)
-    after = concentration(live + [candidate])
-    if not after["concentrated"]:
-        return {"verdict": "PLACE", "reason": "no concentration — candidate is independent",
-                "axis_net_after": after["axis_net"], "cancel": []}
+    flags = shared_legs(live + [candidate])
+    # Only flags the candidate participates in are advice-relevant.
+    cand_flags = [f for f in flags if candidate.instrument in f["orders"]]
+    note = antipodean_note(live + [candidate])
 
-    # Concentration. Resolve keep-best-drop-weaker on the breached axis.
-    # Find the live order(s) that contribute to the same breached axis with the same sign.
-    breached_axes = {f["axis"] for f in after["flags"]}
-    contributors = []
-    for o in live:
-        for ax in breached_axes:
-            w = AXIS[o.instrument][ax]
-            if w != 0 and (o.dir_sign * w) == (candidate.dir_sign * AXIS[candidate.instrument][ax]):
-                contributors.append(o)
-                break
+    if not cand_flags:
+        return {"verdict": "INDEPENDENT",
+                "reason": "no shared currency-leg direction with live orders",
+                "flags": flags, "note": note, "suggest_keep": None}
 
-    cand_ec = new_ec if new_ec is not None else -1.0
-    worst = None
-    for o in contributors:
-        ec = live_ecs.get(o.instrument, -1.0)
-        if worst is None or ec < worst[1]:
-            worst = (o, ec)
-
-    if worst and cand_ec > worst[1] + EPS:
-        return {"verdict": "PLACE_CANCEL_OTHER",
-                "reason": f"concentration on {[f['label'] for f in after['flags']]}; "
-                          f"candidate EC {cand_ec} > live {worst[0].instrument} EC {worst[1]} → cancel live, place candidate",
-                "cancel": [worst[0].instrument], "axis_net_after": after["axis_net"],
-                "flags": after["flags"]}
-    return {"verdict": "SKIP",
-            "reason": f"concentration on {[f['label'] for f in after['flags']]}; "
-                      f"candidate EC {cand_ec} ≤ live → SKIP (stays PENDING, lost tie-break)",
-            "cancel": [], "axis_net_after": after["axis_net"], "flags": after["flags"]}
+    # Rank candidate + co-contributors by EC; suggest keeping the best.
+    ecs = dict(live_ecs)
+    if new_ec is not None:
+        ecs[candidate.instrument] = new_ec
+    involved = sorted({i for f in cand_flags for i in f["orders"]})
+    ranked = sorted(involved, key=lambda i: ecs.get(i, -1.0), reverse=True)
+    best = ranked[0]
+    legs_txt = "; ".join(f"{f['units']:+.2f}u {f['side']} {f['currency']} via {'+'.join(f['orders'])}"
+                         for f in cand_flags)
+    return {"verdict": "CONCENTRATED",
+            "reason": f"shared leg(s): {legs_txt}",
+            "flags": cand_flags, "note": note, "suggest_keep": best,
+            "ranking": [(i, ecs.get(i)) for i in ranked]}
 
 
 def _fmt(orders: list[Order]) -> str:
@@ -168,47 +165,70 @@ def _fmt(orders: list[Order]) -> str:
 
 
 def report(orders: list[Order]) -> str:
-    c = concentration(orders)
+    net = currency_net(orders)
+    flags = shared_legs(orders)
+    note = antipodean_note(orders)
     lines = [f"Orders: {_fmt(orders)}", ""]
-    lines.append("Currency legs (audit):  " +
-                 "  ".join(f"{k}{v:+.2f}" for k, v in c["currency_net"].items()))
-    lines.append("Risk axes (capped at ±1 unit = ±$2000):")
-    for ax, u in c["axis_net"].items():
-        label = "USD" if ax == "usd" else "EURGBP cross"
-        mark = "  ⚠️ BREACH" if abs(u) > CAP_UNITS + EPS else ""
-        lines.append(f"  {label:13s} {u:+.2f} units (${u*RISK_UNIT:+,.0f}){mark}")
-    if c["concentrated"]:
+    nz = {k: v for k, v in net.items() if abs(v) > EPS}
+    lines.append("Currency legs (risk-units, 1u = $2000):  " +
+                 ("  ".join(f"{k}{v:+.2f}" for k, v in nz.items()) or "(flat)"))
+    if flags:
         lines.append("")
-        for f in c["flags"]:
-            lines.append(f"⚠️  CONCENTRATION: {f['units']:+.2f} units on {f['label']} "
-                         f"= {f['side']}. Excess ${f['excess_risk']:,.0f} over the 1-unit cap.")
-        lines.append("→ This is ONE bet at >1×, not independent trades. Net first; keep best zone, drop weaker.")
+        for f in flags:
+            lines.append(f"⚠️  SHARED LEG: {f['units']:+.2f}u {f['side']} {f['currency']} "
+                         f"from {' + '.join(f['orders'])} — one factor, not independent trades.")
+        lines.append("→ ADVISORY (D024): consider keeping only the cleaner trade (higher EC). Operator decides.")
     else:
-        lines.append("\n✅ No axis breaches the 1-unit cap — exposure within budget.")
+        lines.append("\n✅ No shared currency-leg direction — orders are leg-independent.")
+    if note:
+        lines.append(f"ℹ️  {note}")
     return "\n".join(lines)
 
 
 def _selftest() -> int:
+    def f(spec):
+        return shared_legs(parse_orders(spec))
+
     cases = [
-        ("eurusd:long,gbpusd:short", "cross", 2.0),    # opposite → CROSS ±2
-        ("eurusd:short,gbpusd:long", "cross", -2.0),
-        ("eurusd:long,gbpusd:long", "usd", 2.0),       # same → USD ±2
-        ("eurusd:short,gbpusd:short", "usd", -2.0),
-        ("eurusd:long", None, None),                   # single → no breach
-        ("eurusd:long,gbpusd:short,eurgbp:long", "cross", 3.0),  # explicit on implied → 3×
+        # spec, expect_flag (ccy, side, units) or None
+        ("eurusd:short,gbpusd:short", ("USD", "long", 2.0)),     # classic 2× long USD
+        ("eurusd:long,gbpusd:long", ("USD", "short", -2.0)),     # 2× short USD
+        ("eurusd:long,gbpusd:short", None),                      # opposite majors → implied cross, no shared leg
+        ("eurusd:long,gbpusd:short,eurgbp:long", ("EUR", "long", 2.0)),  # explicit cross stacks implied
+        ("usdjpy:long,eurusd:short", ("USD", "long", 2.0)),      # USD-base + USD-quote, same USD side
+        ("usdjpy:long,eurjpy:long", ("JPY", "short", -2.0)),     # shared short-JPY leg
+        ("gbpjpy:short,gbpusd:short", ("GBP", "short", -2.0)),   # shared short-GBP leg
+        ("audusd:long,usdcad:short", ("USD", "short", -2.0)),    # long AUD/USD + short USD/CAD = 2× short USD
+        ("eurusd:long", None),                                   # single order
+        ("audusd:long,eurjpy:short", None),                      # no common leg
     ]
     ok = True
-    for spec, ax, expect in cases:
-        c = concentration(parse_orders(spec))
-        net = c["axis_net"]
-        if ax is None:
-            passed = not c["concentrated"]
-            got = "no breach"
+    for spec, expect in cases:
+        flags = f(spec)
+        if expect is None:
+            passed = not flags
+            got = "no flag" if not flags else f"{flags[0]['currency']} {flags[0]['units']:+.1f}"
         else:
-            passed = abs(net[ax] - expect) < 1e-6 and c["concentrated"]
-            got = f"{ax}={net[ax]:+.2f}"
+            ccy, side, units = expect
+            passed = any(fl["currency"] == ccy and fl["side"] == side and abs(fl["units"] - units) < 1e-6
+                         for fl in flags)
+            got = "; ".join(f"{fl['currency']}:{fl['side']}:{fl['units']:+.1f}" for fl in flags) or "no flag"
         ok &= passed
-        print(f"[{'PASS' if passed else 'FAIL'}] {spec:42s} expect {ax}={expect} got {got}")
+        print(f"[{'PASS' if passed else 'FAIL'}] {spec:42s} expect {expect} got {got}")
+
+    # antipodean note
+    note = antipodean_note(parse_orders("audusd:long,nzdusd:long"))
+    passed = note is not None
+    ok &= passed
+    print(f"[{'PASS' if passed else 'FAIL'}] audusd:long,nzdusd:long{' ':19s} expect antipodean note got {bool(note)}")
+
+    # advisory suggest-keep
+    g = advise(parse_orders("gbpusd:short")[0], parse_orders("eurusd:short"),
+               new_ec=6.5, live_ecs={"eurusd": 7.5})
+    passed = g["verdict"] == "CONCENTRATED" and g["suggest_keep"] == "eurusd"
+    ok &= passed
+    print(f"[{'PASS' if passed else 'FAIL'}] advise gbpusd vs live eurusd (EC 6.5<7.5)   suggest_keep={g['suggest_keep']}")
+
     print("\nSELFTEST", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 
@@ -223,11 +243,11 @@ def _parse_ecs(spec: str | None) -> dict[str, float]:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="FX currency-leg netting ledger (D022).")
+    ap = argparse.ArgumentParser(description="FX currency-leg netting ledger — advisory (D024).")
     ap.add_argument("--orders", help="comma list 'inst:dir:risk' — report net exposure")
     ap.add_argument("--live", help="existing live FX orders 'inst:dir:risk,...'")
-    ap.add_argument("--candidate", help="prospective order 'inst:dir:risk' — run the netting gate")
-    ap.add_argument("--new-ec", type=float, help="candidate Entry Confluence (for tie-break)")
+    ap.add_argument("--candidate", help="prospective order 'inst:dir:risk' — run the advisory")
+    ap.add_argument("--new-ec", type=float, help="candidate Entry Confluence (ranking)")
     ap.add_argument("--live-ecs", help="live orders' EC 'inst:ec,...'")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
@@ -237,12 +257,15 @@ def main() -> int:
     if args.candidate:
         live = parse_orders(args.live) if args.live else []
         cand = parse_orders(args.candidate)[0]
-        g = gate(cand, live, new_ec=args.new_ec, live_ecs=_parse_ecs(args.live_ecs))
+        g = advise(cand, live, new_ec=args.new_ec, live_ecs=_parse_ecs(args.live_ecs))
         print(f"Live: {_fmt(live) or '(none)'}")
         print(f"Candidate: {_fmt([cand])} (EC {args.new_ec})")
-        print(f"\nVERDICT: {g['verdict']}\n{g['reason']}")
-        if g["cancel"]:
-            print(f"Cancel live limit(s): {g['cancel']}")
+        print(f"\nADVISORY: {g['verdict']}\n{g['reason']}")
+        if g["verdict"] == "CONCENTRATED":
+            print(f"Suggest keeping: {g['suggest_keep']} (EC ranking: {g['ranking']})")
+            print("Operator decides — nothing is auto-skipped (D024).")
+        if g.get("note"):
+            print(f"Note: {g['note']}")
         return 0
     if args.orders:
         print(report(parse_orders(args.orders)))

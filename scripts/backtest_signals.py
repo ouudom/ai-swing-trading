@@ -36,6 +36,7 @@ REGISTERED = {
     "eurusd": "config.eurusd.config",
     "gbpusd": "config.gbpusd.config",
     "eurgbp": "config.eurgbp.config",
+    "audusd": "config.audusd.config",
 }
 FWD = {"D1": 5, "H4": 6, "H1": 4}
 TF_FILE = {"D1": "1day.csv", "H4": "4h.csv", "H1": "1h.csv"}

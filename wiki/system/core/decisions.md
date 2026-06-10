@@ -1,6 +1,6 @@
 ---
 type: decision
-updated: 2026-06-07
+updated: 2026-06-10
 confidence: high
 tags: [decisions, system-design]
 related: [constitution]
@@ -23,6 +23,31 @@ later decision but still in force).
 > **Gap:** D016 (EURUSD instrument) was removed when the system descoped to gold-only (see D019).
 
 ---
+
+## D024 — 7-pair expansion; netting demoted to ADVISORY; USD sizing everywhere (no quote-CCY convert)
+**Status:** ACTIVE (2026-06-10). Amends D022 (netting enforcement dropped). See [[currency_exposure]].
+**Decision:** Expand to **all 7 new pairs** — AUDUSD, NZDUSD, USDCAD, USDCHF, USDJPY, EURJPY,
+GBPJPY — onboarded **sequentially, one at a time** (easy→hard: USD-quote clones → USD-base class →
+JPY block), each gating on its own 16yr signal-scan GO before its confluence goes ACTIVE.
+Operator rulings:
+1. **No risk caps.** "This is a system to generate trading signals, not a risk-management system."
+   `scripts/fx_exposure.py` rewritten: per-currency-leg ledger over all 10 FX instruments
+   (8 currencies), **advisory only** — flags shared leg-direction between pairs (e.g. EURUSD +
+   GBPUSD both short = 2× long USD) and **suggests the single cleaner trade** (highest EC).
+   No auto-SKIP, no auto-cancel, no $/axis cap. D022's algebra kept, its enforcement dropped.
+   Soft note: AUDUSD+NZDUSD same direction ≈ one bet (corr ~0.85).
+2. **No quote-currency conversion — everything sized in USD (Exness).** Same formula all pairs:
+   `lots = $2000/(SL × TICK_MULTIPLIER)`. CHF/CAD-quoted drift (~25–28%) accepted, like the
+   EURGBP GBP pass (D023). **Exception forced by arithmetic, not policy:** JPY-quoted pairs
+   (USDJPY/EURJPY/GBPJPY, pip=0.01, price ~155) get a **static `TICK_MULTIPLIER = 650`**
+   (≈100000/154, pip ≈ $6.5/lot) — the majors' 100000 is wrong by ~155×, not a tolerable drift.
+   Constant, no live spot lookup; revisit if USDJPY moves ±15% from ~154.
+3. USD-base pairs (USDCAD/USDCHF/USDJPY) are a **new config class**: `USD_BETA_SIGN=+1`,
+   DXY-jump/VIX polarity flipped vs USD-quote majors (USDJPY VIX polarity = open empirical
+   question, JPY safe-haven), COT futures (6C/6S/6J) quoted inverted → sign-flip, VP disabled.
+**Rationale:** operator wants breadth of signal coverage; risk discretion stays human. JPY
+crosses are carry-trend pairs — mean-reversion template may scan NO-GO; scan decides, a NO-GO
+pair keeps config+data+research but no active confluence.
 
 ## D023 — EURGBP added as a tradable CROSS: mean-reversion, macro-light, no VIX-veto, USD-sized
 **Status:** ACTIVE (2026-06-09). See `wiki/system/eurgbp/` + `wiki/research/eurgbp/signal-results.md`.

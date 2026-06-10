@@ -39,6 +39,7 @@ REGISTERED_INSTRUMENTS = {
     "eurusd": "config.eurusd.config",
     "gbpusd": "config.gbpusd.config",
     "eurgbp": "config.eurgbp.config",   # cross — EG1 (data); macro placeholder, see D022
+    "audusd": "config.audusd.config",   # D024 pair #1 — USD-quote major, no daily RBA series
 }
 
 _instrument_cfg = None  # set by load_instrument()
@@ -623,30 +624,47 @@ def _compute_and_write(out_path):
     baseline_extra = ""  # optional extra baseline lines (e.g. FX policy diff)
 
     if macro_mode == "rate_diff":
-        # FX major: US 2Y slope = direction (USD rate momentum); DFF − foreign policy = carry regime.
+        # FX vs USD: US 2Y slope = direction (USD rate momentum); DFF − foreign policy = carry regime.
+        # USD-base pairs (USDJPY etc., USD_BETA_SIGN=+1): USD strength is BULLISH the pair — flip labels.
+        # RATE_FOREIGN=None (AUD/NZD/CAD/CHF — no daily FRED policy series; carry-diff proven DEAD,
+        # D021/D024): skip the policy-diff carry lines, keep US2Y direction + VIX.
         us  = load_fred_local(cfg.RATE_US)        # US 2Y (DGS2)
-        fp  = load_fred_local(cfg.RATE_FOREIGN)   # foreign policy rate (ECBDFR / SONIA)
         us_now  = float(us["value"].iloc[-1]); us_prev = float(us["value"].iloc[-6])
         us_20d  = us["value"].iloc[-21:]
         us_slope = float(np.polyfit(range(len(us_20d)), us_20d.values, 1)[0])
         us_drift = us_now - float(us["value"].iloc[-2])
-        ffr      = float(ff["value"].iloc[-1]); fpr = float(fp["value"].iloc[-1])
-        pol_diff = ffr - fpr
-        pol_diff_prev = float(ff["value"].iloc[-6]) - float(fp["value"].iloc[-6])
-        pol_dd   = pol_diff - pol_diff_prev
-        # Pair rises when USD softens: falling US 2Y = bullish pair; narrowing US carry = bullish pair.
+        ffr      = float(ff["value"].iloc[-1])
+        usd_base = getattr(cfg, "USD_BETA_SIGN", -1) > 0
+        up_lbl   = (f'RISING ✅ (USD strength, bullish {display})' if usd_base
+                    else f'RISING ⚠  (USD strength, bearish {display})')
+        dn_lbl   = (f'FALLING ⚠  (USD softness, bearish {display})' if usd_base
+                    else f'FALLING ✅ (USD softness, bullish {display})')
         macro_block = (
             f"US 2Y (DGS2):     {us_now}% (was {us_prev}% ~1w ago, Δ {round(us_now-us_prev,3):+}%)\n"
-            f"  → {f'RISING ⚠  (USD strength, bearish {display})' if us_now > us_prev else f'FALLING ✅ (USD softness, bullish {display})'}\n"
+            f"  → {up_lbl if us_now > us_prev else dn_lbl}\n"
             f"  20d slope: {us_slope:+.4f} %/day  {'(rising trend)' if us_slope > 0 else '(falling trend)'}\n"
             f"  1d drift:  {us_drift:+.3f}%\n"
-            f"Fed Funds:        {ffr:.2f}%\n"
-            f"{cfg.RATE_FOREIGN_NAME + ':':<18}{fpr:.2f}%\n"
-            f"Policy diff (US−{cfg.FOREIGN_CCY}): {pol_diff:+.2f}% (was {pol_diff_prev:+.2f}%, Δ {pol_dd:+.2f}%)\n"
-            f"  → {f'WIDENING (USD carry up, bearish {display})' if pol_dd > 0 else f'NARROWING (USD carry down, bullish {display})'}\n"
-            f"VIX:              {float(vix['value'].iloc[-1]):.2f}")
+            f"Fed Funds:        {ffr:.2f}%\n")
+        if getattr(cfg, "RATE_FOREIGN", None):
+            fp  = load_fred_local(cfg.RATE_FOREIGN)   # foreign policy rate (ECBDFR / SONIA)
+            fpr = float(fp["value"].iloc[-1])
+            pol_diff = ffr - fpr
+            pol_diff_prev = float(ff["value"].iloc[-6]) - float(fp["value"].iloc[-6])
+            pol_dd   = pol_diff - pol_diff_prev
+            wide_lbl = (f'WIDENING (USD carry up, bullish {display})' if usd_base
+                        else f'WIDENING (USD carry up, bearish {display})')
+            narr_lbl = (f'NARROWING (USD carry down, bearish {display})' if usd_base
+                        else f'NARROWING (USD carry down, bullish {display})')
+            macro_block += (
+                f"{cfg.RATE_FOREIGN_NAME + ':':<18}{fpr:.2f}%\n"
+                f"Policy diff (US−{cfg.FOREIGN_CCY}): {pol_diff:+.2f}% (was {pol_diff_prev:+.2f}%, Δ {pol_dd:+.2f}%)\n"
+                f"  → {wide_lbl if pol_dd > 0 else narr_lbl}\n")
+            baseline_extra = f"baseline_policy_diff: {round(pol_diff,3)}\n"
+        else:
+            macro_block += (f"Foreign policy ({cfg.FOREIGN_CCY}): no daily FRED series — "
+                            f"carry leg skipped (dead signal, D021/D024)\n")
+        macro_block += f"VIX:              {float(vix['value'].iloc[-1]):.2f}"
         baseline_label = "baseline_dgs2"; baseline_val = us_now
-        baseline_extra = f"baseline_policy_diff: {round(pol_diff,3)}\n"
     elif macro_mode == "cross_rate_diff":
         # EUR/GBP CROSS: no USD leg. Direction tilt = EUR−GBP rate differential (ECBDFR − SONIA).
         # EG2: cross macro is THIN/DEAD on free daily data → LOW-weight, NON-SCORING tilt only.

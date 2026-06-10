@@ -19,17 +19,17 @@ related: [xauusd_profile, confluence_criteria]
 The rules below are written in their **XAUUSD instantiation** (gold $-units, real-yield macro,
 momentum bias). They generalize via each instrument's profile — never hardcode gold values for FX:
 
-| Generic rule term | XAUUSD | EURUSD / GBPUSD | EURGBP (cross) | Source |
-|---|---|---|---|---|
-| Lot multiplier | ×100 | ×100000 | ×100000 (USD-sized, no GBP convert — operator) | `TICK_MULTIPLIER` |
-| H4-ATR flatline filter | $1 | 0.0003 (3 pips) | 0.0002 (2 pips) | `MIN_BAR_RANGE` |
-| V1b "past zone" threshold | $5 | EUR 5 pips / GBP 6 pips | 4 pips | profile |
-| Macro baseline (frontmatter) | `baseline_dfii10` | `baseline_dgs2` (+ `baseline_policy_diff`) | `baseline_rate_diff` (weak) | snapshot |
-| Macro direction model | real-yield (momentum) | DXY-jump→short + US2Y-slope + VIX-spike→short; carry-diff/2s10s DEAD | **thin/DEAD — price-only; macro = 0.5 tilt** | profile / D021 / EG2 |
-| VIX veto direction | block SHORTs (safe-haven) | block **LONGs** (risk-off USD bid) | **NONE** (risk-off → EURGBP UP, inverted) | profile / EG2 |
-| Hard-block events | US tier-1 | US tier-1 (shared) | **ECB + BoE + UK/EZ data** (US = caution only) | profile |
-| Re-forecast T1/T5 series | DFII10 | US2Y (DGS2) | EUR−GBP rate diff (weak); leans on T3 price | profile |
-| Confluence philosophy | pro-trend / macro-gated | **fade extremes; never trend-follow** | **fade extremes; macro-light** | per-pair confluence_criteria |
+| Generic rule term | XAUUSD | EURUSD / GBPUSD | EURGBP (cross) | AUDUSD | Source |
+|---|---|---|---|---|---|
+| Lot multiplier | ×100 | ×100000 | ×100000 (USD-sized, no GBP convert — operator) | ×100000 | `TICK_MULTIPLIER` |
+| H4-ATR flatline filter | $1 | 0.0003 (3 pips) | 0.0002 (2 pips) | 0.0003 (3 pips) | `MIN_BAR_RANGE` |
+| V1b "past zone" threshold | $5 | EUR 5 pips / GBP 6 pips | 4 pips | 4 pips | profile |
+| Macro baseline (frontmatter) | `baseline_dfii10` | `baseline_dgs2` (+ `baseline_policy_diff`) | `baseline_rate_diff` (weak) | `baseline_dgs2` | snapshot |
+| Macro direction model | real-yield (momentum) | DXY-jump→short + US2Y-slope + VIX-spike→short; carry-diff/2s10s DEAD | **thin/DEAD — price-only; macro = 0.5 tilt** | US2Y-slope + **VIX LEVEL (inverted)**; DXY-jump DEAD | profile / D021 / EG2 / D024 |
+| VIX veto direction | block SHORTs (safe-haven) | block **LONGs** (risk-off USD bid) | **NONE** (risk-off → EURGBP UP, inverted) | **NONE** (VIX level scores, inverted) | profile / EG2 / D024 |
+| Hard-block events | US tier-1 | US tier-1 (shared) | **ECB + BoE + UK/EZ data** (US = caution only) | US tier-1 + **RBA/AU CPI/jobs** (China = caution) | profile |
+| Re-forecast T1/T5 series | DFII10 | US2Y (DGS2) | EUR−GBP rate diff (weak); leans on T3 price | US2Y (DGS2) | profile |
+| Confluence philosophy | pro-trend / macro-gated | **fade extremes; never trend-follow** | **fade extremes; macro-light** | **fade extremes, H4-centric; never trend-follow** | per-pair confluence_criteria |
 
 All formulas (SL, offset, TP, R) are unit-agnostic across instruments. EURGBP is nominally GBP-quoted
 but — **operator decision** — is sized in USD with the same formula as the majors
@@ -44,26 +44,19 @@ cross risk-axis (see [[currency_exposure]]).
 - Never widen a stop after entry. Never move stop against the trade.
 - All entries are **order limits** (buy limit long / sell limit short). No market orders.
 
-## Portfolio Currency-Leg Netting — FX only (see [[currency_exposure]])
-EURUSD, GBPUSD, EURGBP form a triangle (`EURGBP = EURUSD / GBPUSD`) — two majors share the USD
-leg, so trading both at once does NOT diversify, it concentrates onto one factor. Risk unit for
-FX is **$2000 per currency-factor, not per instrument.**
+## Portfolio Currency-Leg Netting — FX only, ADVISORY (D022 as amended by D024; see [[currency_exposure]])
+Every FX pair = +base / −quote currency leg. Pairs sharing a leg in the same direction do NOT
+diversify — they concentrate onto one factor (e.g. EURUSD short + GBPUSD short = 2× long USD;
+USDJPY long + EURJPY long = 2× short JPY). The ledger `scripts/fx_exposure.py` decomposes all
+live + candidate FX orders into per-currency legs and flags shared-leg concentration.
 
-| EURUSD | GBPUSD | Net | Factor |
-|---|---|---|---|
-| same direction | | `±2·USD` (USD stacks) | doubled USD bet |
-| opposite direction | | `±EUR ∓GBP` (USD cancels) | EURGBP cross bet |
-
-**Netting gate (at `/validate`, before writing an FX ORDER LIMIT):** if the OTHER FX major
-already has a LIVE limit / Open Position dated today, the two concentrate onto one factor → it is
-**one unit of risk**, never two. Resolve **keep best, drop weaker** by Entry Confluence:
-new EC > existing → cancel existing limit, place new; new EC ≤ existing → new = **❌ SKIP
-(concentration)**, existing stays. SKIP ≠ NO TRADE — the zone stays PENDING, just lost the
-tie-break. Always emit a `> [!warning] Concentration:` callout in the daily file + mirror to
-`_HOT.md`. **Scope:** cross-instrument FX only. Gold is NOT netted (driver = real yields, not a
-USD leg) — note its USD co-movement as context. Within-instrument zone stacking + an exposure
-ledger = Architecture B (planned, see [[currency_exposure]]). EURGBP is reference-only — never
-traded under A.
+**D024 (operator): this system generates signals, it does not manage risk. No hard $ cap.**
+The ledger is **advisory**: when ≥2 FX orders load the same leg-direction it emits a
+`> [!warning] Concentration:` callout and **suggests keeping only the cleaner trade** (highest
+Entry Confluence). The operator decides; nothing is auto-skipped or auto-cancelled.
+Soft note: AUDUSD + NZDUSD same direction ≈ one bet (corr ~0.85) even though the legs differ.
+**Scope:** FX only. Gold is NOT in the ledger (driver = real yields, not a clean USD leg) —
+note its USD co-movement as context.
 
 ## Two scores — do not conflate (see [[confluence_criteria]])
 - **Zone Confluence** (at `/weekly`, max 10, floor 5.0): rates a zone's inherent quality. Publishes PENDING zones.
@@ -78,8 +71,8 @@ if (0.5 × D1_ATR14) < H4_ATR14 :  SL = H4_ATR14
 else                           :  SL = avg(0.5 × D1_ATR14, H4_ATR14)
 
 lots = $2000 / (SL × TICK_MULTIPLIER), round DOWN   (min 0.01)
-       TICK_MULTIPLIER = 100 (XAUUSD) | 100000 (EURUSD, GBPUSD)
-       MIN_BAR_RANGE   = $1 (XAUUSD)  | 0.0003 (FX)
+       TICK_MULTIPLIER = 100 (XAUUSD) | 100000 (FX, non-JPY) | 650 (JPY-quoted, static ≈100000/154 — D024)
+       MIN_BAR_RANGE   = $1 (XAUUSD)  | per-pair pips (profile)
 ```
 **v2 change:** structural pivot removed from the stop formula. Stop is volatility-based:
 H4 ATR is the floor; half-D1 ATR only lifts it when half-D1 exceeds H4. SL is the base unit for

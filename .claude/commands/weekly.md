@@ -1,18 +1,19 @@
 Run the full weekly forecast → produce Trading Zones.
 
-Argument: `[instrument]` ∈ {xauusd, eurusd, gbpusd, eurgbp} (default xauusd). One instrument per invocation.
-(eurgbp = CROSS, DRAFT/not-live: macro-light mean-reversion, no VIX-veto, GBP-quoted sizing, European event blocks.)
+Argument: `[instrument]` ∈ {xauusd, eurusd, gbpusd, eurgbp, audusd} (default xauusd). One instrument per invocation.
+(eurgbp = CROSS: macro-light mean-reversion, no VIX-veto, European event blocks. audusd: no VIX-veto +
+no DXY block — VIX level INVERTED tilt, DXY-jump dead; RBA/AU-CPI/China events.)
 
 Goal: a weekly forecast that publishes up to **3 Trading Zones** (at most 1 counter-trend), each
 scored by **Zone Confluence** (max 10, floor 5.0 — `wiki/system/{instrument}/confluence_criteria.md` R1).
 
 ## Step 0 — Instrument parametrization
-| Param | xauusd | eurusd | gbpusd | eurgbp (cross) |
-|---|---|---|---|---|
-| Character | momentum (pro-trend) | mean-reversion (fade) | mean-reversion (fade) | mean-reversion (fade), macro-light |
-| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` | `baseline_rate_diff` (ECBDFR−SONIA, weak) |
-| Profile | xauusd_profile.md | eurusd_profile.md | gbpusd_profile.md | eurgbp_profile.md |
-| Confluence R1 | xauusd | eurusd | gbpusd | eurgbp |
+| Param | xauusd | eurusd | gbpusd | eurgbp (cross) | audusd |
+|---|---|---|---|---|---|
+| Character | momentum (pro-trend) | mean-reversion (fade) | mean-reversion (fade) | mean-reversion (fade), macro-light | mean-reversion (fade), H4-centric |
+| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` | `baseline_rate_diff` (ECBDFR−SONIA, weak) | `baseline_dgs2` |
+| Profile | xauusd_profile.md | eurusd_profile.md | gbpusd_profile.md | eurgbp_profile.md | audusd_profile.md |
+| Confluence R1 | xauusd | eurusd | gbpusd | eurgbp | audusd |
 
 ## Prerequisites — Read First
 1. `wiki/system/core/macro/yield_environment.md` — prior macro baseline
@@ -51,6 +52,9 @@ Read the full `weekly_pull_{YEAR}_W{WW}.txt` before analysis.
 - eurgbp (CROSS — no USD leg): macro is **thin/DEAD (EG2)** → price/structure only. No DXY, no US rates.
   Direction tilt (low weight): EUR−GBP rate diff (ECBDFR−SONIA) widening → bullish; **VIX spike → EURGBP UP** (risk-off
   favors EUR over GBP — INVERTED vs majors). Bias is set by structure/oscillator extremes, not macro.
+- audusd: US2Y (DGS2) slope vs `baseline_dgs2` + **VIX LEVEL regime (INVERTED: VIX>20 → long tilt
+  t=6.14, VIX<15 → short tilt t=5.29)**. **DXY-jump DEAD for AUD (t=−0.85) — context only, never score
+  or block.** No daily RBA series (carry leg off). China/commodity beta = narrative context.
 Bias: BULLISH/BEARISH/NEUTRAL + confidence. Flag regime shift vs baseline.
 
 **2. News Analysis** — scheduled high-impact calendar next week (UTC, mark hard blocks),
@@ -75,6 +79,7 @@ differs by instrument**:
 - **eurusd:** Z1 Structural 2.0 (MAND) | Z2 H4 oscillator extreme 2.0 | Z3 band over-extension 1.5 | Z4 big-figure 1.0 | Z5 macro/intermarket (DXY-jump/US2Y-slope/VIX-spike) 1.5 | Z6 non-trend ADX<25 1.0 | Z7 compression 1.0.
 - **gbpusd:** Z1 Structural D1-extreme 2.5 (MAND) | Z2 D1 oscillator extreme 2.0 | Z3 H1 oscillator 1.5 | Z4 macro/intermarket 1.5 | Z5 non-trend ADX<25 1.0 | Z6 band/compression 0.5 | Z7 seasonal/Williams 1.0.
 - **eurgbp (cross):** Z1 Structural D1-extreme 3.0 (MAND) | Z2 D1 oscillator extreme 2.5 | Z3 H1 oscillator 1.5 (validated) | Z4 macro/sentiment TILT 0.5 | Z5 non-trend ADX<25 1.0 | Z6 band/compression 0.5 | Z7 Williams/Stoch 1.0. (Macro NOT a gate — EG2 dead.)
+- **audusd:** Z1 Structural 2.0 (MAND) | Z2 H4 oscillator extreme 2.0 | Z3 H4 band over-extension 1.5 | Z4 big-figure LONG 0.5 | Z5 macro regime tilt (VIX level INVERTED + US2Y slope) 1.5 | Z6 non-trend ADX<25 1.5 | Z7 compression/squeeze 1.0. (NO DXY row — dead for AUD.)
 
 Rules: publish if score ≥ 5.0 (Z1 mandatory). Max 3 zones, ≤1 counter.
 - Counter zone (xauusd): macro Z2+Z3 score 0; RSI divergence MANDATORY; macro conf LOW/MEDIUM.
@@ -82,6 +87,8 @@ Rules: publish if score ≥ 5.0 (Z1 mandatory). Max 3 zones, ≤1 counter.
   spike>3 blocks LONGs; DXY 1d jump against a zone blocks it; never score trend-follow.**
   **eurgbp (cross): NO VIX veto, NO DXY block** (risk-off → EURGBP up, inverted; DXY irrelevant). Only
   veto = D1 ADX>30 trending against the fade. Never score trend-follow.
+  **audusd: NO VIX veto, NO DXY block** (VIX level scores inverted in Z5; DXY-jump dead). Only veto =
+  D1 ADX>30 trending against the fade. Never score trend-follow.
 - Write IF/THEN in one sentence + name zone (Primary/Secondary/Counter), direction, box, score, signals.
 - SL/offset/TP computed at `/validate`, not here — but name the TP structural anchor + indicative R.
 
@@ -89,7 +96,7 @@ Rules: publish if score ≥ 5.0 (Z1 mandatory). Max 3 zones, ≤1 counter.
 Template `wiki/system/templates/weekly_forecast.md`. Frontmatter (instrument-aware baseline):
 ```yaml
 type: weekly_forecast
-instrument: xauusd | eurusd | gbpusd | eurgbp
+instrument: xauusd | eurusd | gbpusd | eurgbp | audusd
 week: YYYY-WNN
 generated: YYYY-MM-DD
 macro_bias: BULLISH | BEARISH | NEUTRAL

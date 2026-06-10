@@ -79,6 +79,8 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
 - `data/trades_log.csv` — plain manual trade log.
 - `wiki/` — update in place. One concept per page. Never create a parallel page. Cross-link `[[filename]]`.
 - After creating/updating any file: update `_INDEX.md`. End of every session: update `_HOT.md`.
+- `_HOT.md` — **hard cap 120 lines.** Current state + last session only; prune every session.
+  History belongs in `forecasts/daily|weekly/*`, `decisions.md`, `_INDEX.md` — link, don't repeat.
 
 ## Frontmatter Schemas
 See `wiki/system/templates/weekly_forecast.md` and `wiki/system/templates/daily_validation.md`

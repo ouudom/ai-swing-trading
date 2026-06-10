@@ -19,17 +19,20 @@ related: [xauusd_profile, confluence_criteria]
 The rules below are written in their **XAUUSD instantiation** (gold $-units, real-yield macro,
 momentum bias). They generalize via each instrument's profile — never hardcode gold values for FX:
 
-| Generic rule term | XAUUSD | EURUSD / GBPUSD | EURGBP (cross) | AUDUSD | Source |
+| Generic rule term | XAUUSD | EURUSD / GBPUSD | EURGBP (cross) | AUDUSD / NZDUSD | Source |
 |---|---|---|---|---|---|
 | Lot multiplier | ×100 | ×100000 | ×100000 (USD-sized, no GBP convert — operator) | ×100000 | `TICK_MULTIPLIER` |
 | H4-ATR flatline filter | $1 | 0.0003 (3 pips) | 0.0002 (2 pips) | 0.0003 (3 pips) | `MIN_BAR_RANGE` |
 | V1b "past zone" threshold | $5 | EUR 5 pips / GBP 6 pips | 4 pips | 4 pips | profile |
-| Macro baseline (frontmatter) | `baseline_dfii10` | `baseline_dgs2` (+ `baseline_policy_diff`) | `baseline_rate_diff` (weak) | `baseline_dgs2` | snapshot |
-| Macro direction model | real-yield (momentum) | DXY-jump→short + US2Y-slope + VIX-spike→short; carry-diff/2s10s DEAD | **thin/DEAD — price-only; macro = 0.5 tilt** | US2Y-slope + **VIX LEVEL (inverted)**; DXY-jump DEAD | profile / D021 / EG2 / D024 |
+| Macro baseline (frontmatter) | `baseline_dfii10` | `baseline_dgs2` (+ `baseline_policy_diff`) | `baseline_rate_diff` (weak) | `baseline_dgs2` (NZD: context only) | snapshot |
+| Macro direction model | real-yield (momentum) | DXY-jump→short + US2Y-slope + VIX-spike→short; carry-diff/2s10s DEAD | **thin/DEAD — price-only; macro = 0.5 tilt** | **VIX LEVEL (inverted)** + US2Y-slope (AUD only — dead for NZD); DXY-jump DEAD both | profile / D021 / EG2 / D024 |
 | VIX veto direction | block SHORTs (safe-haven) | block **LONGs** (risk-off USD bid) | **NONE** (risk-off → EURGBP UP, inverted) | **NONE** (VIX level scores, inverted) | profile / EG2 / D024 |
-| Hard-block events | US tier-1 | US tier-1 (shared) | **ECB + BoE + UK/EZ data** (US = caution only) | US tier-1 + **RBA/AU CPI/jobs** (China = caution) | profile |
-| Re-forecast T1/T5 series | DFII10 | US2Y (DGS2) | EUR−GBP rate diff (weak); leans on T3 price | US2Y (DGS2) | profile |
-| Confluence philosophy | pro-trend / macro-gated | **fade extremes; never trend-follow** | **fade extremes; macro-light** | **fade extremes, H4-centric; never trend-follow** | per-pair confluence_criteria |
+| Hard-block events | US tier-1 | US tier-1 (shared) | **ECB + BoE + UK/EZ data** (US = caution only) | US tier-1 + **RBA/AU CPI/jobs** (AUD) / **RBNZ/NZ CPI/jobs** (NZD); China = caution | profile |
+| Re-forecast T1/T5 series | DFII10 | US2Y (DGS2) | EUR−GBP rate diff (weak); leans on T3 price | US2Y (DGS2) (NZD: drift context; leans on T3 price) | profile |
+| Confluence philosophy | pro-trend / macro-gated | **fade extremes; never trend-follow** | **fade extremes; macro-light** | **fade extremes; AUD H4-centric / NZD squeeze-led macro-light** | per-pair confluence_criteria |
+
+> **Antipodean advisory (D024):** AUDUSD + NZDUSD same direction ≈ one bet (corr ~0.85); AUD edge
+> ≈ 2× NZD — fx_exposure flags it, default keep AUD unless NZD EC clearly higher.
 
 All formulas (SL, offset, TP, R) are unit-agnostic across instruments. EURGBP is nominally GBP-quoted
 but — **operator decision** — is sized in USD with the same formula as the majors

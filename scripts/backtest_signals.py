@@ -37,6 +37,8 @@ REGISTERED = {
     "gbpusd": "config.gbpusd.config",
     "eurgbp": "config.eurgbp.config",
     "audusd": "config.audusd.config",
+    "nzdusd": "config.nzdusd.config",
+    "usdcad": "config.usdcad.config",
 }
 FWD = {"D1": 5, "H4": 6, "H1": 4}
 TF_FILE = {"D1": "1day.csv", "H4": "4h.csv", "H1": "1h.csv"}
@@ -318,14 +320,19 @@ def macro_signals(df, cfg):
     mode = getattr(cfg, "MACRO_MODE", "") if cfg else ""
     rate_diff = mode == "rate_diff"
     cross = mode == "cross_rate_diff"
+    # USD-BASE pairs (USDCAD/USDCHF/USDJPY, USD_BETA_SIGN=+1): long pair = LONG USD, so every
+    # mechanical USD-direction row (DXY, US-rate M-rows) flips. VIX rows stay unflipped —
+    # they are empirical level/regime signals whose polarity is read from the t-stat per pair.
+    usd_base = bool(cfg) and getattr(cfg, "USD_BETA_SIGN", -1) > 0
+    U = (lambda d: "SHT" if d == "LNG" else "LNG") if usd_base else (lambda d: d)
 
     if not cross:                       # DXY is a USD index — irrelevant to a non-USD cross
         dxy = align_daily(load_dxy(), idx)
         if dxy is not None:
             dxy_s = pd.Series(dxy, index=idx)
             dsl = rolling_slope(dxy_s, 20)
-            A(("E8","DXY 20d slope<0", "LNG", dsl < 0)); A(("E9","DXY 20d slope>0", "SHT", dsl > 0))
-            A(("E10","DXY 1d jump>0.5", "SHT", dxy_s.diff() > 0.5))
+            A(("E8","DXY 20d slope<0", U("LNG"), dsl < 0)); A(("E9","DXY 20d slope>0", U("SHT"), dsl > 0))
+            A(("E10","DXY 1d jump>0.5", U("SHT"), dxy_s.diff() > 0.5))
 
     vix = align_daily(load_fred("VIXCLS"), idx)
     if vix is not None:
@@ -340,20 +347,32 @@ def macro_signals(df, cfg):
         fp = align_daily(load_fred(cfg.RATE_FOREIGN), idx)
         if us is not None:
             us_s = pd.Series(us, index=idx); usl = rolling_slope(us_s, 20)
-            # pair = FOREIGN/USD: falling US 2Y → USD soft → pair UP (long)
-            A(("M1","US2Y(DGS2) 20d slope<0", "LNG", usl < 0)); A(("M2","US2Y 20d slope>0", "SHT", usl > 0))
-            A(("M3","US2Y 5d jump>+0.15", "SHT", (us_s - us_s.shift(5)) > 0.15))
-            A(("M4","US2Y 5d drop>0.15", "LNG", (us_s.shift(5) - us_s) > 0.15))
+            # USD-quote: falling US 2Y → USD soft → pair UP. USD-base: flipped via U().
+            A(("M1","US2Y(DGS2) 20d slope<0", U("LNG"), usl < 0)); A(("M2","US2Y 20d slope>0", U("SHT"), usl > 0))
+            A(("M3","US2Y 5d jump>+0.15", U("SHT"), (us_s - us_s.shift(5)) > 0.15))
+            A(("M4","US2Y 5d drop>0.15", U("LNG"), (us_s.shift(5) - us_s) > 0.15))
         if us is not None and ten is not None:
             curve = pd.Series(ten - us, index=idx)  # 2s10s
             csl = rolling_slope(curve, 20)
-            A(("M5","2s10s steepening", "LNG", csl > 0)); A(("M6","2s10s flattening", "SHT", csl < 0))
+            A(("M5","2s10s steepening", U("LNG"), csl > 0)); A(("M6","2s10s flattening", U("SHT"), csl < 0))
         if ff is not None and fp is not None:
             diff = pd.Series(ff - fp, index=idx)     # US carry premium
             dsl = rolling_slope(diff, 20)
-            # widening US carry → USD strength → pair DOWN (short)
-            A(("M7","US-foreign carry widening", "SHT", dsl > 0)); A(("M8","US-foreign carry narrowing", "LNG", dsl < 0))
-            A(("M9","US carry premium falling 1d", "LNG", diff.diff() < 0))
+            # widening US carry → USD strength → pair DOWN (USD-quote); flipped for USD-base.
+            A(("M7","US-foreign carry widening", U("SHT"), dsl > 0)); A(("M8","US-foreign carry narrowing", U("LNG"), dsl < 0))
+            A(("M9","US carry premium falling 1d", U("LNG"), diff.diff() < 0))
+        oil_sid = getattr(cfg, "OIL_SERIES", None)
+        if oil_sid:
+            oil = align_daily(load_fred(oil_sid), idx)
+            if oil is not None:
+                # 🛢 oil leg (USDCAD): WTI up → CAD strength → pair DOWN (already USD-base aware:
+                # directions stated pair-relative, no U() — oil drives the FOREIGN leg).
+                o = pd.Series(oil, index=idx); osl = rolling_slope(o, 20)
+                A(("W1","WTI 20d slope>0", "SHT", osl > 0)); A(("W2","WTI 20d slope<0", "LNG", osl < 0))
+                A(("W3","WTI 1d jump>2%", "SHT", o.pct_change() > 0.02))
+                A(("W4","WTI 1d drop>2%", "LNG", o.pct_change() < -0.02))
+                A(("W5","WTI 5d move>+5%", "SHT", (o / o.shift(5) - 1) > 0.05))
+                A(("W6","WTI 5d move<-5%", "LNG", (o / o.shift(5) - 1) < -0.05))
     elif cross:
         # EURGBP cross macro — EUR (ECB) vs GBP (SONIA). No USD leg. EG2 model.
         eu = align_daily(load_fred(getattr(cfg, "RATE_EUR", "ECBDFR")), idx)

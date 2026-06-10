@@ -30,6 +30,10 @@
 - `wiki/system/audusd/audusd_profile.md` — AUD profile: H4-centric fade, NO VIX-veto (level inverted), NO DXY block, RBA/AU/China events, V1b 4pip
 - `wiki/system/audusd/confluence_criteria.md` — AUDUSD R1/R2 ACTIVE: H4 fade + VIX-level/US2Y regime tilt
 
+## System — NZDUSD (ACTIVE — D024 pair #2, no zones yet)
+- `wiki/system/nzdusd/nzdusd_profile.md` — NZD profile: macro-light squeeze-led fade, weakest edges, NO VIX/DXY/US2Y gates, RBNZ/NZ/GDT events, V1b 4pip
+- `wiki/system/nzdusd/confluence_criteria.md` — NZDUSD R1/R2 ACTIVE: squeeze 2.0 + H4 fade; antipodean advisory vs AUD
+
 ## Templates
 - `wiki/system/templates/weekly_forecast.md` — skeleton for forecasts/weekly/xauusd/YYYY-WNN.md (zones)
 - `wiki/system/templates/daily_validation.md` — skeleton for forecasts/daily/xauusd/YYYY-MM-DD.md (entry confluence)
@@ -44,6 +48,9 @@
 
 ## Research — AUDUSD (D024 pair #1)
 - `wiki/research/audusd/signal-results.md` — AUDUSD: mean-reverting H4-centric → **GO**; 🔑 DXY-jump DEAD, VIX LEVEL inverted (VIX>20→long t=6.14) (+ raw scan)
+
+## Research — NZDUSD (D024 pair #2)
+- `wiki/research/nzdusd/signal-results.md` — NZDUSD: mean-reverting → **GO marginal** (edges ≈½ AUD); 🔑 US2Y+DXY both DEAD, VIX level weak inverted; squeeze = strongest signal (+ raw scan)
 
 ## Research — XAUUSD
 - `wiki/research/xauusd/_INDEX.md` — data sources, scripts, standards, pending research
@@ -100,14 +107,15 @@
 - `scripts/config/gbpusd/config.py` — GBPUSD config (DGS2 + DFF−SONIA, COT 6B, VP 6B=F)
 - `scripts/config/eurgbp/config.py` — EURGBP CROSS config (EG1; no USD leg, macro PLACEHOLDER pending EG2, COT off)
 - `scripts/config/audusd/config.py` — AUDUSD config (D024 pair #1; no daily RBA series → carry leg off, COT 6A, VP 6A=F)
+- `scripts/config/nzdusd/config.py` — NZDUSD config (D024 pair #2; no daily RBNZ series → carry leg off, COT 6N, VP 6N=F)
 - `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities
 
 ## Data
 - `data/trades_log.csv` — manual trade log (plain CSV)
 - `data/gld_holdings.csv` — daily GLD ETF tonnage (auto-appended by weekly_pull)
 - `data/weekly_pull/xauusd/` — IMMUTABLE weekly pull text files (also eurusd/, gbpusd/)
-- `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/ (D1 2010→now, intraday 2020→now)
-- `forecasts/{weekly,daily}/{eurusd,gbpusd,eurgbp,audusd}/` — FX forecast output dirs
+- `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/, nzdusd/ (D1 2010→now, intraday 2020→now)
+- `forecasts/{weekly,daily}/{eurusd,gbpusd,eurgbp,audusd,nzdusd}/` — FX forecast output dirs
 - `data/fred/` — macro series CSVs (DFII10, VIXCLS, DGS10, T5YIE, FEDFUNDS, etc.)
 - `data/yahoo/` — ICE DXY daily
 - `data/cftc/deahistfo{year}.zip` — COT yearly archives (24h refresh)

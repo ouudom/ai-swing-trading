@@ -40,6 +40,8 @@ REGISTERED_INSTRUMENTS = {
     "gbpusd": "config.gbpusd.config",
     "eurgbp": "config.eurgbp.config",   # cross — EG1 (data); macro placeholder, see D022
     "audusd": "config.audusd.config",   # D024 pair #1 — USD-quote major, no daily RBA series
+    "nzdusd": "config.nzdusd.config",   # D024 pair #2 — USD-quote major, no daily RBNZ series
+    "usdcad": "config.usdcad.config",   # D024 pair #3 — USD-BASE (inverted), oil leg, COT inverted
 }
 
 _instrument_cfg = None  # set by load_instrument()
@@ -708,9 +710,16 @@ def _compute_and_write(out_path):
     if cot and "error" not in cot:
         net_str = f"{cot['net']:+,}"; chg_str = f"{cot['net_chg']:+,}" if cot["net_chg"] is not None else "N/A"
         cot_label = (_instrument_cfg.COT_CONTRACT_NAME if _instrument_cfg else "GOLD").split(" - ")[0]
+        # USD-base pairs: futures quote the FOREIGN ccy → spec net long future = SHORT the pair.
+        cot_inv = getattr(_instrument_cfg, "COT_INVERTED", False) if _instrument_cfg else False
+        if cot_inv:
+            stance = (f"spec long {cot_label} = BEARISH {display}" if cot['net'] > 0
+                      else f"spec short {cot_label} = BULLISH {display}")
+        else:
+            stance = 'BULLISH (spec long)' if cot['net'] > 0 else 'BEARISH (spec short)'
         cot_block = (f"━━━ COT — CFTC {cot_label} FUTURES (non-commercial, as of {cot['date']}) ━━━━━━\n"
                      f"Spec Long:      {cot['long']:,}\nSpec Short:     {cot['short']:,}\n"
-                     f"Net Position:   {net_str}  ({'BULLISH (spec long)' if cot['net']>0 else 'BEARISH (spec short)'})\n"
+                     f"Net Position:   {net_str}  ({stance}){'  ⚠ INVERTED READ (USD-base pair)' if cot_inv else ''}\n"
                      f"W/W Change:     {chg_str}  ({'INCREASING' if (cot['net_chg'] or 0)>0 else 'DECREASING'})\n"
                      f"Note: net-position extremes vs 1y range = crowded = reversal risk (per-instrument threshold)")
     else:

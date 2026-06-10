@@ -7,7 +7,7 @@
 Structured + AI-analysis entry-signal generation. Markdown-only (no DB). Unit = **Trading Zone**
 (max 3/wk, ≤1 counter), Zone Confluence R1 + Entry Confluence R2 (max 10, floor 5, E0 confirm 3pt).
 
-## Instruments — 5 ACTIVE
+## Instruments — 6 ACTIVE
 | Inst | Status | Character | Key docs |
 |---|---|---|---|
 | XAUUSD | active | momentum (pro-trend), real-yield macro | wiki/system/xauusd/ |
@@ -15,6 +15,7 @@ Structured + AI-analysis entry-signal generation. Markdown-only (no DB). Unit = 
 | GBPUSD | active | mean-reversion fade, D1-reversal+H1; same macro gate | wiki/system/gbpusd/ |
 | EURGBP | active | cross, mean-reversion fade, macro 0.5 tilt, NO VIX-veto, EU event blocks | wiki/system/eurgbp/ |
 | AUDUSD | active | mean-reversion fade, H4-centric; 🔑 DXY-jump DEAD, VIX LEVEL inverted, NO vetoes except ADX>30; RBA/AU/China events | wiki/system/audusd/ |
+| NZDUSD | active | mean-reversion fade, macro-light squeeze-led; 🔑 US2Y+DXY DEAD, VIX level weak inverted; weakest edges (≈½ AUD) → fewer zones; RBNZ/NZ events; antipodean advisory | wiki/system/nzdusd/ |
 
 Onboarding history (P1–P5 majors, EG0–EG5 cross), signal scans, sizing decisions → `decisions.md`
 (D021/D022/D023) + `wiki/research/{pair}/signal-results.md`. Sizing all pairs: USD, no quote-CCY
@@ -50,11 +51,19 @@ XAUUSD limits expired 06-09 21:00 UTC, NOT re-placed (CPI block + spot ~$200 bel
 - **EURGBP watch:** primary LONG 0.8608–0.8624 — needs D1 oversold + in-zone + bullish E0.
 - **FX netting gate (D022):** both majors ORDER LIMIT same day → keep higher EC, SKIP other.
 - **EXPANSION (D024, 2026-06-10):** all 7, sequential. ✅ W0 advisory ledger (fx_exposure rewritten,
-  selftest 12/12). ✅ **AUDUSD #1 DONE** (data 2010→/2020→, scan GO, confluence ACTIVE, wired, smoke-
-  tested — ready for first `/weekly audusd`). ⏳ NEXT: **NZDUSD #2**, then USDCAD→USDCHF→USDJPY→
-  EURJPY→GBPJPY. Rulings: USD sizing no convert (JPY pairs static TICK≈650); netting ADVISORY only.
+  selftest 12/12). ✅ **AUDUSD #1** + ✅ **NZDUSD #2 DONE** (data, scan GO [NZD marginal], confluence
+  ACTIVE, wired, smoke-tested — ready for first `/weekly`). ⏳ NEXT: **USDCAD #3** (first USD-base:
+  needs `_fx_usd_base.py` class — USD_BETA_SIGN+1, polarity flips, COT sign-flip, VP off, WTI series),
+  then USDCHF→USDJPY→EURJPY→GBPJPY. Rulings: USD sizing no convert (JPY static TICK≈650); netting
+  ADVISORY only.
 
 ## Last Session
+2026-06-10 (expansion, NZDUSD #2): config (carry off, COT 6N verified, VP 6N=F), backfill D1 4288/
+H4 9789/H1 39227, scans → **GO marginal** (edges ≈½ AUD; 🔑 US2Y dead t=−0.7, DXY dead, VIX level
+weak inverted t≈2.2–2.4; squeeze = strongest signal H4 TTM t=3.25; big-figure LONG-only t=2.77).
+Profile + confluence ACTIVE (squeeze Z3 2.0; no macro gates), wired weekly/validate/constitution
+(AUD column → AUD/NZD merged + antipodean advisory callout). Smoke: pull W24 ✅ COT 6N ✅ (spec net
+−28.3k = crowded short context) check_v1b ✅. Ready for first `/weekly nzdusd`.
 2026-06-10 (expansion build): compacted _HOT (120-line rule → CLAUDE.md). **W0**: fx_exposure.py →
 advisory per-currency ledger, 10 FX instruments (D024; selftest PASS); constitution + validate.md +
 currency_exposure.md amended. **AUDUSD onboarded end-to-end**: config (carry off — no daily RBA

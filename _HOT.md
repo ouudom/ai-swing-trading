@@ -97,28 +97,46 @@ Adding EURGBP as tradable (plan in `wiki/system/core/currency_exposure.md` "Arch
 None
 
 ## Active Forecast
-[2026-W24](forecasts/weekly/xauusd/2026-W24.md) — **BEARISH / MEDIUM-HIGH, conviction HIGH.** Sell bounces into resistance; price $4330 in strong downtrend. (file renamed W23→W24: named by trade week now)
+[2026-W24](forecasts/weekly/xauusd/2026-W24.md) — **BEARISH / MEDIUM-HIGH, conviction HIGH.** Sell bounces into resistance; price ~$4185 in strong downtrend (ADX 48), now ~$180 below primary short zone — zones far OTM, re-anchor likely Sunday.
 
-### LIVE ORDER LIMITS (refreshed 2026-06-09 13:47 UTC scheduled NY-session `/validate all`, expire 21:00 UTC — re-validate each morning)
-- **PRIMARY SHORT** [9.5/10] — box **$4367–$4390**. **SELL LIMIT $4415.66 | 0.43 lots | SL $4462.11** | TP1 2.5R $4299.53 (manual) / TP2 3.0R $4276.31 (limit) / BE@1.5R $4345.98. Entry Confluence 6.0 (no E0, midpoint anchor). Invalidate: D1 close > $4390.
-- **SECONDARY SHORT** [9.5/10] — box **$4450–$4485**. **SELL LIMIT $4504.66 | 0.43 lots | SL $4551.11** | TP1 2.5R $4388.53 (manual) / TP2 3.0R $4365.31 (limit) / BE@1.5R $4434.98. Entry Confluence 6.0 (no E0, midpoint anchor). Invalidate: D1 close > $4485.
-- COUNTER — NONE (macro MEDIUM-HIGH + no RSI divergence).
-- ⚠️ Both resting limits well above spot ($4332, oversold bounce) — fill only on a strong bounce. H4 ATR firmed to $42.48 so SL widened $46.05→$46.45, lots 0.43. VIX refreshed 18.92 (06-08, no longer stale). **CPI Wed 06-10 = cancel any unfilled limit within 2h of London/NY open.**
+### LIVE ORDER LIMITS — NONE (2026-06-10 02:14 UTC `/validate all`, CPI day = V3 HARD BLOCK)
+- **No live XAUUSD limits.** Yesterday's two SELL limits expired 06-09 21:00 UTC and were **NOT re-placed** — V3 CPI hard block (May CPI 12:30 UTC, within 2h NY open) + gold sold off to ~$4185, now ~$180 below the primary short zone.
+- **PRIMARY SHORT** [9.5/10] box **$4367–$4390** — PENDING (not invalidated; far OTM). Invalidate: D1 close > $4390.
+- **SECONDARY SHORT** [9.5/10] box **$4450–$4485** — PENDING. Invalidate: D1 close > $4485.
+- COUNTER — NONE.
+- ⚠️ Gold trending hard down (D1 close $4217.73, ADX 48, RSI D1 24.6). Zones increasingly far out-of-money → likely re-anchor at Sunday `/weekly` if no retrace. T5 DFII10 drift now +0.10% (baseline 2.11 → 2.21; another +0.05% forces a re-forecast).
 
 ## Week Status
 - Week: 2026-W24
-- Trades taken: 0 (2 XAUUSD limits placed, unfilled; 0 FX orders)
-- Risk allocated: $3,995 (2 × $1,997.35 unfilled XAUUSD limits)
+- Trades taken: 0 (no live orders — all canceled/expired on CPI day)
+- Risk allocated: $0 (XAUUSD limits expired 06-09 21:00 UTC, not re-placed; 0 FX orders)
 - weekly_reforecast_count: 0
 
 ## Pending Actions
-- **`/validate` daily 07:30 UTC** — re-validate/refresh both live limits each morning (expire 21:00 UTC, never carry forward).
-- **CPI Wed 2026-06-10 = HARD BLOCK (V3)** — cancel any live limit within 2h of London/NY open. PPI Thu, UMich Fri = caution.
-- Watch CPI cool-print squeeze risk (%B below lower band = bounce risk) — sell the bounce, don't chase.
-- **Watch T5 macro drift:** DFII10 now 2.19 vs baseline 2.11 = +0.08% (WITH bias). Another ~+0.07% (>0.15% total) forces a re-forecast even though bias-supporting.
+- **`/validate` daily 07:30 UTC** — re-validate each morning. No limits currently live.
+- **CPI TODAY 2026-06-10 12:30 UTC = ACTIVE V3 HARD BLOCK** — all US-event instruments NO TRADE through the CPI window. PPI Thu, UMich Fri = caution. Re-validate post-CPI for fresh setups.
+- Watch CPI cool-print squeeze risk (oversold across TFs = bounce risk) — sell the bounce, don't chase.
+- **Watch T5 macro drift:** DFII10 now **2.21** vs baseline 2.11 = **+0.10%** (WITH bias). Another ~+0.05% (>0.15% total) forces a re-forecast even though bias-supporting.
+- **EURGBP WATCH:** primary LONG (0.8608–0.8624) developing — H4 RSI 15.6 oversold, price ~3 pips above support. Needs D1 oversold + price in-zone + bullish E0 to trigger.
 - **FX netting gate (D022):** when EURUSD AND GBPUSD both reach ✅ ORDER LIMIT same day → apply leg netting, keep higher-EC zone at $2000, SKIP the other. Currently both SHORT = 2× USD if unnetted.
 
 ## Last Session
+2026-06-10 (02:14 UTC, pre-London `/validate all` — XAUUSD + EURUSD + GBPUSD + EURGBP). Data pulled
+02:14 UTC. **CPI DAY (US May CPI 12:30 UTC, confirmed via BLS) = V3 HARD BLOCK** for all three US-event
+instruments. **ALL ZONES ACROSS ALL 4 INSTRUMENTS = ❌ NO TRADE; all held PENDING (none invalidated).**
+- **XAUUSD** spot $4184.62 — gold sold off ~$148 overnight, now ~$180 below primary short zone; D1 close
+  $4217.73, ADX 48, RSI D1 24.6 (deeply oversold, strong downtrend). EC 6.0 but V3 overrides. Yesterday's
+  2 SELL limits expired 21:00 UTC, NOT re-placed (CPI). No re-forecast (T3 move is WITH bias not counter;
+  T5 drift +0.10% <0.15; **precondition 3 FAILS — CPI <12h**, so re-forecast blocked regardless).
+- **EURUSD** spot 1.15400 below both short zones; RSI not OB, ADX D1 39.6 trending → EC 2.0. NO TRADE + V3.
+- **GBPUSD** spot 1.33766 (inside secondary zone 1.3370–1.3390) but yesterday's OB bounce FADED (H1 RSI
+  87→35) → EC dropped 4.5→3.0. NO TRADE + V3.
+- **EURGBP** spot 0.86273 — **closest setup**: ~3 pips above LONG support zone with H4 RSI 15.6 deeply
+  oversold, but D1 osc (mandatory) not extreme + not in-zone + no E0 → EC 4.5. NO TRADE. US CPI = caution
+  only for cross (no hard block); no VIX veto; no UK/EZ event today. **WATCH** for D1 oversold + price into
+  0.8608–0.8624 + bullish E0.
+- All hard blocks else pass (V1/V1b intact all 4; VIX 18.92 falling/stale; DXY 1d −0.053; DGS2 −0.02 drift).
+  No FX orders → netting gate not engaged. Wrote all 4 daily files. **Re-validate post-CPI / tomorrow AM.**
 2026-06-09 (13:47 UTC, scheduled NY-session `/validate all` — XAUUSD + EURUSD + GBPUSD + EURGBP) — Data
 pulled 06-09 13:41 UTC. **XAUUSD** spot $4332.21 (oversold bounce, RSI D1 26.3, ADX 43.1), well below both
 SHORT zones. All hard blocks pass (V1/V1b intact — last D1 close $4316.93; V3 CPI is Wed; VIX 18.92 FRESH 06-08

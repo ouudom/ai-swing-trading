@@ -84,6 +84,14 @@ held PENDING (structure intact, NONE invalidated). No re-forecast triggered (T1�
   (eurjpy squeeze long 183–184; gbpjpy washout 211–213; usdjpy dip 158–159 if calm holds).
 
 ## Last Session
+2026-06-11 PM (**shadow ledger + bad-tick guard shipped**): (1) `scripts/zone_ledger.py` — every
+published zone registered to `data/zone_ledger.csv` (now MANDATORY step 1 of /weekly post-forecast);
+`scripts/zone_outcomes.py` replays OHLC → would-be R outcomes + confluence calibration
+(`data/zone_outcomes.csv`). W24 seeded: 15 zones; first results — gbpusd SECONDARY would-be **LOSS −1R**
+(filled 06-09, CPI spike stopped it; live system never traded it = V3 saved −1R), 13 PENDING.
+(2) `ohlc_store.upsert()` bad-tick guard: wick-clamp/bar-drop vs rolling-median (>10% D1/>5% intraday),
+log `_quarantine.csv`. Found REAL leftover nzdusd bad tick (1.71632) still in 1h+4h CSVs — heals
+automatically on next fetch (guard runs on merged history). Docs: CLAUDE/AGENTS/_INDEX/weekly.md.
 2026-06-11 PM (**deep review + 12 fixes, operator-approved**): (1) weekly_pull risk_unit was
 `min(H4, 0.5×D1)` — CONTRADICTED constitution (always ≤ H4 → lots ~9% oversized); now constitution
 formula + 0.01-lot floor. (2) validate.md lots `int(2000//(SL×TICK))` gave 0 lots gold → floored
@@ -110,8 +118,5 @@ nzdusd (SHORT 0.5855–0.5890 6.5 + counter LONG 0.5750–0.5790 7.5), usdcad (L
 blocked in sympathy). 🔧 **nzdusd bad tick repaired**: D1 2026-04-29 high 1.71632 → 0.58853
 (provider error; ADX was falsely 79.6 → true 18.5 RANGING); pull recomputed. yield_environment
 +FX-pairs section updated. All zones PENDING — /validate gates orders.
-2026-06-10/11 (expansion D024 pairs #1–#7, COMPLETE): audusd, nzdusd, usdcad (first USD-base),
-usdchf, usdjpy (first JPY), eurjpy, gbpjpy all GO + onboarded. Per-pair character/edges →
-`wiki/research/{pair}/signal-results.md` + `decisions.md` D024.
-2026-06-10 (scheduled `/validate all`, 4 instruments): CPI day V3 HARD BLOCK — all NO TRADE,
-zones held PENDING. Detail → `forecasts/daily/*/2026-06-10.md`.
+2026-06-10/11 (expansion D024 #1–#7 COMPLETE → `decisions.md` D024) · 2026-06-10 (`/validate all`:
+CPI V3 block, all NO TRADE → `forecasts/daily/*/2026-06-10.md`).

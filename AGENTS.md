@@ -54,4 +54,6 @@ below, execute the steps from the corresponding command file:
 - `scripts/check_cb_calendar.py` + `scripts/config/cb_calendar_{year}.json` — central-bank
   decision gate (mandatory at /weekly + /validate).
 - `scripts/fx_exposure.py` — FX currency-leg netting ledger (advisory).
+- `scripts/zone_ledger.py` + `scripts/zone_outcomes.py` — shadow ledger: register every published
+  zone at /weekly, replay OHLC → would-be R outcomes (`data/zone_ledger.csv`, `data/zone_outcomes.csv`).
   API keys in `.env`.

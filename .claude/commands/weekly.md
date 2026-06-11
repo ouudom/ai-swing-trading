@@ -210,7 +210,18 @@ Save to `forecasts/weekly/<INSTRUMENT>/YYYY-WNN.md` (Claude writes markdown dire
 > zones go live: `WNN = isocalendar(next_monday).week`. (E.g. run Sun 06-07 → trades Mon 06-08 → W24.)
 
 ## Post-Forecast Updates
-1. Rewrite `wiki/system/core/macro/yield_environment.md` with this week's macro snapshot (note which instrument).
-2. Update `_HOT.md`: Active Forecast link + bias; new zones PENDING (box + direction) tagged by instrument;
+1. **Register every published zone in the shadow ledger** (one `add` per zone — feeds outcome
+   tracking / confluence calibration; `zone_outcomes.py` replays OHLC against it later):
+   ```
+   bash scripts/pyrun.sh scripts/zone_ledger.py add \
+       --instrument <inst> --week YYYY-WNN --label PRIMARY|SECONDARY|COUNTER \
+       --direction LONG|SHORT --zone-bottom X --zone-top Y --score N.N \
+       --conviction <conviction> [--invalidation-level Z] [--tp-anchor T]
+   ```
+   `--invalidation-level` = D1-close kill level if the zone states one (else resolver defaults to
+   the zone's far edge). NO ZONES published → nothing to register. Also resolve LAST week's zones
+   while here: `bash scripts/pyrun.sh scripts/zone_outcomes.py --week <prev YYYY-WNN>`.
+2. Rewrite `wiki/system/core/macro/yield_environment.md` with this week's macro snapshot (note which instrument).
+3. Update `_HOT.md`: Active Forecast link + bias; new zones PENDING (box + direction) tagged by instrument;
    week number; reset risk used + `weekly_reforecast_count` to 0 if new week; refresh Pending Actions.
-3. Update `_INDEX.md`: add the new forecast file under Forecasts.
+4. Update `_INDEX.md`: add the new forecast file under Forecasts.

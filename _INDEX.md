@@ -132,6 +132,10 @@
 ## Scripts — Risk / Portfolio
 - `scripts/fx_exposure.py` — FX currency-leg ledger, ADVISORY (D024): all 10 FX instruments / 8 currency legs; flags shared-leg concentration + suggests cleaner trade (highest EC); no caps, no auto-skip. `--selftest` / `--orders` / `--candidate`.
 
+## Scripts — Shadow Ledger (zone outcome tracking, 2026-06-11)
+- `scripts/zone_ledger.py` — registry of every published Trading Zone → `data/zone_ledger.csv` (`add` MANDATORY per zone at /weekly publish; `list` to inspect)
+- `scripts/zone_outcomes.py` — replays 1H/4H/D1 OHLC vs ledger: fill at zone midpoint from publish time, constitution SL, TP1 2.5R / BE 1.5R / SL −1R → `data/zone_outcomes.csv` + confluence-bucket calibration summary (run for prior week at each /weekly)
+
 ## Scripts — Validation
 - `scripts/check_v1b.py` — V1b intraday H4 invalidation checker (CLI zone args, no DB)
 - `scripts/check_cb_calendar.py` — central-bank decision-date gate (MANDATORY at /weekly + /validate; reads static JSON; exit 1 = calendar unverified for window)
@@ -153,10 +157,12 @@
 - `scripts/config/usdjpy/config.py` — USDJPY config (D024 pair #5; USD-base + FIRST JPY: PIP_SIZE 0.01, PRICE_DP 3, TICK 650 static, COT 6J inverted, BoJ carry off)
 - `scripts/config/eurjpy/config.py` — EURJPY config (D024 pair #6; FIRST cross-JPY: USD_BETA_SIGN 0, JPY pip plumbing, one-leg macro RATE_GBP=None, COT EUR/JPY XRATE direct)
 - `scripts/config/gbpjpy/config.py` — GBPJPY config (D024 pair #7 LAST; cross-JPY #2: one-leg macro live leg = SONIA via RATE_EUR slot + LIVE_LEG_LABEL/BASELINE_LABEL, V1b 0.05, COT disabled — no CFTC cross contract)
-- `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities
+- `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities + bad-tick guard (auto wick-clamp/bar-drop on upsert, >10% D1 / >5% intraday dev vs rolling-median close; log → `data/{source}/{symbol}/_quarantine.csv`)
 
 ## Data
 - `data/trades_log.csv` — manual trade log (plain CSV)
+- `data/zone_ledger.csv` — shadow-ledger zone registry (script-managed: `zone_ledger.py`; W24 seeded 15 zones 2026-06-11)
+- `data/zone_outcomes.csv` — would-be R outcomes per zone (script-managed: `zone_outcomes.py`)
 - `data/gld_holdings.csv` — daily GLD ETF tonnage (auto-appended by weekly_pull)
 - `data/weekly_pull/xauusd/` — IMMUTABLE weekly pull text files (also eurusd/, gbpusd/)
 - `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/, nzdusd/, usdcad/, usdchf/, usdjpy/, eurjpy/, gbpjpy/ (D1 2010→now, intraday 2020→now; usdchf/usdjpy/eurjpy/gbpjpy 15min 2024→)

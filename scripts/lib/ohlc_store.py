@@ -52,6 +52,83 @@ SOURCE_TZ = {
     "twelvedata": "UTC",
 }
 
+# ── Bad-tick guard ────────────────────────────────────────────────────────────
+# Provider errors are order-of-magnitude (e.g. nzdusd D1 high 1.71632 on a 0.588
+# pair, 2026-04-29 — falsely drove ADX 18.5 → 79.6). Real single-bar moves never
+# approach these bounds: gold's worst daily swings are ~5%, FX majors ~3%.
+BAD_TICK_MAX_DEV = {"daily": 0.10, "intraday": 0.05}
+BAD_TICK_WINDOW  = 11   # centered rolling-median window for the local reference price
+
+
+def quarantine_bad_ticks(df: pd.DataFrame, tf: str, quarantine_csv=None,
+                         dt_col: str = "datetime") -> pd.DataFrame:
+    """
+    Detect and repair provider bad ticks against a local rolling-median reference.
+
+    Reference = centered rolling median of close (window BAD_TICK_WINDOW). A bar is
+    flagged when an extreme deviates more than BAD_TICK_MAX_DEV from the reference:
+      - wick-only error (open+close sane): clamp high/low to the open/close body
+      - body error (open or close insane): drop the bar entirely
+    Every action is appended to `quarantine_csv` (deduped on tf+datetime+action)
+    and printed. Unknown TF or <5 bars: passthrough.
+    """
+    if df.empty or len(df) < 5:
+        return df
+    if tf in DAILY_TFS:
+        max_dev = BAD_TICK_MAX_DEV["daily"]
+    elif tf in INTRADAY_TFS:
+        max_dev = BAD_TICK_MAX_DEV["intraday"]
+    else:
+        return df
+
+    out = df.reset_index(drop=True).copy()
+    ref = out["close"].rolling(BAD_TICK_WINDOW, center=True, min_periods=3).median()
+    upper, lower = ref * (1 + max_dev), ref * (1 - max_dev)
+
+    hi_bad   = out["high"] > upper
+    lo_bad   = out["low"]  < lower
+    body_bad = (out["open"] > upper) | (out["open"] < lower) \
+             | (out["close"] > upper) | (out["close"] < lower)
+    wick_bad = (hi_bad | lo_bad) & ~body_bad
+
+    if not (wick_bad.any() or body_bad.any()):
+        return out
+
+    records = []
+    for i in out.index[wick_bad]:
+        o, c = out.at[i, "open"], out.at[i, "close"]
+        old_hi, old_lo = out.at[i, "high"], out.at[i, "low"]
+        out.at[i, "high"] = max(o, c)
+        out.at[i, "low"]  = min(o, c)
+        records.append({"tf": tf, "datetime": str(out.at[i, dt_col]), "action": "clamp_wick",
+                        "open": o, "high": old_hi, "low": old_lo, "close": c,
+                        "ref_close": round(float(ref.iloc[i]), 6)})
+    for i in out.index[body_bad]:
+        records.append({"tf": tf, "datetime": str(out.at[i, dt_col]), "action": "drop_bar",
+                        "open": out.at[i, "open"], "high": out.at[i, "high"],
+                        "low": out.at[i, "low"], "close": out.at[i, "close"],
+                        "ref_close": round(float(ref.iloc[i]), 6)})
+    out = out[~body_bad].reset_index(drop=True)
+
+    if quarantine_csv and records:
+        rec_df = pd.DataFrame(records)
+        rec_df["flagged_utc"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        if os.path.exists(quarantine_csv):
+            old_log = pd.read_csv(quarantine_csv, dtype=str)
+            seen = set(zip(old_log["tf"], old_log["datetime"], old_log["action"]))
+            rec_df = rec_df[~rec_df.apply(
+                lambda r: (r["tf"], r["datetime"], r["action"]) in seen, axis=1)]
+            if not rec_df.empty:
+                rec_df.to_csv(quarantine_csv, mode="a", header=False, index=False)
+        else:
+            rec_df.to_csv(quarantine_csv, index=False)
+
+    for r in records:
+        print(f"  🚨 BAD TICK [{tf} {r['datetime']}] {r['action']}: "
+              f"O={r['open']} H={r['high']} L={r['low']} C={r['close']} "
+              f"(ref close {r['ref_close']}, max dev {max_dev:.0%}) → {quarantine_csv}")
+    return out
+
 
 def to_utc(df: pd.DataFrame, source_tz: str, dt_col: str = "datetime") -> pd.DataFrame:
     """
@@ -146,6 +223,8 @@ def upsert(source: str, symbol: str, tf: str, df: pd.DataFrame) -> dict:
               .reset_index(drop=True)
     )
     merged = filter_trading_session(merged, tf)
+    merged = quarantine_bad_ticks(merged, tf,
+                                  quarantine_csv=os.path.join(p["dir"], "_quarantine.csv"))
 
     tmp = p["csv"] + ".tmp"
     merged.to_csv(tmp, index=False)

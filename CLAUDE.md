@@ -86,12 +86,20 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
 - `scripts/check_cb_calendar.py` — central-bank decision dates (static JSON, mandatory gate)
 - `scripts/check_structured_news_event.py` — T4-X validation
 - `scripts/fx_exposure.py` — FX currency-leg netting ledger (advisory)
+- `scripts/zone_ledger.py` — shadow-trade registry: every published zone → `data/zone_ledger.csv`
+  (MANDATORY at /weekly publish, one `add` per zone)
+- `scripts/zone_outcomes.py` — replays OHLC vs ledger → would-be R outcomes + confluence
+  calibration → `data/zone_outcomes.csv` (run at /weekly for prior week)
+- Bad-tick guard: `ohlc_store.upsert()` auto-quarantines provider spikes (wick-clamp or bar-drop,
+  logged to `data/{source}/{symbol}/_quarantine.csv`) — never hand-repair ticks again
 
 ## File Rules
 - `forecasts/weekly/{instrument}/` — immutable after Monday open. Claude writes markdown.
 - `forecasts/daily/{instrument}/` — append-style. Claude writes markdown.
 - `data/weekly_pull/{instrument}/` — IMMUTABLE. Never edit `weekly_pull_*.txt`.
 - `data/trades_log.csv` — plain manual trade log.
+- `data/zone_ledger.csv` / `data/zone_outcomes.csv` — shadow ledger; append via `zone_ledger.py`,
+  resolve via `zone_outcomes.py` only (no hand edits).
 - `wiki/` — update in place. One concept per page. Never create a parallel page. Cross-link `[[filename]]`.
 - After creating/updating any file: update `_INDEX.md`. End of every session: update `_HOT.md`.
 - `_HOT.md` — **hard cap 120 lines.** Current state + last session only; prune every session.

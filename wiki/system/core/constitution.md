@@ -1,6 +1,6 @@
 ---
 type: system
-updated: 2026-06-02
+updated: 2026-06-11
 confidence: high
 tags: [rules, risk, core]
 related: [xauusd_profile, confluence_criteria]
@@ -9,7 +9,7 @@ related: [xauusd_profile, confluence_criteria]
 # Trading System Constitution (v2 — Trading Zones)
 
 ## Identity
-- Instruments: **XAUUSD, EURUSD, GBPUSD** (per-instrument config + profile + confluence). XAUUSD = momentum; FX majors = mean-reversion (see D021).
+- Instruments: **10 active — XAUUSD, EURUSD, GBPUSD, EURGBP, AUDUSD, NZDUSD, USDCAD, USDCHF, USDJPY, EURJPY, GBPJPY** (per-instrument config + profile + confluence; see table below). XAUUSD = momentum; FX = mean-reversion variants (D021/D024); USDJPY = asymmetric carry-drift.
 - Style: Swing trading, discretionary, structured + AI-analysis driven
 - Hold period: 2–10 days
 - Timeframes: Weekly/Daily (bias) → Daily→H4→1H (top-down) → 1H/15M (entry confirmation)
@@ -73,7 +73,8 @@ D1_ATR14 = ATR(14) on D1 bars
 if (0.5 × D1_ATR14) < H4_ATR14 :  SL = H4_ATR14
 else                           :  SL = avg(0.5 × D1_ATR14, H4_ATR14)
 
-lots = $2000 / (SL × TICK_MULTIPLIER), round DOWN   (min 0.01)
+lots = $2000 / (SL × TICK_MULTIPLIER), floored to the 0.01-lot step (broker min 0.01) —
+       lots = max(0.01, floor(raw × 100) / 100). Never integer-floor to whole lots.
        TICK_MULTIPLIER = 100 (XAUUSD) | 100000 (FX, non-JPY) | 650 (JPY-quoted, static ≈100000/154 — D024)
        MIN_BAR_RANGE   = $1 (XAUUSD)  | per-pair pips (profile)
 ```
@@ -135,6 +136,10 @@ name it, compute R. After entry the stop is fixed except the one-time BE move at
 ## No-Trade Rules
 - No new entries 2h before any red-folder Forex Factory event.
 - NFP, FOMC, CPI, US Retail Sales are hard blocks — cancel any live limit orders.
+- Scheduled central-bank decisions (FOMC/ECB/BoE/BoJ/SNB/RBA/RBNZ/BoC) come from the static
+  calendar `scripts/config/cb_calendar_{year}.json` via `scripts/check_cb_calendar.py` —
+  MANDATORY at /weekly (10-day window) and /validate (2-day window). Web search supplements
+  the calendar, never replaces it. Rebuild the JSON every December.
 
 ## Invalidation
 - **V1** — any D1 close beyond zone extreme → cancel.

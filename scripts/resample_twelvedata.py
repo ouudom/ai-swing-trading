@@ -5,9 +5,9 @@ Input:  data/twelvedata/{symbol}/{src_tf}.csv
 Output: data/twelvedata/{symbol}/{dst_tf}.csv  (+ manifest entry)
 
 Usage:
-  .venv/bin/python scripts/resample_twelvedata.py --src 15min --dst 1h
-  .venv/bin/python scripts/resample_twelvedata.py --src 15min --dst 4h
-  .venv/bin/python scripts/resample_twelvedata.py --src 1h    --dst 1day
+  bash scripts/pyrun.sh scripts/resample_twelvedata.py --src 15min --dst 1h
+  bash scripts/pyrun.sh scripts/resample_twelvedata.py --src 15min --dst 4h
+  bash scripts/pyrun.sh scripts/resample_twelvedata.py --src 1h    --dst 1day
 """
 import os
 import sys

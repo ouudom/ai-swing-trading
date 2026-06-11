@@ -9,8 +9,8 @@ Zone is passed on the CLI by /validate (read from _HOT.md active zones).
 Run at each H4 boundary (00/04/08/12/16/20 UTC) — manually or via cron.
 
 Usage:
-    .venv/bin/python scripts/check_v1b.py --direction SHORT --zone-top 3400 --zone-bottom 3380
-    .venv/bin/python scripts/check_v1b.py --direction LONG  --zone-top 3300 --zone-bottom 3280 --buffer 5
+    bash scripts/pyrun.sh scripts/check_v1b.py --direction SHORT --zone-top 3400 --zone-bottom 3380
+    bash scripts/pyrun.sh scripts/check_v1b.py --direction LONG  --zone-top 3300 --zone-bottom 3280 --buffer 5
 
 Exit codes: 0 intact / 2 breach.
 """

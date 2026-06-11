@@ -49,10 +49,21 @@ H4/D1 ATR14 + 20d median + compression, swing H/L, Fib, weekly pivots, Volume Pr
 block (xauusd: DFII10/DGS10/T5YIE; FX: US2Y/DGS10/Fed-funds/foreign-policy + policy diff), DXY,
 COT net + 1w chg, (xauusd only) GLD tonnes, weekend gap %, VIX, ADX(14) D1.
 
+### Step 1b — Central-bank calendar (MANDATORY — mechanical, never skip)
+```bash
+bash scripts/pyrun.sh scripts/check_cb_calendar.py --days 10   # static calendar, all 8 banks
+```
+List in the forecast's no-trade calendar EVERY decision the checker reports for this instrument
+(hard block or caution) inside the trade week + 2 days. The checker is authoritative for the 8
+scheduled banks (FOMC/ECB/BoE/BoJ/SNB/RBA/RBNZ/BoC) — web search supplements, never replaces it
+(W24 published EUR zones into an unflagged ECB day; this step is the fix). Exit 1 = calendar not
+verified far enough — update `scripts/config/cb_calendar_{year}.json` before publishing zones.
+
 ### Web Search (supplementary)
 - Central-bank speaker comments this week (Fed; + ECB for eurusd / BoE for gbpusd)
 - Macro / geopolitical news affecting the instrument
-- Scheduled high-impact events next week (FOMC/NFP/CPI/Retail; + ECB/BoE decisions for FX) — UTC
+- Scheduled high-impact DATA events next week (NFP/CPI/Retail/GDP; AU/NZ/CA/UK/EZ/JP tier-1) — UTC.
+  Decision DATES come from Step 1b; search adds data releases + unscheduled risk.
 
 ## Step 2 — Read Data
 Read the full `weekly_pull_{YEAR}_W{WW}.txt` before analysis.

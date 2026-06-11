@@ -6,8 +6,8 @@ file without burning Twelve Data credits. Will make minor auxiliary network call
 Volume Profile (yfinance), COT (CFTC), ETF flows — all free, no API key required.
 
 Usage:
-    .venv/bin/python scripts/compute.py                        # xauusd (default)
-    .venv/bin/python scripts/compute.py --instrument xauusd    # explicit instrument
+    bash scripts/pyrun.sh scripts/compute.py                        # xauusd (default)
+    bash scripts/pyrun.sh scripts/compute.py --instrument xauusd    # explicit instrument
 
 Reads:
     data/twelvedata/{instrument}/{15min,1h,4h,1day}.csv

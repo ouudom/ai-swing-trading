@@ -102,7 +102,7 @@ def atr(df, p=14):
     tr = pd.concat([(df.high-df.low),(df.high-df.close.shift()).abs(),(df.low-df.close.shift()).abs()],axis=1).max(axis=1)
     return tr.rolling(p).mean()
 def drop_open_bar(df, hrs):
-    now = pd.Timestamp.utcnow().tz_localize(None); last = pd.Timestamp(df["datetime"].iloc[-1])
+    now = pd.Timestamp.now(tz="UTC").tz_localize(None); last = pd.Timestamp(df["datetime"].iloc[-1])
     return df.iloc[:-1] if now < last + pd.Timedelta(hours=hrs) else df
 
 h4_trading = h4[(h4.high - h4.low) >= MIN_BAR_RANGE].copy().reset_index(drop=True)   # trading-day filter
@@ -115,6 +115,14 @@ print(spot, h4_atr, d1_atr, d1_median, compressed, macro_now, macro_slope, dxy_j
 ```
 
 ## Step 3 — News + Mid-Week Re-Forecast Check
+**Step 3.0 (MANDATORY, before any web query):** run the static central-bank calendar —
+```bash
+bash scripts/pyrun.sh scripts/check_cb_calendar.py --date [DATE] --days 2
+```
+Any reported decision today/tomorrow for this instrument's HARD BLOCK list = V3 candidate
+regardless of what web search finds. Exit 1 = calendar unverified for the window — treat as
+unknown event risk, do not place orders until `scripts/config/cb_calendar_{year}.json` is updated.
+
 **Query A (V3 hard block):** economic calendar [DATE]. xauusd + USD pairs share US events (NFP/FOMC/
 CPI/Retail). Pairs also: ECB rate decision (eurusd), BoE rate decision (gbpusd), RBA decision +
 AU CPI/employment (audusd), RBNZ OCR + NZ CPI/jobs (nzdusd; GDT dairy = caution), BoC decision +
@@ -259,7 +267,9 @@ entry_confluence < 5.0               → ❌ NO TRADE
 ```python
 d1_floor = 0.5 * d1_atr
 SL = h4_atr if d1_floor < h4_atr else round((d1_floor + h4_atr) / 2, DP)
-lots = int((2000) // (SL * TICK_MULTIPLIER))   # round down — gold ×100, FX ×100000
+# Floor to 0.01-lot step (broker min/step = 0.01). NEVER integer-floor: int(2000 // (SL*100))
+# gives 0 lots for gold every time.
+lots = max(0.01, int(2000 / (SL * TICK_MULTIPLIER) * 100) / 100)
 # NOTE (operator decision): eurgbp uses the SAME USD formula as the majors — NO GBP→USD pip
 # conversion. Risk targeted in USD; broker assumed to settle EURGBP pip value in USD. (EURGBP is
 # nominally GBP-quoted; if your broker settles pips in GBP this under-converts — revisit if so.)

@@ -134,10 +134,12 @@
 
 ## Scripts — Validation
 - `scripts/check_v1b.py` — V1b intraday H4 invalidation checker (CLI zone args, no DB)
+- `scripts/check_cb_calendar.py` — central-bank decision-date gate (MANDATORY at /weekly + /validate; reads static JSON; exit 1 = calendar unverified for window)
 - `scripts/check_structured_news_event.py` — T4-X structured news event check
 - `scripts/structure.py` — shared fractal pivots, MTF structure helpers
 
 ## Scripts — Config & Lib
+- `scripts/config/cb_calendar_2026.json` — static central-bank decision dates 2026 (8 banks, hard-block/caution map; RBNZ H2 + SNB Sep/Dec need verification; rebuild every December)
 - `scripts/config/_fx_base.py` — shared FX-major defaults (rate_diff macro, COT on, ETF off, TICK 100000)
 - `scripts/config/xauusd/config.py` — XAUUSD instrument config (real_yield macro)
 - `scripts/config/eurusd/config.py` — EURUSD config (DGS2 + DFF−ECBDFR, COT 6E, VP 6E=F)

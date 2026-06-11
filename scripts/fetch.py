@@ -5,9 +5,9 @@ Use when you need fresh market data. Does NOT compute indicators or write snapsh
 Honors cache policy: skip refetch if <15min old OR market closed (Fri 22:00 → Sun 22:00 UTC).
 
 Usage:
-    .venv/bin/python scripts/fetch.py                        # xauusd, honors cache
-    .venv/bin/python scripts/fetch.py --force                # always refetch full history
-    .venv/bin/python scripts/fetch.py --instrument xauusd    # explicit instrument
+    bash scripts/pyrun.sh scripts/fetch.py                        # xauusd, honors cache
+    bash scripts/pyrun.sh scripts/fetch.py --force                # always refetch full history
+    bash scripts/pyrun.sh scripts/fetch.py --instrument xauusd    # explicit instrument
 
 After running, indicators are stale. Run `scripts/compute.py` to rebuild snapshot.
 

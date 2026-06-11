@@ -4,9 +4,9 @@ Backfill full FRED series history. One file per series.
 Storage: data/fred/{series_id}.csv  +  data/fred/_manifest.json
 
 Usage:
-  .venv/bin/python scripts/backfill_fred.py                       # default series
-  .venv/bin/python scripts/backfill_fred.py --series DFII10 DGS10
-  .venv/bin/python scripts/backfill_fred.py --force               # refetch even if file exists
+  bash scripts/pyrun.sh scripts/backfill_fred.py                       # default series
+  bash scripts/pyrun.sh scripts/backfill_fred.py --series DFII10 DGS10
+  bash scripts/pyrun.sh scripts/backfill_fred.py --force               # refetch even if file exists
 """
 import os
 import sys

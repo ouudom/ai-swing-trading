@@ -19,7 +19,7 @@ Schema enforced (all fields required):
     }
 
 Usage:
-    .venv/bin/python scripts/check_structured_news_event.py --date 2026-05-27
+    bash scripts/pyrun.sh scripts/check_structured_news_event.py --date 2026-05-27
     → exit 0 + prints "T4_X=TRUE | <category> | <headline>"  if fires
     → exit 0 + prints "T4_X=FALSE"                            if no file / invalid
     → exit 2 + prints error                                   if file exists but malformed

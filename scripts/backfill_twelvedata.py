@@ -5,10 +5,10 @@ Resume-safe via manifest earliest_dt. Rate-limit safe (8 req/min).
 Storage: data/twelvedata/{symbol_no_slash}/{tf}.csv  +  _manifest.json
 
 Usage:
-  .venv/bin/python scripts/backfill_twelvedata.py --tf 15min
-  .venv/bin/python scripts/backfill_twelvedata.py --tf 15min --since 2020-01-01
-  .venv/bin/python scripts/backfill_twelvedata.py --tf 15min --forward-only
-  .venv/bin/python scripts/backfill_twelvedata.py --tf 1day --since 2005-01-01 --max-calls 5
+  bash scripts/pyrun.sh scripts/backfill_twelvedata.py --tf 15min
+  bash scripts/pyrun.sh scripts/backfill_twelvedata.py --tf 15min --since 2020-01-01
+  bash scripts/pyrun.sh scripts/backfill_twelvedata.py --tf 15min --forward-only
+  bash scripts/pyrun.sh scripts/backfill_twelvedata.py --tf 1day --since 2005-01-01 --max-calls 5
 """
 import os
 import sys

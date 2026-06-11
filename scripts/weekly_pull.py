@@ -2,9 +2,9 @@
 Multi-instrument data pipeline — orchestrator (fetch + compute + snapshot write).
 
 Usage:
-    .venv/bin/python scripts/weekly_pull.py                        # xauusd, honors cache
-    .venv/bin/python scripts/weekly_pull.py --force                # xauusd, re-fetch full
-    .venv/bin/python scripts/weekly_pull.py --instrument xauusd    # explicit instrument
+    bash scripts/pyrun.sh scripts/weekly_pull.py                        # xauusd, honors cache
+    bash scripts/pyrun.sh scripts/weekly_pull.py --force                # xauusd, re-fetch full
+    bash scripts/pyrun.sh scripts/weekly_pull.py --instrument xauusd    # explicit instrument
 
 Split entry points (preferred for granular control):
     scripts/fetch.py    — network IO only (TD 15M + FRED)            → CSVs
@@ -104,9 +104,11 @@ load_dotenv()
 TWELVE_KEY = os.getenv("TWELVE_DATA_KEY")
 FRED_KEY   = os.getenv("FRED_KEY")
 
-TODAY    = datetime.today()
-WEEK_NUM = TODAY.isocalendar()[1]
-YEAR     = TODAY.year
+# All time math in UTC. YEAR must be the ISO year (not calendar year) so the
+# weekly_pull filename stays consistent with WEEK_NUM across the Dec/Jan boundary
+# (e.g. Jan 1 can belong to ISO week 53 of the PRIOR year).
+TODAY    = datetime.now(timezone.utc)
+YEAR, WEEK_NUM, _ = TODAY.isocalendar()
 
 # Defaults — overridden by load_instrument(). These match xauusd/config.py
 # so legacy callers (compute.py, fetch.py) work without explicit load_instrument().
@@ -127,9 +129,25 @@ TF_RESAMPLE = {"1h": "1h", "4h": "4h", "1day": "1D"}
 
 # ── STEP 1: FETCH 15M + RESAMPLE ─────────────────────────────────────────────
 
+MAX_15M_OUTPUTSIZE = 5000  # TD per-call cap; ~52 calendar days of 15M bars
+
+
 def fetch_15m(force=False):
-    last      = manifest_last_dt("twelvedata", SYMBOL, "15min")
-    outputsize = 800 if (force or last is None) else 200
+    last = manifest_last_dt("twelvedata", SYMBOL, "15min")
+    if force or last is None:
+        outputsize = 800
+    else:
+        # Size the request from the actual gap since the last stored bar, so a multi-day
+        # lapse (vacation, dead sandbox) is backfilled instead of leaving a silent hole
+        # that corrupts every resampled H4/D1 bar and ATR downstream.
+        gap_secs  = (datetime.now(timezone.utc) - last.tz_localize("UTC")).total_seconds()
+        gap_bars  = int(gap_secs / 900) + 50  # +50 margin for weekend/overlap
+        if gap_bars > MAX_15M_OUTPUTSIZE:
+            raise ValueError(
+                f"15M gap since {last} exceeds one API page ({gap_bars} bars > {MAX_15M_OUTPUTSIZE}). "
+                f"Run: bash scripts/pyrun.sh scripts/backfill_twelvedata.py --tf 15min --forward-only"
+            )
+        outputsize = max(200, gap_bars)
     r = requests.get("https://api.twelvedata.com/time_series", params={
         "symbol": SYMBOL, "interval": "15min",
         "outputsize": outputsize, "timezone": "UTC", "apikey": TWELVE_KEY,
@@ -175,7 +193,7 @@ def update_fred(force=False):
     for sid in FRED_SERIES:
         csv_path  = FRED_DIR / f"{sid}.csv"
         last_date = manifest.get(sid, {}).get("last_dt")
-        obs_start = ((datetime.utcnow() - timedelta(days=90)).strftime("%Y-%m-%d")
+        obs_start = ((datetime.now(timezone.utc) - timedelta(days=90)).strftime("%Y-%m-%d")
                      if (force or not last_date) else last_date)
         try:
             r   = requests.get("https://api.stlouisfed.org/fred/series/observations",
@@ -198,7 +216,7 @@ def update_fred(force=False):
                 combined.to_csv(csv_path, index=False)
                 manifest[sid] = {"last_dt": str(combined["date"].iloc[-1]),
                                  "rows": len(combined),
-                                 "last_pull_utc": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")}
+                                 "last_pull_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
                 _save_fred_manifest(manifest)
             results.append((sid, len(new), manifest.get(sid, {}).get("last_dt", "?")))
         except Exception as e:
@@ -226,7 +244,7 @@ def _drop_open_bar(df, freq_hours: float) -> pd.DataFrame:
     Uses UTC now vs (last_bar_open + freq_hours). Safe during weekends: the last
     bar of a closed session is always a completed candle, so nothing is dropped.
     """
-    now = pd.Timestamp.utcnow().tz_localize(None)
+    now = pd.Timestamp.now(tz="UTC").tz_localize(None)
     last_ts = df.index[-1] if isinstance(df.index, pd.DatetimeIndex) else pd.Timestamp(df.index[-1])
     if now < last_ts + pd.Timedelta(hours=freq_hours):
         return df.iloc[:-1]
@@ -381,7 +399,7 @@ def fetch_cot():
                 else "GOLD - COMMODITY EXCHANGE INC.")
     try:
         COT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        year = datetime.utcnow().year
+        year = datetime.now(timezone.utc).year
         zip_path = COT_CACHE_DIR / f"deahistfo{year}.zip"
         # refetch if older than 24h or missing
         stale = (not zip_path.exists() or
@@ -427,7 +445,7 @@ def fetch_gld_flows():
         spot = float(d1["close"].iloc[-1])
         oz_per_tonne = 32150.7466
         tonnes = total_assets / (spot * oz_per_tonne)
-        today = datetime.utcnow().strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
         # Append to history CSV (idempotent — keep latest per date)
         GLD_HOLD_CSV.parent.mkdir(parents=True, exist_ok=True)
@@ -561,8 +579,12 @@ def _compute_and_write(out_path):
 
     # External fetches — conditional on instrument config
     vp_ticker = cfg.VP_TICKER if cfg else "GC=F"
-    print(f"  → Volume Profile (yfinance {vp_ticker})...")
-    vp  = volume_profile(ticker=vp_ticker)
+    if vp_ticker:
+        print(f"  → Volume Profile (yfinance {vp_ticker})...")
+        vp = volume_profile(ticker=vp_ticker)
+    else:
+        # USD-base pairs: futures chart is the pair upside-down — VP levels unusable.
+        vp = {"disabled": f"VP disabled for {SYM_CLEAN} (no usable futures proxy)"}
 
     if cfg is None or cfg.COT_ENABLED:
         print("  → COT (CFTC)...")
@@ -593,19 +615,21 @@ def _compute_and_write(out_path):
     atr_d_med  = round(float(d1_atr_s.iloc[-20:].median()), PRICE_DP)
     compressed = atr_d_now < atr_d_med
 
-    adx_val   = calc_adx(gold_d)
-    ema50     = calc_ema(gold_d["close"], 50)
-    ema200    = calc_ema(gold_d["close"], 200)
-    rsi_vals  = calc_rsi_series(gold_d)
-    macd_rows = calc_macd(gold_d)
-    boll      = calc_bollinger(gold_d)
+    # All indicators on CLOSED bars only (same policy as ATR) — a forming bar would
+    # make RSI/ADX/MACD drift intraday and two same-day runs disagree.
+    adx_val   = calc_adx(gold_d_closed)
+    ema50     = calc_ema(gold_d_closed["close"], 50)
+    ema200    = calc_ema(gold_d_closed["close"], 200)
+    rsi_vals  = calc_rsi_series(gold_d_closed)
+    macd_rows = calc_macd(gold_d_closed)
+    boll      = calc_bollinger(gold_d_closed)
     gap       = weekend_gap(gold_h4_full, gold_h4)
-    pvt       = calc_pivots(gold_d)
-    sh, sl    = swing_points(gold_d)
-    sh_h4, sl_h4 = swing_points(gold_h4)
+    pvt       = calc_pivots(gold_d_closed)
+    sh, sl    = swing_points(gold_d_closed)
+    sh_h4, sl_h4 = swing_points(gold_h4_closed)
 
-    rec_hi = sh[-1][1] if sh else float(gold_d["high"].tail(30).max())
-    rec_lo = sl[-1][1] if sl else float(gold_d["low"].tail(30).min())
+    rec_hi = sh[-1][1] if sh else float(gold_d_closed["high"].tail(30).max())
+    rec_lo = sl[-1][1] if sl else float(gold_d_closed["low"].tail(30).min())
     fibs   = fib_levels(rec_lo, rec_hi)
 
     # FRED derived — shared risk series
@@ -614,10 +638,12 @@ def _compute_and_write(out_path):
     gc = float(gold_d["close"].iloc[-1]); gp = float(gold_d["close"].iloc[-6])
     dc = float(dxy["value"].iloc[-1]);    dp = float(dxy["value"].iloc[-6])
 
-    # risk_unit precision now driven by PRICE_DP (gold 2dp / FX 5dp)
-    risk_unit = round(min(atr_h4, 0.5*atr_d), PRICE_DP)
-    lots_raw  = round(2000 / (risk_unit * TICK_MULTIPLIER), 3) if risk_unit > 0 else 0.0
-    lots_fl   = int(lots_raw*100) / 100
+    # SL per constitution v2: H4 ATR is the FLOOR; half-D1 only lifts it (never shrinks).
+    #   if 0.5×D1 < H4 → SL = H4   else → SL = avg(0.5×D1, H4)
+    d1_floor = 0.5 * atr_d
+    sl_v2 = atr_h4 if d1_floor < atr_h4 else round((d1_floor + atr_h4) / 2, PRICE_DP)
+    lots_raw = round(2000 / (sl_v2 * TICK_MULTIPLIER), 3) if sl_v2 > 0 else 0.0
+    lots_fl  = max(0.01, int(lots_raw * 100) / 100)  # floor to 0.01-lot step, broker min 0.01
 
     adx_regime = ("TRENDING (favor continuation/trend setups; floor 6.0)"      if adx_val > 25  else
                   "TRANSITIONAL (chop risk → /validate floor raised to 6.5)"   if adx_val >= 20 else
@@ -656,7 +682,10 @@ def _compute_and_write(out_path):
             fp  = load_fred_local(cfg.RATE_FOREIGN)   # foreign policy rate (ECBDFR / SONIA)
             fpr = float(fp["value"].iloc[-1])
             pol_diff = ffr - fpr
-            pol_diff_prev = float(ff["value"].iloc[-6]) - float(fp["value"].iloc[-6])
+            # Join on date — DFF is a 7-day series, foreign policy rates are business-day;
+            # raw iloc[-6] on each would compare different calendar dates.
+            joined = ff.join(fp, how="inner", lsuffix="_us", rsuffix="_f").dropna()
+            pol_diff_prev = float(joined["value_us"].iloc[-6]) - float(joined["value_f"].iloc[-6])
             pol_dd   = pol_diff - pol_diff_prev
             wide_lbl = (f'WIDENING (USD carry up, bullish {display})' if usd_base
                         else f'WIDENING (USD carry up, bearish {display})')
@@ -765,7 +794,8 @@ def _compute_and_write(out_path):
         gap_block = "━━━ WEEKEND GLOBEX GAP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nNo Sunday reopen bar found"
 
     vp_block = (f"VAH: ${vp['VAH']}\nPOC: ${vp['POC']}  ← highest volume node\nVAL: ${vp['VAL']}"
-                if "error" not in vp else f"VP fetch failed: {vp['error']}")
+                if not (vp.get("error") or vp.get("disabled"))
+                else vp.get("disabled") or f"VP fetch failed: {vp['error']}")
 
     out = f"""
 ╔══════════════════════════════════════════════════════╗
@@ -782,12 +812,12 @@ def _compute_and_write(out_path):
 ━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ATR(14) Daily:    ${atr_d}
 ATR(14) H4:       ${atr_h4}  (trading days only)
-risk_unit:        ${risk_unit} = min(H4 ATR ${atr_h4}, 0.5× Daily ATR ${round(0.5*atr_d,PRICE_DP)})
+SL (constitution v2): ${round(sl_v2, PRICE_DP)} = {"H4 ATR (floor — 0.5×D1 " + str(round(d1_floor, PRICE_DP)) + " < H4)" if d1_floor < atr_h4 else "avg(0.5×D1 " + str(round(d1_floor, PRICE_DP)) + ", H4 " + str(atr_h4) + ")"}
 D1 ATR now:       ${atr_d_now} | 20d median: ${atr_d_med} → {"COMPRESSED ✅" if compressed else "EXPANDING ⚠"}
 
-Lot sizing ($2000 risk):
+Lot sizing ($2000 risk, SL above):
   Raw lots:  {lots_raw}
-  Use lots:  {lots_fl}  (rounded DOWN)
+  Use lots:  {lots_fl}  (floored to 0.01-lot step, min 0.01)
 
 ADX(14) D1:       {adx_val} → {adx_regime}
 EMA 50 D1:        ${ema50} | Price {"ABOVE" if gc > ema50 else "BELOW"}
@@ -804,7 +834,7 @@ MACD(12,26,9) D1 — last 5 bars:
   Histogram {"POSITIVE (bullish momentum)" if macd_rows[-1][3] > 0 else "NEGATIVE (bearish momentum)"}
   Cross: {"MACD above signal (bullish)" if macd_rows[-1][1] > macd_rows[-1][2] else "MACD below signal (bearish)"}
 
-━━━ VOLUME PROFILE ({_instrument_cfg.VP_TICKER if _instrument_cfg else 'GC=F'}, 3mo daily) ━━━━━━━━━━━━
+━━━ VOLUME PROFILE ({vp_ticker or 'disabled'}, 3mo daily) ━━━━━━━━━━━━
 {vp_block}
 VP check: zone within ~8 units of POC/VAH/VAL = confluent
 
@@ -847,7 +877,7 @@ Swing: ${fibs['swing_low']} → ${fibs['swing_high']}
 ━━━ H4 OHLCV — last 24 bars (trading days) ━━━━━━━━━━━
 {gold_h4[['open','high','low','close']].tail(24).round(PRICE_DP).to_string()}
 
-Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}
+Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')} UTC ({datetime.now().astimezone().strftime('%H:%M %Z')} local)
 """
     PULL_DIR.mkdir(parents=True, exist_ok=True)
     out_path.write_text(out)

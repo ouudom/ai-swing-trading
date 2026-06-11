@@ -21,8 +21,8 @@ fi
 
 # 2) Fallback: system python3 + persistent .pydeps (rebuild with: scripts/pyrun.sh --setup)
 if [ "${1:-}" = "--setup" ]; then
-  echo "[pyrun] installing pipeline deps into $ROOT/.pydeps ..."
-  python3 -m pip install --target="$ROOT/.pydeps" yfinance python-dotenv requests pandas numpy
+  echo "[pyrun] installing pipeline deps into $ROOT/.pydeps (from requirements.txt) ..."
+  python3 -m pip install --target="$ROOT/.pydeps" -r "$ROOT/requirements.txt"
   echo "[pyrun] done."
   exit 0
 fi

@@ -46,3 +46,7 @@ MARKET_REOPEN_HOUR_UTC = 22
 # ── Correlation guard: pair rises when USD falls → inverse → -1 (same polarity as gold).
 #    usd_position(trade) = trade_dir(+1 long / -1 short) × USD_BETA_SIGN. ──
 USD_BETA_SIGN = -1
+
+# ── Pip size: smallest quoted increment block (1 pip). 0.0001 for standard pairs;
+#    JPY-quoted pairs override to 0.01. Drives big-figure math (100 pips = 1 figure). ──
+PIP_SIZE = 0.0001

@@ -34,6 +34,22 @@
 - `wiki/system/nzdusd/nzdusd_profile.md` — NZD profile: macro-light squeeze-led fade, weakest edges, NO VIX/DXY/US2Y gates, RBNZ/NZ/GDT events, V1b 4pip
 - `wiki/system/nzdusd/confluence_criteria.md` — NZDUSD R1/R2 ACTIVE: squeeze 2.0 + H4 fade; antipodean advisory vs AUD
 
+## System — USDCAD (ACTIVE — D024 pair #3, FIRST USD-base, no zones yet)
+- `wiki/system/usdcad/usdcad_profile.md` — USD-base profile: polarity flips (US2Y/VIX/COT), oil tilt, ~28% under-sized CAD pip accepted, BoC/CAD events, V1b 5pip
+- `wiki/system/usdcad/confluence_criteria.md` — USDCAD R1/R2 ACTIVE: H4 band/oscillator fade + VIX fade-USD regime; H1 long-side rich
+
+## System — USDCHF (ACTIVE — D024 pair #4, USD-base, no zones yet)
+- `wiki/system/usdchf/usdchf_profile.md` — USD-base profile: DXY-slope macro, VIX washout, SNB intervention regime + quarterly block, ~25% over-sized CHF pip accepted, V1b 4pip
+- `wiki/system/usdchf/confluence_criteria.md` — USDCHF R1/R2 ACTIVE: H1-centric fade (short cluster t 4.5–5.5) + DXY 20d slope 2.0; H4 thin; SNB short-cap 0.78–0.80
+
+## System — USDJPY (ACTIVE — D024 pair #5, USD-base, FIRST JPY pair, no zones yet)
+- `wiki/system/usdjpy/usdjpy_profile.md` — JPY plumbing (pip 0.01, 3dp, TICK 650 static), DXY-slope macro, VIX washout, US2Y dead, NY-session drift, MoF/BoJ intervention regime ≥158, V1b 0.04
+- `wiki/system/usdjpy/confluence_criteria.md` — USDJPY R1/R2 ACTIVE, **direction-aware**: LONG drift-continuation (squeeze/calm/dip/NY) / SHORT D1-H4 extreme fade; NO H1-only shorts; BoJ/MoF hard block
+
+## System — EURJPY (ACTIVE — D024 pair #6, FIRST cross-JPY, no zones yet)
+- `wiki/system/eurjpy/eurjpy_profile.md` — cross-JPY: pip 0.01/3dp/TICK 650, macro NONE (first 100% price-driven pair), two-sided sessions (London fade-short / NY drift-long), MoF slams hit crosses, COT XRATE direct but thin
+- `wiki/system/eurjpy/confluence_criteria.md` — EURJPY R1/R2 ACTIVE: symmetric mean-reversion on long-drift floor — extreme engine 2.5 both sides; NO macro/VIX rows; BoJ/MoF + ECB hard blocks
+
 ## Templates
 - `wiki/system/templates/weekly_forecast.md` — skeleton for forecasts/weekly/xauusd/YYYY-WNN.md (zones)
 - `wiki/system/templates/daily_validation.md` — skeleton for forecasts/daily/xauusd/YYYY-MM-DD.md (entry confluence)
@@ -51,6 +67,12 @@
 
 ## Research — NZDUSD (D024 pair #2)
 - `wiki/research/nzdusd/signal-results.md` — NZDUSD: mean-reverting → **GO marginal** (edges ≈½ AUD); 🔑 US2Y+DXY both DEAD, VIX level weak inverted; squeeze = strongest signal (+ raw scan)
+
+## Research — USDCAD (D024 pair #3 — first USD-base)
+- `wiki/research/usdcad/signal-results.md` — USDCAD: mean-reverting → **GO**; 🔑 VIX>20→SHORT (fade-USD t≈3.9), US2Y flipped works, WTI weak tilt, DXY dead; H1 long-side machine (+ raw scan)
+- `wiki/research/usdchf/signal-results.md` — USDCHF: mean-reverting → **GO**; 🔑 DXY 20d slope LIVE (t=2.3, only pair beyond EUR/GBP), VIX WASHOUT; H1 short-fade machine (t 4.5–5.5), London LONG drift (+ raw scan)
+- `wiki/research/usdjpy/signal-results.md` — USDJPY: **GO, ASYMMETRIC** — NOT the fade template: LONG drift (D1 squeeze t=3.27, H4 calm t=4.51, NY drift t=4.71) / SHORT D1-H4 extremes only; 🔑 H1 fade = ANTI (−3.3); DXY slope live, VIX washout, US2Y dead (+ raw scan)
+- `wiki/research/eurjpy/signal-results.md` — EURJPY: **GO, symmetric mean-reversion + calm-drift** — H1 fade works (A9 t=4.21, unlike usdjpy), D1 dip-buy strong (Stoch<20 t=3.10); 🔑 macro NONE (ECB anti, VIX dead); London fade-short / NY drift-long (+ raw scan)
 
 ## Research — XAUUSD
 - `wiki/research/xauusd/_INDEX.md` — data sources, scripts, standards, pending research
@@ -108,15 +130,20 @@
 - `scripts/config/eurgbp/config.py` — EURGBP CROSS config (EG1; no USD leg, macro PLACEHOLDER pending EG2, COT off)
 - `scripts/config/audusd/config.py` — AUDUSD config (D024 pair #1; no daily RBA series → carry leg off, COT 6A, VP 6A=F)
 - `scripts/config/nzdusd/config.py` — NZDUSD config (D024 pair #2; no daily RBNZ series → carry leg off, COT 6N, VP 6N=F)
+- `scripts/config/_fx_usd_base.py` — shared USD-BASE defaults (USD_BETA_SIGN=+1, COT_INVERTED, VP off)
+- `scripts/config/usdcad/config.py` — USDCAD config (D024 pair #3; USD-base, OIL_SERIES=DCOILWTICO, COT 6C inverted)
+- `scripts/config/usdchf/config.py` — USDCHF config (D024 pair #4; USD-base, no oil leg, COT 6S inverted, SNB carry off)
+- `scripts/config/usdjpy/config.py` — USDJPY config (D024 pair #5; USD-base + FIRST JPY: PIP_SIZE 0.01, PRICE_DP 3, TICK 650 static, COT 6J inverted, BoJ carry off)
+- `scripts/config/eurjpy/config.py` — EURJPY config (D024 pair #6; FIRST cross-JPY: USD_BETA_SIGN 0, JPY pip plumbing, one-leg macro RATE_GBP=None, COT EUR/JPY XRATE direct)
 - `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities
 
 ## Data
 - `data/trades_log.csv` — manual trade log (plain CSV)
 - `data/gld_holdings.csv` — daily GLD ETF tonnage (auto-appended by weekly_pull)
 - `data/weekly_pull/xauusd/` — IMMUTABLE weekly pull text files (also eurusd/, gbpusd/)
-- `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/, nzdusd/ (D1 2010→now, intraday 2020→now)
-- `forecasts/{weekly,daily}/{eurusd,gbpusd,eurgbp,audusd,nzdusd}/` — FX forecast output dirs
-- `data/fred/` — macro series CSVs (DFII10, VIXCLS, DGS10, T5YIE, FEDFUNDS, etc.)
+- `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/, nzdusd/, usdcad/, usdchf/, usdjpy/, eurjpy/ (D1 2010→now, intraday 2020→now; usdchf/usdjpy/eurjpy 15min 2024→)
+- `forecasts/{weekly,daily}/{eurusd,gbpusd,eurgbp,audusd,nzdusd,usdcad,usdchf,usdjpy,eurjpy}/` — FX forecast output dirs
+- `data/fred/` — macro series CSVs (DFII10, VIXCLS, DGS10, T5YIE, FEDFUNDS, DCOILWTICO 1986→, etc.)
 - `data/yahoo/` — ICE DXY daily
 - `data/cftc/deahistfo{year}.zip` — COT yearly archives (24h refresh)
 - `data/news_events/` — T4-X structured event JSONs

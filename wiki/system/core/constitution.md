@@ -19,17 +19,17 @@ related: [xauusd_profile, confluence_criteria]
 The rules below are written in their **XAUUSD instantiation** (gold $-units, real-yield macro,
 momentum bias). They generalize via each instrument's profile — never hardcode gold values for FX:
 
-| Generic rule term | XAUUSD | EURUSD / GBPUSD | EURGBP (cross) | AUDUSD / NZDUSD | Source |
-|---|---|---|---|---|---|
-| Lot multiplier | ×100 | ×100000 | ×100000 (USD-sized, no GBP convert — operator) | ×100000 | `TICK_MULTIPLIER` |
-| H4-ATR flatline filter | $1 | 0.0003 (3 pips) | 0.0002 (2 pips) | 0.0003 (3 pips) | `MIN_BAR_RANGE` |
-| V1b "past zone" threshold | $5 | EUR 5 pips / GBP 6 pips | 4 pips | 4 pips | profile |
-| Macro baseline (frontmatter) | `baseline_dfii10` | `baseline_dgs2` (+ `baseline_policy_diff`) | `baseline_rate_diff` (weak) | `baseline_dgs2` (NZD: context only) | snapshot |
-| Macro direction model | real-yield (momentum) | DXY-jump→short + US2Y-slope + VIX-spike→short; carry-diff/2s10s DEAD | **thin/DEAD — price-only; macro = 0.5 tilt** | **VIX LEVEL (inverted)** + US2Y-slope (AUD only — dead for NZD); DXY-jump DEAD both | profile / D021 / EG2 / D024 |
-| VIX veto direction | block SHORTs (safe-haven) | block **LONGs** (risk-off USD bid) | **NONE** (risk-off → EURGBP UP, inverted) | **NONE** (VIX level scores, inverted) | profile / EG2 / D024 |
-| Hard-block events | US tier-1 | US tier-1 (shared) | **ECB + BoE + UK/EZ data** (US = caution only) | US tier-1 + **RBA/AU CPI/jobs** (AUD) / **RBNZ/NZ CPI/jobs** (NZD); China = caution | profile |
-| Re-forecast T1/T5 series | DFII10 | US2Y (DGS2) | EUR−GBP rate diff (weak); leans on T3 price | US2Y (DGS2) (NZD: drift context; leans on T3 price) | profile |
-| Confluence philosophy | pro-trend / macro-gated | **fade extremes; never trend-follow** | **fade extremes; macro-light** | **fade extremes; AUD H4-centric / NZD squeeze-led macro-light** | per-pair confluence_criteria |
+| Generic rule term | XAUUSD | EURUSD / GBPUSD | EURGBP (cross) | AUDUSD / NZDUSD | USDCAD / USDCHF (USD-base) | USDJPY (USD-base, JPY-quoted) | EURJPY (cross, JPY-quoted) | Source |
+|---|---|---|---|---|---|---|---|---|
+| Lot multiplier | ×100 | ×100000 | ×100000 (USD-sized, no GBP convert — operator) | ×100000 | ×100000 (CAD pip ~28% under / CHF pip ~25% over; accepted) | **×650 STATIC** (≈100000/154; ±10% spot drift accepted) | **×650 STATIC** (pip value tracks USDJPY, not EURJPY) | `TICK_MULTIPLIER` |
+| H4-ATR flatline filter | $1 | 0.0003 (3 pips) | 0.0002 (2 pips) | 0.0003 (3 pips) | 0.0003 (3 pips) | 0.03 (3 JPY pips; pip=0.01, 3dp) | 0.03 (pip=0.01, 3dp) | `MIN_BAR_RANGE` |
+| V1b "past zone" threshold | $5 | EUR 5 pips / GBP 6 pips | 4 pips | 4 pips | CAD 5 pips / CHF 4 pips | 0.04 (4 JPY pips) | 0.04 (4 JPY pips) | profile |
+| Macro baseline (frontmatter) | `baseline_dfii10` | `baseline_dgs2` (+ `baseline_policy_diff`) | `baseline_rate_diff` (weak) | `baseline_dgs2` (NZD: context only) | `baseline_dgs2` (**polarity FLIPPED**) | `baseline_dgs2` (**DEAD** — context only) | `baseline_ecb_rate` (context only) | snapshot |
+| Macro direction model | real-yield (momentum) | DXY-jump→short + US2Y-slope + VIX-spike→short; carry-diff/2s10s DEAD | **thin/DEAD — price-only; macro = 0.5 tilt** | **VIX LEVEL (inverted)** + US2Y-slope (AUD only — dead for NZD); DXY-jump DEAD both | CAD: **VIX LEVEL fade-USD (VIX>20→short)** + US2Y-flipped + 🛢 oil tilt; DXY DEAD. CHF: **DXY 20d SLOPE** (only live DXY pair beyond EUR/GBP); VIX WASHOUT | **DXY 20d SLOPE** (live, like CHF); VIX WASHOUT; US2Y DEAD (carry = baseline drift) | **NONE — first 100% price-driven pair** (ECB leg anti, VIX dead, no USD leg) | profile / D021 / EG2 / D024 |
+| VIX veto direction | block SHORTs (safe-haven) | block **LONGs** (risk-off USD bid) | **NONE** (risk-off → EURGBP UP, inverted) | **NONE** (VIX level scores, inverted) | **NONE** (CAD: level scores — high VIX favors SHORTs. CHF: washout — no gate, no score) | **NONE** (washout — no gate, no score) | **NONE** (dead, t=0.91) | profile / EG2 / D024 |
+| Hard-block events | US tier-1 | US tier-1 (shared) | **ECB + BoE + UK/EZ data** (US = caution only) | US tier-1 + **RBA/AU CPI/jobs** (AUD) / **RBNZ/NZ CPI/jobs** (NZD); China = caution | US tier-1 + **BoC/CAD CPI/jobs** (shared 12:30 slot!); OPEC/EIA = caution (CAD) / **SNB quarterly decision + SNB communication days** (CHF) | US tier-1 + **BoJ decision + active MoF jawboning** (intervention slams 300–500 pips); JP CPI = caution | **BoJ + MoF jawboning (slams hit crosses) + ECB**; US tier-1 = caution only | profile |
+| Re-forecast T1/T5 series | DFII10 | US2Y (DGS2) | EUR−GBP rate diff (weak); leans on T3 price | US2Y (DGS2) (NZD: drift context; leans on T3 price) | US2Y (DGS2), FLIPPED read (CHF: + watch DXY slope flip) | DXY 20d slope flip (US2Y dead; leans on T3 price) | NONE — T3 counter-move 1.5% + T4 shock only | profile |
+| Confluence philosophy | pro-trend / macro-gated | **fade extremes; never trend-follow** | **fade extremes; macro-light** | **fade extremes; AUD H4-centric / NZD squeeze-led macro-light** | **fade extremes; USD-base sign discipline; CAD H1 long-rich / CHF H1 short-rich + SNB regime cap** | **ASYMMETRIC: LONG drift-continuation (squeeze/calm/dip/NY) / SHORT D1-H4 extreme fade; NO H1-only shorts; MoF cap ≥158** | **symmetric fade on long-drift floor: buy washouts / fade extension / NEVER chase; record-high longs cap MEDIUM** | per-pair confluence_criteria |
 
 > **Antipodean advisory (D024):** AUDUSD + NZDUSD same direction ≈ one bet (corr ~0.85); AUD edge
 > ≈ 2× NZD — fx_exposure flags it, default keep AUD unless NZD EC clearly higher.

@@ -1,10 +1,17 @@
 Run daily validation on PENDING Trading Zones, 07:30 UTC before London open.
 
-Arguments: `[instrument] [date]`. Instrument ∈ {xauusd, eurusd, gbpusd, eurgbp, audusd, nzdusd} (default xauusd).
-Date YYYY-MM-DD (default today). Validate one instrument per invocation.
+Arguments: `[instrument] [date]`. Instrument ∈ {xauusd, eurusd, gbpusd, eurgbp, audusd, nzdusd,
+usdcad, usdchf, usdjpy, eurjpy} (default xauusd). Date YYYY-MM-DD (default today). Validate one instrument per invocation.
 (eurgbp = CROSS: NO VIX-veto, European event blocks, macro-light. audusd: NO VIX-veto + NO DXY
 block — dead/inverted for AUD. nzdusd: macro-light — NO VIX-veto, NO DXY block, NO US2Y gate;
-weakest edges, fewer orders expected; antipodean advisory vs audusd.)
+weakest edges, fewer orders expected; antipodean advisory vs audusd. usdcad = **USD-BASE**: long
+pair = LONG USD — US2Y polarity flipped, VIX>20 favors SHORTs, COT 6C inverted, oil tilt.
+usdchf = **USD-BASE, DXY proxy**: DXY 20d slope = live macro, VIX WASHOUT (no gate/score),
+COT 6S inverted, SNB regime + quarterly decision block. usdjpy = **USD-BASE, JPY-quoted,
+ASYMMETRIC**: pip 0.01/3dp/TICK 650; LONG = drift continuation, SHORT = D1/H4 extremes only,
+H1-only shorts PROHIBITED; DXY 20d slope live, VIX washout; BoJ/MoF = hard block, longs ≥158 cap MEDIUM.
+eurjpy = **CROSS-JPY, macro NONE**: pip 0.01/3dp/TICK 650; symmetric mean-reversion — buy washouts,
+fade extension, never chase; NO VIX/DXY/rate gates; BoJ/MoF + ECB = hard blocks; record-high longs cap MEDIUM.)
 
 **The four questions /validate answers, per zone:**
 1. **Is the forecast still valid?** (V1/V1b structure intact, V3 news clear)
@@ -15,17 +22,17 @@ weakest edges, fewer orders expected; antipodean advisory vs audusd.)
 Output per zone is exactly one of: ✅ ORDER LIMIT | ❌ NO TRADE / INVALIDATED.
 
 ## Step 0 — Instrument parametrization (set ALL of these first)
-| Param | xauusd | eurusd | gbpusd | eurgbp (cross) | audusd | nzdusd |
-|---|---|---|---|---|---|---|
-| `TICK_MULTIPLIER` | 100 | 100000 | 100000 | 100000 (USD sizing, no GBP convert — operator) | 100000 | 100000 |
-| `MIN_BAR_RANGE` (H4 filter) | 1.0 | 0.0003 | 0.0003 | 0.0002 | 0.0003 | 0.0003 |
-| `PRICE_DP` | 2 | 5 | 5 | 5 | 5 | 5 |
-| `V1B_BUFFER` | 5.0 | 0.0005 | 0.0006 | 0.0004 | 0.0004 | 0.0004 |
-| Character | momentum | mean-reversion | mean-reversion | mean-reversion, macro-light | mean-reversion, H4-centric | mean-reversion, macro-light (weakest edges) |
-| Confluence R2 | xauusd | eurusd | gbpusd | eurgbp | audusd | nzdusd |
-| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` | `baseline_rate_diff` (weak) | `baseline_dgs2` | `baseline_dgs2` (context only) |
-| VIX veto blocks | SHORTs | LONGs | LONGs | **NONE** (risk-off→EURGBP up) | **NONE** (VIX level scores, inverted) | **NONE** (weak inverted tilt) |
-| DXY-jump block | — | AGAINST zone | AGAINST zone | NONE (no USD leg) | **NONE** (dead, t=−0.85) | **NONE** (dead, t=0.24) |
+| Param | xauusd | eurusd | gbpusd | eurgbp (cross) | audusd | nzdusd | usdcad (USD-base) | usdchf (USD-base) | usdjpy (USD-base, JPY) | eurjpy (cross, JPY) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `TICK_MULTIPLIER` | 100 | 100000 | 100000 | 100000 (USD sizing, no GBP convert — operator) | 100000 | 100000 | 100000 (~28% under, CAD pip — accepted) | 100000 (~25% over, CHF pip — accepted) | **650 STATIC** (≈100000/154; ±10% drift accepted) | **650 STATIC** (JPY-quoted — pip value tracks USDJPY) |
+| `MIN_BAR_RANGE` (H4 filter) | 1.0 | 0.0003 | 0.0003 | 0.0002 | 0.0003 | 0.0003 | 0.0003 | 0.0003 | 0.03 | 0.03 |
+| `PRICE_DP` | 2 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | **3** (pip 0.01) | **3** (pip 0.01) |
+| `V1B_BUFFER` | 5.0 | 0.0005 | 0.0006 | 0.0004 | 0.0004 | 0.0004 | 0.0005 | 0.0004 | **0.04** (4 JPY pips) | **0.04** (4 JPY pips) |
+| Character | momentum | mean-reversion | mean-reversion | mean-reversion, macro-light | mean-reversion, H4-centric | mean-reversion, macro-light (weakest edges) | mean-reversion, USD-base | mean-reversion, USD-base, H1-centric | **asymmetric carry-drift** (LONG drift / SHORT extreme-fade) | **symmetric mean-reversion + calm-drift**, macro NONE |
+| Confluence R2 | xauusd | eurusd | gbpusd | eurgbp | audusd | nzdusd | usdcad | usdchf | usdjpy (direction-aware) | eurjpy |
+| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` | `baseline_rate_diff` (weak) | `baseline_dgs2` | `baseline_dgs2` (context only) | `baseline_dgs2` (POLARITY FLIPPED) | `baseline_dgs2` (FLIPPED, weak; DXY slope = macro) | `baseline_dgs2` (DEAD; DXY slope = macro) | `baseline_ecb_rate` (context only — macro dead) |
+| VIX veto blocks | SHORTs | LONGs | LONGs | **NONE** (risk-off→EURGBP up) | **NONE** (VIX level scores, inverted) | **NONE** (weak inverted tilt) | **NONE** (VIX>20 → SHORT bias scores) | **NONE** (washout — no gate, no score) | **NONE** (washout — no gate, no score) | **NONE** (dead, t=0.91 — no gate, no score) |
+| DXY-jump block | — | AGAINST zone | AGAINST zone | NONE (no USD leg) | **NONE** (dead, t=−0.85) | **NONE** (dead, t=0.24) | **NONE** (dead) | **NONE** (jump anti; 20d SLOPE scores in E2) | **NONE** (jump anti; 20d SLOPE scores in E2) | NONE (no USD leg) |
 
 Read the instrument's `wiki/system/{instrument}/confluence_criteria.md` (R2) and
 `wiki/system/{instrument}/{instrument}_profile.md` before scoring. FX uses a DIFFERENT R2 than
@@ -67,13 +74,18 @@ elif INSTRUMENT == "eurgbp":
     macro_now  = round(float(eu.value.iloc[-1]) - float(gb.value.iloc[-1]), 3)          # EUR−GBP diff now
     macro_prev = round(float(eu.value.iloc[-2]) - float(gb.value.iloc[-2]), 3)
     macro_slope= round(macro_now - (float(eu.value.iloc[-20]) - float(gb.value.iloc[-20])), 3)  # 20d diff change
+elif INSTRUMENT == "eurjpy":
+    # CROSS-JPY: macro fully DEAD (ECB leg anti, no daily BoJ series). ECBDFR = context only.
+    eu = pd.read_csv("data/fred/ECBDFR.csv").dropna()
+    macro_now = round(float(eu.value.iloc[-1]),3); macro_prev = round(float(eu.value.iloc[-2]),3)
+    macro_slope = round(float(eu.value.iloc[-1]) - float(eu.value.iloc[-20]),3)   # context, never gates
 else:  # USD pairs (eurusd / gbpusd / audusd): US 2Y = rate-momentum leg
     s = pd.read_csv("data/fred/DGS2.csv").dropna()
     macro_now = round(float(s.value.iloc[-1]),3); macro_prev = round(float(s.value.iloc[-2]),3)
     macro_slope = round(float(s.value.iloc[-1]) - float(s.value.iloc[-20]),3)
 # DXY jump: scored/blocked for eurusd+gbpusd ONLY. eurgbp = no USD leg; audusd = measured DEAD
 # (t=−0.85) → compute for context, never block.
-if INSTRUMENT != "eurgbp":
+if INSTRUMENT not in ("eurgbp", "eurjpy"):     # crosses: no USD leg → no DXY
     dxy = pd.read_csv("data/yahoo/DXY.csv").dropna(); dxy_jump = round(float(dxy.value.iloc[-1]) - float(dxy.value.iloc[-2]), 3)
 else:
     dxy_jump = None
@@ -98,8 +110,14 @@ print(spot, h4_atr, d1_atr, d1_median, compressed, macro_now, macro_slope, dxy_j
 ## Step 3 — News + Mid-Week Re-Forecast Check
 **Query A (V3 hard block):** economic calendar [DATE]. xauusd + USD pairs share US events (NFP/FOMC/
 CPI/Retail). Pairs also: ECB rate decision (eurusd), BoE rate decision (gbpusd), RBA decision +
-AU CPI/employment (audusd), RBNZ OCR + NZ CPI/jobs (nzdusd; GDT dairy = caution) — own central
-bank. China tier-1 = caution→hard for audusd/nzdusd if commodity move in progress.
+AU CPI/employment (audusd), RBNZ OCR + NZ CPI/jobs (nzdusd; GDT dairy = caution), BoC decision +
+CAD CPI/jobs (usdcad — ⚠ CAD jobs often shares 12:30 UTC slot with US data; OPEC/EIA oil = caution),
+SNB decision (usdchf — QUARTERLY Mar/Jun/Sep/Dec Thu 08:30 UTC = HARD; SNB speeches/intervention
+headlines = caution; CH CPI = caution only), BoJ decision (usdjpy — ~8/yr = HARD; **active MoF
+jawboning / rate-check headlines = HARD** — intervention slams 300–500 pips; Tokyo/national CPI = caution),
+**eurjpy (cross-JPY): hard blocks = BoJ decision + MoF jawboning (interventions slam ALL JPY crosses)
++ ECB decision + EZ tier-1 CPI/GDP. US events = CAUTION ONLY (no USD leg, but both legs transmit)**
+— own central bank. China tier-1 = caution→hard for audusd/nzdusd if commodity move in progress.
 **eurgbp (cross): hard blocks = ECB + BoE rate decisions + UK/EZ tier-1 (CPI/GDP/jobs/PMI). US
 events = CAUTION ONLY, not a hard block (no USD leg).** Hard-block events within 2h of 08:00 or 13:00 UTC.
 **Query B (T4-X):** breaking news [DATE] — central-bank emergency / war / sanctions / sovereign
@@ -127,6 +145,17 @@ counter-move (gold 2.5% / FX 1.5%), T4 = shock, T5 = cumulative macro drift vs b
     audusd = D1 ADX>30 trending against the fade.
   - **nzdusd → NO VIX VETO** — same inverted level polarity as AUD, weaker (t≈2.2–2.4); spike dead
     (t=−1.7). Only hard veto for nzdusd = D1 ADX>30 trending against the fade.
+  - **usdcad (USD-base) → NO VIX VETO** — VIX>20 → SHORT bias (+5.5pp t≈3.9), VIX<15 → LONG bias
+    (fade-the-USD regime, scores in R2 E4). Only hard veto = D1 ADX>30 trending against the fade.
+  - **usdchf (USD-base) → NO VIX VETO, NO VIX SCORE** — haven-vs-haven washout (VIX>20 long t=1.39 /
+    VIX<15 short t=−1.97, incoherent). Hard vetoes: D1 ADX>30 trending against the fade; SNB
+    decision/communication day.
+  - **usdjpy (USD-base) → NO VIX VETO, NO VIX SCORE** — washout like CHF (VIX>20 long t=0.19 /
+    VIX<15 short t=−0.15). Hard vetoes: BoJ decision day / active MoF jawboning; **H1-only short
+    setups** (anti-edge t=−3.3 — shorts need D1/H4 extreme); LONG ≥158 at fresh highs → cap MEDIUM.
+  - **eurjpy (cross-JPY) → NO VIX VETO, NO VIX SCORE** — measured DEAD (E13 t=0.91, spike t=−0.42).
+    Hard vetoes: BoJ decision / active MoF jawboning (slams hit crosses); ECB decision; D1 ADX>30
+    trending against the fade. LONG at fresh record highs during intervention watch → cap MEDIUM.
   - FRED VIXCLS freshness guard: latest date < today−1 → suspend veto, log `vix_stale=true`.
 - **Macro flip** — macro series vs baseline (constitution drift table): >0.15% any dir → force re-forecast.
   eurusd/gbpusd: DXY 1d jump > 0.5 AGAINST a zone → that zone NO TRADE (strongest measured signal).
@@ -134,6 +163,14 @@ counter-move (gold 2.5% / FX 1.5%), T4 = shock, T5 = cumulative macro drift vs b
   **audusd: NO DXY block** (DXY-jump measured DEAD for AUD, t=−0.85 — context only).
   **nzdusd: NO DXY block, NO US2Y gate** (both dead for NZD — t=0.24 / −0.7; DGS2 baseline = drift
   tracking context only).
+  **usdcad: NO DXY block** (dead); US2Y drift vs baseline applies with **FLIPPED polarity** (US2Y
+  rising = WITH a long-USDCAD bias, not against it).
+  **usdchf: NO DXY-jump block** (jump is anti, t=−1.69 — fade it); **DXY 20d SLOPE flip AGAINST a
+  zone = re-check bias** (it's the pair's only live macro, R2 E2); US2Y drift FLIPPED like usdcad.
+  **usdjpy: NO DXY-jump block** (anti, t=−1.32); **DXY 20d SLOPE flip AGAINST a zone = re-check
+  bias** (only live macro, R2 E2); US2Y DEAD — `baseline_dgs2` drift = context only, not a flip gate.
+  **eurjpy: NO macro flip gate of any kind** (cross, macro dead — `baseline_ecb_rate` = context
+  only). Re-forecast triggers are price-driven: T3 counter-move 1.5% + T4 shock only.
 
 ### Q4 — Entry Confluence (max 10, floor 5.0)
 **Use `wiki/system/{INSTRUMENT}/confluence_criteria.md` R2 — the table differs by instrument.**
@@ -156,6 +193,31 @@ counter-move (gold 2.5% / FX 1.5%), T4 = shock, T5 = cumulative macro drift vs b
   E4 squeeze/compression holds 1.0 (NZD's strongest signal) | E5 structure intact 1.0. No macro at
   entry. **Antipodean advisory:** live same-dir audusd order → default keep AUD (≈2× edge) unless
   NZD EC clearly higher. (See nzdusd `confluence_criteria.md` R2.)
+- **usdcad (mean-reversion, USD-base):** E0 reversal confirm 3.0 | E1 H4 oscillator/band still
+  extreme 2.5 | E2 H1 oscillator extreme (long: W%R/CCI/RSI2 t 2.9–3.45; short: CCI>+100 t=3.08)
+  1.5 | E3 non-trending ADX<25 1.0 | E4 macro regime aligned (VIX fade-USD + US2Y flipped) 1.0 |
+  E5 structure intact 1.0. Remember: USD leg sign — long usdcad stacks with SHORT majors in the
+  fx_exposure ledger. (See usdcad `confluence_criteria.md` R2.)
+- **usdchf (mean-reversion, USD-base, H1-centric):** E0 reversal confirm 3.0 | E1 H1 oscillator
+  still extreme 2.5 (short: W%R>−20/RSI>65/Keltner-high t 4.5–5.5; long: W%R<−80/RSI2<10) |
+  E2 DXY 20d slope aligned 1.5 | E3 squeeze/calm context 1.0 | E4 non-trending ADX<25 1.0 |
+  E5 structure intact 1.0. NO VIX row. USD leg: long usdchf stacks with SHORT majors + LONG usdcad
+  in the ledger; usdchf-short vs eurusd-long are near-duplicates (CHF≈EUR bloc) — prefer higher EC.
+  (See usdchf `confluence_criteria.md` R2.)
+- **usdjpy (asymmetric carry-drift, USD-base, DIRECTION-AWARE):** E0 confirm 3.0 | E1 side engine
+  still live 2.5 (LONG: squeeze/calm still on, t 3.3–4.5; SHORT: H4 oscillator still extreme, t
+  2.1–3.1) | E2 DXY 20d slope aligned 1.5 | E3 LONG only: NY-session entry window 12–16 UTC 1.0
+  (H1 drift t=4.71; NY short = anti) | E4 structure intact 1.0 | E5 not extended (ADX<25 or
+  pullback, no breakout chase) 1.0. NO VIX row. E0 for LONGS = continuation/dip-turn (drift, like
+  xauusd), for SHORTS = reversal at D1/H4 extreme. USD leg: long usdjpy stacks with long usdchf/
+  usdcad + SHORT majors in ledger. (See usdjpy `confluence_criteria.md` R2.)
+- **eurjpy (cross-JPY, symmetric mean-reversion):** E0 reversal confirm 3.0 | E1 extreme still live
+  2.5 (LONG: washout — Stoch/W%R/Keltner-low; SHORT: H1/H4 still overbought — W%R>−20 t=4.21,
+  RSI>65 t=3.61) | E2 session window 1.5 (LONG: NY/London overlap 12–16 UTC t=3.02 · SHORT: London
+  open 07–09 UTC t=2.77) | E3 calm regime intact 1.0 (LONG full, SHORT 0.5) | E4 structure intact
+  1.0 | E5 not extended (ADX<25 / pullback, no breakout chase) 1.0. NO macro row, NO VIX row.
+  JPY leg: long eurjpy stacks with long usdjpy (2× short JPY = doubled MoF tail — ledger flags);
+  EUR leg stacks with eurusd/eurgbp longs. (See eurjpy `confluence_criteria.md` R2.)
 
 **E0 entry confirmation (confirm on candle CLOSE):**
 - xauusd: 1H engulfing / 1H pin (wick ≥2.5×body) / 15M CHoCH — TOWARD zone direction (continuation).

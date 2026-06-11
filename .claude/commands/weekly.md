@@ -1,20 +1,30 @@
 Run the full weekly forecast → produce Trading Zones.
 
-Argument: `[instrument]` ∈ {xauusd, eurusd, gbpusd, eurgbp, audusd, nzdusd} (default xauusd). One instrument per invocation.
+Argument: `[instrument]` ∈ {xauusd, eurusd, gbpusd, eurgbp, audusd, nzdusd, usdcad, usdchf, usdjpy, eurjpy} (default xauusd).
+One instrument per invocation.
 (eurgbp = CROSS: macro-light mean-reversion, no VIX-veto, European event blocks. audusd: no VIX-veto +
 no DXY block — VIX level INVERTED tilt, DXY-jump dead; RBA/AU-CPI/China events. nzdusd: macro-light,
-weakest edges — squeeze-led; no VIX/DXY/US2Y gates; RBNZ/NZ-CPI events; fewer zones expected.)
+weakest edges — squeeze-led; no VIX/DXY/US2Y gates; RBNZ/NZ-CPI events; fewer zones expected.
+usdcad = **USD-BASE**: long pair = LONG USD — US2Y flipped, VIX>20 → SHORT bias, COT 6C inverted,
+🛢 oil tilt; BoC/CAD-CPI/jobs events. usdchf = **USD-BASE**: DXY 20d SLOPE is the live macro (only
+pair beyond EUR/GBP), VIX WASHOUT (no gate/score), COT 6S inverted; SNB quarterly + regime note.
+usdjpy = **USD-BASE + JPY-quoted + ASYMMETRIC**: NOT the fade template — LONG = drift continuation
+(squeeze/calm/dip), SHORT = D1/H4 oscillator extremes only, H1-only shorts PROHIBITED; DXY 20d slope
+live, VIX washout, COT 6J inverted; pip 0.01, 3dp; BoJ/MoF intervention regime ≥158.
+eurjpy = **CROSS-JPY, macro NONE**: symmetric mean-reversion on long-drift floor — buy washouts,
+fade extension, never chase; NO VIX/DXY/rate gates (all dead); pip 0.01, 3dp; COT EUR/JPY XRATE
+direct but THIN; BoJ/MoF + ECB hard blocks — interventions slam crosses.)
 
 Goal: a weekly forecast that publishes up to **3 Trading Zones** (at most 1 counter-trend), each
 scored by **Zone Confluence** (max 10, floor 5.0 — `wiki/system/{instrument}/confluence_criteria.md` R1).
 
 ## Step 0 — Instrument parametrization
-| Param | xauusd | eurusd | gbpusd | eurgbp (cross) | audusd | nzdusd |
-|---|---|---|---|---|---|---|
-| Character | momentum (pro-trend) | mean-reversion (fade) | mean-reversion (fade) | mean-reversion (fade), macro-light | mean-reversion (fade), H4-centric | mean-reversion (fade), macro-light/squeeze-led |
-| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` | `baseline_rate_diff` (ECBDFR−SONIA, weak) | `baseline_dgs2` | `baseline_dgs2` (context only) |
-| Profile | xauusd_profile.md | eurusd_profile.md | gbpusd_profile.md | eurgbp_profile.md | audusd_profile.md | nzdusd_profile.md |
-| Confluence R1 | xauusd | eurusd | gbpusd | eurgbp | audusd | nzdusd |
+| Param | xauusd | eurusd | gbpusd | eurgbp (cross) | audusd | nzdusd | usdcad (USD-base) | usdchf (USD-base) | usdjpy (USD-base, JPY) | eurjpy (cross, JPY) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Character | momentum (pro-trend) | mean-reversion (fade) | mean-reversion (fade) | mean-reversion (fade), macro-light | mean-reversion (fade), H4-centric | mean-reversion (fade), macro-light/squeeze-led | mean-reversion (fade), USD-base | mean-reversion (fade), H1-centric, DXY proxy | **asymmetric carry-drift**: LONG drift-continuation / SHORT D1-H4-extreme fade | **symmetric mean-reversion + calm-drift** on long-drift floor; macro NONE |
+| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` | `baseline_rate_diff` (ECBDFR−SONIA, weak) | `baseline_dgs2` | `baseline_dgs2` (context only) | `baseline_dgs2` (FLIPPED polarity) | `baseline_dgs2` (FLIPPED, weak tilt) | `baseline_dgs2` (DEAD — drift in baseline) | `baseline_ecb_rate` (context only — macro dead) |
+| Profile | xauusd_profile.md | eurusd_profile.md | gbpusd_profile.md | eurgbp_profile.md | audusd_profile.md | nzdusd_profile.md | usdcad_profile.md | usdchf_profile.md | usdjpy_profile.md | eurjpy_profile.md |
+| Confluence R1 | xauusd | eurusd | gbpusd | eurgbp | audusd | nzdusd | usdcad | usdchf | usdjpy (direction-aware) | eurjpy |
 
 ## Prerequisites — Read First
 1. `wiki/system/core/macro/yield_environment.md` — prior macro baseline
@@ -59,6 +69,23 @@ Read the full `weekly_pull_{YEAR}_W{WW}.txt` before analysis.
 - nzdusd: **macro nearly all DEAD** — US2Y slope dead (t=−0.7), DXY dead, VIX spike dead. Only weak
   inverted VIX LEVEL tilt (VIX>20→long t=2.18, VIX<15→short t=2.38). Bias = structure/oscillator/
   squeeze, not macro. No daily RBNZ series. Dairy/China = narrative context.
+- usdcad (**USD-BASE — every USD intuition flips**): US2Y slope vs `baseline_dgs2` with FLIPPED
+  polarity (rising US2Y = bullish USDCAD, t≈2.0); **VIX LEVEL = fade-the-USD regime: VIX>20 →
+  SHORT bias (+5.5pp t≈3.9), VIX<15 → LONG bias**; 🛢 WTI 5d>+5% → SHORT tilt (t=1.67, ~1wk FRED
+  lag); DXY-jump DEAD. COT 6C INVERTED (spec long CAD = bearish USDCAD — snapshot prints both).
+- usdchf (**USD-BASE, DXY proxy**): **DXY 20d SLOPE = the live macro** (rising → bullish USDCHF
+  t=2.32, falling → bearish t=2.34 — only pair beyond EUR/GBP where DXY scores). **VIX = WASHOUT
+  (haven-vs-haven): no gate, no score.** US2Y slope flipped weak tilt (t≈1.4). DXY 1d jump = anti
+  (fade, never block). COT 6S INVERTED. ⚠ SNB regime: shorts near 0.78–0.80 fight the SNB.
+- usdjpy (**USD-BASE, JPY-quoted, ASYMMETRIC**): **DXY 20d SLOPE = the live macro** (rising →
+  bullish t=2.21 / falling → bearish t=1.73). **VIX = WASHOUT** (haven-vs-haven, like CHF): no gate,
+  no score. **US2Y DEAD** (t≈0.1–0.6 — carry lives in the D1 long drift, baseline LNG 58.9%). DXY
+  1d jump = anti. COT 6J INVERTED. ⚠ MoF/BoJ regime: longs ≥158 at fresh highs fight the MoF
+  (2022/2024 interventions = 300–500 pip slams); BoJ decision days hard block.
+- eurjpy (**CROSS-JPY — macro NONE, first 100% price-driven pair**): no USD leg, no DXY/US2Y rows;
+  ECB leg (ECBDFR) scans ANTI (t −1.2/−1.3) — context line only; **VIX DEAD** (E13 t=0.91) despite
+  carry-barometer reputation — no gate, no score. Bias = structure/oscillator/calm-regime only.
+  ⚠ MoF/BoJ regime shared with usdjpy — interventions slam crosses; spot 185+ = record territory.
 Bias: BULLISH/BEARISH/NEUTRAL + confidence. Flag regime shift vs baseline.
 
 **2. News Analysis** — scheduled high-impact calendar next week (UTC, mark hard blocks),
@@ -85,6 +112,10 @@ differs by instrument**:
 - **eurgbp (cross):** Z1 Structural D1-extreme 3.0 (MAND) | Z2 D1 oscillator extreme 2.5 | Z3 H1 oscillator 1.5 (validated) | Z4 macro/sentiment TILT 0.5 | Z5 non-trend ADX<25 1.0 | Z6 band/compression 0.5 | Z7 Williams/Stoch 1.0. (Macro NOT a gate — EG2 dead.)
 - **audusd:** Z1 Structural 2.0 (MAND) | Z2 H4 oscillator extreme 2.0 | Z3 H4 band over-extension 1.5 | Z4 big-figure LONG 0.5 | Z5 macro regime tilt (VIX level INVERTED + US2Y slope) 1.5 | Z6 non-trend ADX<25 1.5 | Z7 compression/squeeze 1.0. (NO DXY row — dead for AUD.)
 - **nzdusd:** Z1 Structural 2.0 (MAND) | Z2 H4 oscillator extreme 2.0 | Z3 compression/squeeze 2.0 (strongest NZD signal) | Z4 H4 band over-extension 1.5 | Z5 big-figure LONG 1.0 | Z6 non-trend ADX<25 1.0 | Z7 VIX regime tilt (weak, inverted) 0.5. (NO US2Y/DXY rows — dead for NZD.)
+- **usdcad (USD-base):** Z1 Structural 2.0 (MAND) | Z2 H4 oscillator extreme 2.0 | Z3 H4 band over-extension 2.0 (BB-upper short t=3.19) | Z4 compression/squeeze 1.5 | Z5 VIX regime fade-USD 1.0 | Z6 US2Y-flipped + oil tilt 1.0 | Z7 non-trend ADX<25 0.5. (NO DXY row; COT inverted = context.)
+- **usdchf (USD-base):** Z1 Structural 2.0 (MAND) | Z2 H1 oscillator extreme cluster 2.0 (short t 4.0–5.5) | Z3 DXY 20d slope aligned 2.0 | Z4 compression/squeeze (H1 TTM/calm) 1.5 | Z5 D1 pattern/extreme 1.0 | Z6 H4 band/big-figure 1.0 | Z7 non-trend ADX<25 0.5. (NO VIX row — washout; H4 thin, H1-centric.)
+- **usdjpy (USD-base, DIRECTION-AWARE):** Z1 Structural 2.0 (MAND) | Z2 side engine 2.5 — LONG: D1 TTM squeeze/calm ATR (t 3.3–4.5) · SHORT: ≥2 of D1 RSI>65 / H4 CCI>+100 / H4 Keltner-high (t 2.1–3.1) | Z3 DXY 20d slope aligned 2.0 | Z4 LONG dip at 20d low 1.0 | Z5 D1 pattern (PSAR/engulf) 1.0 | Z6 LONG big-figure 1.0 | Z7 not-extended ADX<25 0.5. (NO VIX row; counter = SHORT.)
+- **eurjpy (cross-JPY, NO macro):** Z1 Structural 2.0 (MAND) | Z2 extreme engine 2.5 — LONG: washout (D1 Stoch<20 / H1 Keltner-low / 20d low, t 2.6–3.1) · SHORT: extension (D1/H4 Keltner-high / RSI>65–70, t 2.8–3.5) | Z3 calm/squeeze regime 1.5 (LONG full, SHORT half) | Z4 H4 oscillator stack 1.5 | Z5 D1 trigger (inside-bar/compression) 1.0 | Z6 big-figure 1.0 | Z7 not-extended ADX<25 0.5. (NO macro row at all; counter = SHORT.)
 
 Rules: publish if score ≥ 5.0 (Z1 mandatory). Max 3 zones, ≤1 counter.
 - Counter zone (xauusd): macro Z2+Z3 score 0; RSI divergence MANDATORY; macro conf LOW/MEDIUM.
@@ -96,6 +127,23 @@ Rules: publish if score ≥ 5.0 (Z1 mandatory). Max 3 zones, ≤1 counter.
   D1 ADX>30 trending against the fade. Never score trend-follow.
   **nzdusd: NO VIX veto, NO DXY block, NO US2Y gate** (all dead/weak for NZD). Only veto = D1 ADX>30
   trending against the fade. Never score trend-follow; never score big-figure as a SHORT (anti-edge −2.68).
+  **usdcad (USD-base): NO VIX veto, NO DXY block** (VIX level scores directionally in Z5 — high VIX
+  favors SHORTs; DXY dead). Only veto = D1 ADX>30 trending against the fade. Never score trend-follow;
+  never score bearish-engulf/Donchian-breakdown continuation (anti-edge t=−3.83/−2.83).
+  **usdchf (USD-base): NO VIX veto/score (washout), NO DXY-jump block** (DXY scores via 20d SLOPE in
+  Z3 only). Vetoes: D1 ADX>30 trending against the fade; SNB decision/communication day (quarterly
+  Mar/Jun/Sep/Dec Thu 08:30 UTC); SHORT zone inside 0.78–0.80 historic-low band → conviction cap
+  MEDIUM. Never score trend-follow (H1 momentum continuation anti-edge t −2.6 to −3.4).
+  **usdjpy (USD-base, ASYMMETRIC): NO VIX veto/score, NO DXY-jump block** (DXY scores via 20d slope
+  Z3). Vetoes: BoJ decision day / active MoF jawboning = HARD BLOCK; LONG zone ≥158 at fresh
+  multi-decade highs → conviction cap MEDIUM (MoF regime); **NO H1-only SHORT zones** (H1 fade
+  anti-edge t=−3.3 — shorts need D1/H4 extreme evidence); no chasing extension (ADX>25 uptrend-
+  continuation long anti-edge t −3.3/−3.4); turn-of-month LONG −0.5.
+  **eurjpy (cross-JPY): NO VIX veto/score, NO DXY/US2Y anything** (cross, all dead). Vetoes: BoJ
+  decision / active MoF jawboning / ECB decision = HARD BLOCK (interventions slam crosses); LONG
+  zone at fresh record highs during intervention watch → conviction cap MEDIUM; zones are REVERSION
+  zones only — never breakout/continuation (C26 anti −4.2, Donchian-up −2.6, momentum shorts −3.3);
+  turn-of-month LONG −0.5 (t=−3.10).
 - Write IF/THEN in one sentence + name zone (Primary/Secondary/Counter), direction, box, score, signals.
 - SL/offset/TP computed at `/validate`, not here — but name the TP structural anchor + indicative R.
 
@@ -103,7 +151,7 @@ Rules: publish if score ≥ 5.0 (Z1 mandatory). Max 3 zones, ≤1 counter.
 Template `wiki/system/templates/weekly_forecast.md`. Frontmatter (instrument-aware baseline):
 ```yaml
 type: weekly_forecast
-instrument: xauusd | eurusd | gbpusd | eurgbp | audusd | nzdusd
+instrument: xauusd | eurusd | gbpusd | eurgbp | audusd | nzdusd | usdcad | usdchf | usdjpy | eurjpy
 week: YYYY-WNN
 generated: YYYY-MM-DD
 macro_bias: BULLISH | BEARISH | NEUTRAL
@@ -115,6 +163,7 @@ baseline_dfii10: x.xx        # xauusd only
 baseline_dgs2: x.xx          # FX majors only
 baseline_policy_diff: x.xx   # FX majors context only
 baseline_rate_diff: x.xx     # eurgbp only (ECBDFR−SONIA; weak/context)
+baseline_ecb_rate: x.xx      # eurjpy only (ECBDFR level; context — macro dead)
 baseline_dxy: xxx.xxx
 weekend_gap_pct: x.xxx
 cot_net: ±xxxxx

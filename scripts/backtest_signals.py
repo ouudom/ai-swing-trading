@@ -39,6 +39,10 @@ REGISTERED = {
     "audusd": "config.audusd.config",
     "nzdusd": "config.nzdusd.config",
     "usdcad": "config.usdcad.config",
+    "usdchf": "config.usdchf.config",
+    "usdjpy": "config.usdjpy.config",
+    "eurjpy": "config.eurjpy.config",
+    "gbpjpy": "config.gbpjpy.config",
 }
 FWD = {"D1": 5, "H4": 6, "H1": 4}
 TF_FILE = {"D1": "1day.csv", "H4": "4h.csv", "H1": "1h.csv"}
@@ -306,7 +310,9 @@ def build_signals(df, tf, cfg):
 
     # ── Round-number proximity (FX big figures: within 15 pips of x.xx00 / x.xx50) ──
     if cfg and getattr(cfg, "MACRO_MODE", "") == "rate_diff":
-        figure = (c*100) % 1.0   # distance into the current big-figure (0..1 of a 0.01 block)
+        # big figure = 100 pips: 0.01 block for 0.0001-pip pairs, 1.00 block for JPY (pip 0.01)
+        big_fig = getattr(cfg, "PIP_SIZE", 0.0001) * 100
+        figure = (c / big_fig) % 1.0   # distance into the current big-figure (0..1 of a block)
         near_fig = (figure < 0.15) | (figure > 0.85)
         A(("S1","Near big-figure (x.xx00)", "LNG", near_fig)); A(("S1s","Near big-figure", "SHT", near_fig))
 
@@ -376,7 +382,8 @@ def macro_signals(df, cfg):
     elif cross:
         # EURGBP cross macro — EUR (ECB) vs GBP (SONIA). No USD leg. EG2 model.
         eu = align_daily(load_fred(getattr(cfg, "RATE_EUR", "ECBDFR")), idx)
-        gb = align_daily(load_fred(getattr(cfg, "RATE_GBP", "IUDSOIA")), idx)
+        gb_sid = getattr(cfg, "RATE_GBP", "IUDSOIA")   # None = one-leg cross (EURJPY: no daily BoJ series)
+        gb = align_daily(load_fred(gb_sid), idx) if gb_sid else None
         if eu is not None and gb is not None:
             diff = pd.Series(eu - gb, index=idx)      # EUR−GBP rate gap; rising → EURGBP UP
             dsl = rolling_slope(diff, 20)
@@ -391,8 +398,10 @@ def macro_signals(df, cfg):
             A(("X8","GBP rate 5d drop>0.05", "LNG", (gb_s.shift(5) - gb_s) > 0.05))
         if eu is not None:
             eu_s = pd.Series(eu, index=idx); esl = rolling_slope(eu_s, 20)
-            # EUR policy rate rising → EUR strength → EURGBP UP (sparse: ECBDFR is a step)
-            A(("X9","EUR rate(ECB) 20d slope>0", "LNG", esl > 0)); A(("X10","EUR rate 20d slope<0", "SHT", esl < 0))
+            # Base-leg policy rate rising → base ccy strength → pair UP (RATE_EUR slot =
+            # ECBDFR on eur* pairs, IUDSOIA on gbpjpy; sparse step series either way)
+            sid = getattr(cfg, "RATE_EUR", "ECBDFR")
+            A(("X9", f"base rate({sid}) 20d slope>0", "LNG", esl > 0)); A(("X10", f"base rate({sid}) 20d slope<0", "SHT", esl < 0))
     else:
         # gold real-yield macro (for parity / xauusd runs)
         ry = align_daily(load_fred("DFII10"), idx)

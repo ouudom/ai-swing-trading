@@ -7,7 +7,7 @@
 Structured + AI-analysis entry-signal generation. Markdown-only (no DB). Unit = **Trading Zone**
 (max 3/wk, ≤1 counter), Zone Confluence R1 + Entry Confluence R2 (max 10, floor 5, E0 confirm 3pt).
 
-## Instruments — 6 ACTIVE
+## Instruments — 9 ACTIVE
 | Inst | Status | Character | Key docs |
 |---|---|---|---|
 | XAUUSD | active | momentum (pro-trend), real-yield macro | wiki/system/xauusd/ |
@@ -16,6 +16,10 @@ Structured + AI-analysis entry-signal generation. Markdown-only (no DB). Unit = 
 | EURGBP | active | cross, mean-reversion fade, macro 0.5 tilt, NO VIX-veto, EU event blocks | wiki/system/eurgbp/ |
 | AUDUSD | active | mean-reversion fade, H4-centric; 🔑 DXY-jump DEAD, VIX LEVEL inverted, NO vetoes except ADX>30; RBA/AU/China events | wiki/system/audusd/ |
 | NZDUSD | active | mean-reversion fade, macro-light squeeze-led; 🔑 US2Y+DXY DEAD, VIX level weak inverted; weakest edges (≈½ AUD) → fewer zones; RBNZ/NZ events; antipodean advisory | wiki/system/nzdusd/ |
+| USDCAD | active | **USD-base** mean-reversion fade; 🔑 polarity flips (US2Y rising=bullish, VIX>20→SHORT bias t≈3.9, COT 6C inverted); 🛢 oil tilt weak; H1 long-side rich; BoC/CAD events (12:30 overlap!) | wiki/system/usdcad/ |
+| USDCHF | active | **USD-base** mean-reversion fade, H1-centric; 🔑 DXY 20d slope = live macro (t=2.3, only pair beyond EUR/GBP), VIX WASHOUT (no gate/score), COT 6S inverted; H1 short-fade machine (t 4.5–5.5); ⚠ SNB regime — shorts near 0.78–0.80 cap MEDIUM, SNB days hard block | wiki/system/usdchf/ |
+| USDJPY | active | **USD-base, FIRST JPY pair** (pip 0.01, 3dp, TICK 650 static); 🔑 **ASYMMETRIC carry-drift, NOT fade**: LONG = squeeze/calm/dip/NY-drift (t 3.3–4.7), SHORT = D1/H4 extremes only, **H1-only shorts PROHIBITED** (anti −3.3); DXY 20d slope live (t=2.2), VIX washout, US2Y dead, COT 6J inverted; ⚠ MoF regime — longs ≥158 cap MEDIUM, BoJ/MoF days hard block (spot 160.5 IN band) | wiki/system/usdjpy/ |
+| EURJPY | active | **FIRST cross-JPY** (pip 0.01, 3dp, TICK 650 static); 🔑 **symmetric mean-reversion + calm-drift** on long-drift floor (D1 LNG 55.6%): buy washouts (Stoch<20 t=3.1), fade extension (Keltner-high t=3.4, H1 W%R t=4.2 — H1 fade WORKS, unlike usdjpy), NEVER chase (C26 anti −4.2); **macro NONE** (first 100% price-driven — ECB anti, VIX dead, no USD leg); sessions two-sided: London fade-short t=2.8 / NY drift-long t=3.0; COT XRATE direct but THIN (OI 21k); ⚠ MoF slams hit crosses — BoJ/MoF + ECB hard block, record-high longs cap MEDIUM (spot 185.2) | wiki/system/eurjpy/ |
 
 Onboarding history (P1–P5 majors, EG0–EG5 cross), signal scans, sizing decisions → `decisions.md`
 (D021/D022/D023) + `wiki/research/{pair}/signal-results.md`. Sizing all pairs: USD, no quote-CCY
@@ -50,34 +54,62 @@ XAUUSD limits expired 06-09 21:00 UTC, NOT re-placed (CPI block + spot ~$200 bel
 - **GBPUSD watch:** closest USD fade — fresh rally into 1.3400 + H1 OB + bearish E0 → ~7.5 ORDER LIMIT.
 - **EURGBP watch:** primary LONG 0.8608–0.8624 — needs D1 oversold + in-zone + bullish E0.
 - **FX netting gate (D022):** both majors ORDER LIMIT same day → keep higher EC, SKIP other.
-- **EXPANSION (D024, 2026-06-10):** all 7, sequential. ✅ W0 advisory ledger (fx_exposure rewritten,
-  selftest 12/12). ✅ **AUDUSD #1** + ✅ **NZDUSD #2 DONE** (data, scan GO [NZD marginal], confluence
-  ACTIVE, wired, smoke-tested — ready for first `/weekly`). ⏳ NEXT: **USDCAD #3** (first USD-base:
-  needs `_fx_usd_base.py` class — USD_BETA_SIGN+1, polarity flips, COT sign-flip, VP off, WTI series),
-  then USDCHF→USDJPY→EURJPY→GBPJPY. Rulings: USD sizing no convert (JPY static TICK≈650); netting
-  ADVISORY only.
+- **EXPANSION (D024, 2026-06-10):** all 7, sequential. ✅ W0 ledger + ✅ AUDUSD #1 + ✅ NZDUSD #2 +
+  ✅ USDCAD #3 + ✅ USDCHF #4 + ✅ USDJPY #5 + ✅ **EURJPY #6 DONE** (first cross-JPY; scan GO
+  symmetric; ACTIVE). ⏳ NEXT (LAST): **GBPJPY #7 — cross-JPY #2**: inherit eurjpy pattern
+  (USD_BETA_SIGN=0, JPY pip 0.01/3dp/TICK 650, one-leg macro — live leg = SONIA IUDSOIA, JPY leg
+  none; reuse the RATE_GBP=None one-leg branch with SONIA as the single series); high-ATR
+  calibration (GBPJPY ≈ 1.5–2× EURJPY — recalc V1B_BUFFER from H4 ATR median); NO direct CFTC
+  cross contract (2026 zip has only EUR/GBP + EUR/JPY XRATEs) → COT_ENABLED=False or 6B/6J
+  derived; BoE + BoJ/MoF events. JPY carry-trend crosses may scan NO-GO → keep config+data+
+  research, no confluence.
+  Rulings: USD sizing no convert; netting ADVISORY only.
 
 ## Last Session
-2026-06-10 (expansion, NZDUSD #2): config (carry off, COT 6N verified, VP 6N=F), backfill D1 4288/
-H4 9789/H1 39227, scans → **GO marginal** (edges ≈½ AUD; 🔑 US2Y dead t=−0.7, DXY dead, VIX level
-weak inverted t≈2.2–2.4; squeeze = strongest signal H4 TTM t=3.25; big-figure LONG-only t=2.77).
-Profile + confluence ACTIVE (squeeze Z3 2.0; no macro gates), wired weekly/validate/constitution
-(AUD column → AUD/NZD merged + antipodean advisory callout). Smoke: pull W24 ✅ COT 6N ✅ (spec net
-−28.3k = crowded short context) check_v1b ✅. Ready for first `/weekly nzdusd`.
-2026-06-10 (expansion build): compacted _HOT (120-line rule → CLAUDE.md). **W0**: fx_exposure.py →
-advisory per-currency ledger, 10 FX instruments (D024; selftest PASS); constitution + validate.md +
-currency_exposure.md amended. **AUDUSD onboarded end-to-end**: config (carry off — no daily RBA
-series; weekly_pull rate_diff branch now tolerates RATE_FOREIGN=None + USD-base label flip ready),
-backfill D1 4288/H4 9786/H1 39209 bars, scan GO (research + raw saved), profile + confluence ACTIVE,
-weekly/validate/constitution wired, smoke-tested (pull W24 ✅, COT 6A ✅, check_v1b ✅). CFTC names
-verified for all 5 remaining currencies (+ direct EURJPY XRATE contract exists).
-2026-06-10 (08:06 UTC, London scheduled `/validate all` — 4 instruments; supersedes 02:14 run).
-**CPI day = V3 HARD BLOCK (US instruments). ALL ZONES ALL 4 = ❌ NO TRADE; all held PENDING; no orders.**
-- XAUUSD $4162.04 (~$200 below zone); D1 ADX 48, RSI 24.6 deeply oversold; H4 ATR $43.63. EC 6.0, V3
-  overrides. No re-forecast (T3 WITH bias; T5 +0.10<0.15; CPI <12h blocks precondition 3).
-- EURUSD 1.15490 below short zones; RSI D1 32.7, ADX 39.6 trending → EC 2.0. NO TRADE + V3.
-- GBPUSD 1.33836 inside secondary zone; H1 OB bounce faded (RSI 46.6) → EC 2.0. NO TRADE + V3.
-- EURGBP 0.86296 ~6 pips above LONG support; H4 RSI 24 OS but D1 41.3 not extreme, no E0 → EC 3.0.
-  NO TRADE (US CPI = caution only for cross).
-- Hard blocks else pass all 4 (V1/V1b intact; VIX 18.92 stale/falling; DXY −0.106; DGS2 flat).
-  Wrote/superseded all 4 daily files. Re-validate post-CPI / tomorrow AM.
+2026-06-11 (expansion, EURJPY #6 — FIRST cross-JPY): eurjpy config (_fx_base + USD_BETA_SIGN=0 +
+JPY pip 0.01/3dp/TICK 650, V1b 0.04 = 10% median H4 ATR 42p, COT "EURO FX/JAPANESE YEN XRATE"
+DIRECT thin OI 21k, FRED +ECBDFR). Pipeline generalized for ONE-LEG cross: weekly_pull new
+cross_rate_diff branch when RATE_GBP=None (ECB-only block, `baseline_ecb_rate`); backtest guards
+load_fred(None) — eurgbp X-rows regression ✅. Backfill D1 4289 (2010→)/H4 9791/H1 39226/15min
+60235 (2024→). Scan **GO — symmetric mean-reversion + calm-drift** on long-drift floor (D1 LNG
+55.6%): LONG washout-buy (D1 Stoch<20 t=3.10 73%win, H1 Keltner-low 2.62, 20d-low 3.07) + calm/
+squeeze (H4 D6 t=3.96, B11 2.71); SHORT extension-fade ALL TFs (Keltner-high 3.36/3.48/2.82,
+H1 W%R>−20 t=4.21 — H1 fade WORKS, unlike usdjpy); 🔑 **macro NONE** (ECB leg ANTI −1.2/−1.3,
+VIX DEAD 0.91 despite carry reputation — first 100% price-driven pair); sessions two-sided
+(London fade-short 2.77 / NY-overlap drift-long 3.02); anti: C26 chase −4.24, calm-short −3.99,
+turn-of-month −3.10. ATR D1 med 118p (now 76 compressed), H4 med 42p. Spot 185.2 record — MoF
+slams hit crosses → BoJ/MoF + ECB hard blocks, record-high longs cap MEDIUM. R1/R2 ACTIVE
+(extreme engine 2.5 both sides, NO macro/VIX rows); wired weekly/validate/constitution (+EURJPY
+column). Smoke: pull W24 ✅ (3dp, one-leg macro block, COT +1,336 direct, lots 2000/(SL×650) ✓
+11.35), check_v1b ✅ 3dp intact, ledger usdjpy+eurjpy long = −2.00u short JPY flagged ✅, selftest
+PASS.
+2026-06-11 (expansion, USDJPY #5 — FIRST JPY pair): 3 plumbing fixes — weekly_pull PRICE_DP now
+config-overridable, check_v1b dp heuristic 3-tier (≥500→2dp / 20–500→3dp / else 5dp), backtest S1
+big-figure now PIP_SIZE-driven (was hardcoded ×100). usdjpy config (PIP 0.01, 3dp, TICK 650 static,
+V1b 0.04, RATE_FOREIGN=None BoJ, COT 6J). Backfill D1 4288 (2010→)/H4 9764/H1 39179/15min 60142
+(2024→). Scan **GO — ASYMMETRIC, breaks fade template**: LONG = drift continuation (D1 TTM squeeze
+t=3.27 +15.9pp, H4 calm t=4.51, H1 NY-overlap drift t=4.71, dip-at-20d-low 3.15, BB-breakout
+CONTINUATION 3.08); SHORT = D1/H4 extremes only (RSI>65 2.66, CCI>+100 3.11); 🔑 **H1 fade = ANTI
+(−3.3)**, London open FLAT (breaks 4-pair pattern — NY drift instead), no chasing extension (ADX>25
+long anti −3.4). DXY 20d slope live (t=2.21, 3rd pair = USD-base havens), VIX washout, US2Y dead.
+Spot 160.5 = INSIDE 2024 MoF intervention band → longs ≥158 cap MEDIUM, BoJ/MoF = hard block.
+Direction-aware R1/R2 ACTIVE; wired weekly/validate/constitution (+USDJPY column). Smoke: pull W24
+✅ (3dp, US2Y flipped label, COT −136.6k JPY = BULLISH USDJPY ⚠ INVERTED, lots 2000/(SL×650) ✓),
+check_v1b ✅ 3dp intact, ledger usdjpy+usdchf+eurusd = +3.00u long USD flagged ✅, selftest PASS.
+2026-06-11 (expansion, USDCHF #4 — USD-base clone): usdchf config (`_fx_usd_base` inherit, no oil
+leg, RATE_FOREIGN=None SNB, COT 6S, V1b 4pip), registered weekly_pull + backtest_signals. Backfill
+D1 4287 (2010→)/H4 9774/H1 39197/15min 60125 (2024→). Scan **GO**: mean-reverting fade, H1-centric
+— H1 short-fade machine (W%R>−20 t=5.48, RSI>65 t=4.57, Keltner-high t=4.57), H1 long side TTM
+squeeze t=3.20/calm t=3.03/near-20d-low t=2.92, London-open LONG drift t=2.70 (4th pair); H4 thin.
+🔑 DXY 20d SLOPE live (t=2.32/2.34 — first pair beyond EUR/GBP); **VIX WASHOUT** (haven-vs-haven —
+no gate/score, fade-USD regime does NOT transfer); US2Y flipped weak tilt; DXY-jump anti (−1.69).
+Anti-edges: all H1 momentum continuation, H4 downtrend-cont −3.05. Profile (SNB intervention
+regime + quarterly block; CHF pip ~25% OVER-size accepted) + confluence ACTIVE (Z3 DXY slope 2.0;
+SNB short-cap 0.78–0.80 → MEDIUM), wired weekly/validate/constitution (USD-base column merged
+CAD/CHF). Smoke: pull W24 ✅ (US2Y "bullish USDCHF" label, COT spec −33k CHF = BULLISH USDCHF
+⚠ INVERTED), check_v1b ✅ intact, ledger eurusd-short+usdchf-long = +2.00u long USD flagged ✅.
+2026-06-10 (expansion, USDCAD #3 + NZDUSD #2 + W0 + AUDUSD #1): USDCAD GO (first USD-base —
+`_fx_usd_base.py`, U()-flip, W1–W6 oil rows); NZDUSD GO marginal; W0 fx_exposure ledger; AUDUSD GO.
+Detail → `wiki/research/{pair}/signal-results.md` + `decisions.md` D024.
+2026-06-10 (08:06 UTC, scheduled `/validate all` — 4 instruments): CPI day = V3 HARD BLOCK; all
+zones ❌ NO TRADE, held PENDING, no orders. Detail → `forecasts/daily/*/2026-06-10.md`.

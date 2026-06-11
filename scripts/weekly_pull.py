@@ -42,6 +42,10 @@ REGISTERED_INSTRUMENTS = {
     "audusd": "config.audusd.config",   # D024 pair #1 — USD-quote major, no daily RBA series
     "nzdusd": "config.nzdusd.config",   # D024 pair #2 — USD-quote major, no daily RBNZ series
     "usdcad": "config.usdcad.config",   # D024 pair #3 — USD-BASE (inverted), oil leg, COT inverted
+    "usdchf": "config.usdchf.config",   # D024 pair #4 — USD-BASE, safe-haven CHF, SNB regime, COT inverted
+    "usdjpy": "config.usdjpy.config",   # D024 pair #5 — USD-BASE, first JPY pair (pip 0.01, TICK 650, 3dp)
+    "eurjpy": "config.eurjpy.config",   # D024 pair #6 — first cross-JPY (USD_BETA_SIGN=0, JPY pip, one-leg macro)
+    "gbpjpy": "config.gbpjpy.config",   # D024 pair #7 — cross-JPY #2 (one-leg macro = SONIA, COT off, high ATR)
 }
 
 _instrument_cfg = None  # set by load_instrument()
@@ -70,7 +74,8 @@ def load_instrument(name: str):
     TICK_MULTIPLIER = getattr(cfg, "TICK_MULTIPLIER", 100)
     # Price display/rounding precision: $-scale instruments (gold, TICK<=100) → 2dp;
     # pip-scale FX (TICK>=10000, price ~1.16, ATR ~0.0018) → 5dp or values round to 0.
-    PRICE_DP = 2 if TICK_MULTIPLIER <= 100 else 5
+    # JPY pairs break the TICK heuristic (TICK 650, price ~155, pip 0.01) → config sets PRICE_DP=3.
+    PRICE_DP = getattr(cfg, "PRICE_DP", 2 if TICK_MULTIPLIER <= 100 else 5)
     if cfg.ETF_ENABLED and cfg.ETF_HOLDINGS_CSV:
         GLD_HOLD_CSV = Path(cfg.ETF_HOLDINGS_CSV)
 
@@ -667,6 +672,21 @@ def _compute_and_write(out_path):
                             f"carry leg skipped (dead signal, D021/D024)\n")
         macro_block += f"VIX:              {float(vix['value'].iloc[-1]):.2f}"
         baseline_label = "baseline_dgs2"; baseline_val = us_now
+    elif macro_mode == "cross_rate_diff" and getattr(cfg, "RATE_GBP", None) is None:
+        # ONE-LEG cross (EURJPY/GBPJPY): second leg has no daily FRED series (BoJ) → no rate diff.
+        # Live leg rides the RATE_EUR slot (ECBDFR for eurjpy, IUDSOIA for gbpjpy).
+        # Macro = live policy leg only, LOW-weight NON-SCORING tilt. VIX polarity per-pair empirical.
+        leg = load_fred_local(cfg.RATE_EUR)
+        leg_label = getattr(cfg, "LIVE_LEG_LABEL", f"ECB Deposit ({cfg.RATE_EUR})")
+        leg_ccy   = getattr(cfg, "LIVE_LEG_CCY", "EUR")
+        leg_now = float(leg["value"].iloc[-1]); leg_20d = float(leg["value"].iloc[-21])
+        macro_block = (
+            f"⚠ {display} CROSS — one-leg macro (no daily {getattr(cfg,'RATE_FOREIGN_NAME','foreign')} series); "
+            f"LOW-weight NON-SCORING tilt.\n"
+            f"  {leg_label}: {leg_now:.2f}%  (was {leg_20d:.2f}% 20d ago, Δ {leg_now-leg_20d:+.2f}%)\n"
+            f"  → {leg_ccy + ' carry UP (bullish ' + display + ')' if leg_now > leg_20d else leg_ccy + ' carry DOWN (bearish ' + display + ')' if leg_now < leg_20d else 'FLAT (policy step unchanged)'}\n"
+            f"VIX:              {float(vix['value'].iloc[-1]):.2f}  (carry barometer — polarity per-pair, see signal-results)")
+        baseline_label = getattr(cfg, "BASELINE_LABEL", "baseline_ecb_rate"); baseline_val = round(leg_now, 3)
     elif macro_mode == "cross_rate_diff":
         # EUR/GBP CROSS: no USD leg. Direction tilt = EUR−GBP rate differential (ECBDFR − SONIA).
         # EG2: cross macro is THIN/DEAD on free daily data → LOW-weight, NON-SCORING tilt only.

@@ -47,8 +47,8 @@ def main():
         return
 
     c1, c2 = float(last2["close"].iloc[0]), float(last2["close"].iloc[1])
-    # Display precision: $-scale instruments (gold) 2dp; pip-scale FX (price < 100) 5dp.
-    dp = 2 if args.zone_top >= 100 else 5
+    # Display precision: $-scale (gold, >=500) 2dp; JPY-scale (20–500, pip 0.01) 3dp; pip-scale FX 5dp.
+    dp = 2 if args.zone_top >= 500 else (3 if args.zone_top >= 20 else 5)
     print(f"V1b check ({args.instrument}{' ' + args.label if args.label else ''}) — last 2 H4 closes: "
           f"{c1:.{dp}f} @ {last2['datetime'].iloc[0]} | "
           f"{c2:.{dp}f} @ {last2['datetime'].iloc[1]}")

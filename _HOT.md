@@ -24,8 +24,8 @@ Structured + AI-analysis entry-signal generation. Markdown-only (no DB). Unit = 
 
 Onboarding history (P1–P5 majors, EG0–EG5 cross), signal scans, sizing decisions → `decisions.md`
 (D021/D022/D023) + `wiki/research/{pair}/signal-results.md`. Sizing all pairs: USD, no quote-CCY
-convert (operator). FX netting: `scripts/fx_exposure.py` gate at /validate (D022).
-Known: backfill forward catch-up throws non-fatal "No data available" at weekend edge — data lands fine.
+convert (operator). FX netting: `scripts/fx_exposure.py` gate at /validate (D022). Known: backfill
+catch-up throws non-fatal "No data available" at weekend edge — data lands fine.
 
 ## Active Forecasts — 2026-W24
 - **XAUUSD** [W24](forecasts/weekly/xauusd/2026-W24.md) — BEARISH/MEDIUM-HIGH, conviction HIGH.
@@ -82,16 +82,15 @@ held PENDING (structure intact, NONE invalidated). No re-forecast triggered (T1�
   (all 10 instruments forecast for W24). Rulings: USD sizing no convert; netting ADVISORY only.
 - **MoF watch:** JPY trio blocked all W24. Post-BoJ (06-15/16) washout = A+ setups for W25
   (eurjpy squeeze long 183–184; gbpjpy washout 211–213; usdjpy dip 158–159 if calm holds).
+- **Shadow ledger LIVE:** /weekly MUST register zones (`zone_ledger.py add`) + resolve prior week
+  (`zone_outcomes.py --week`). nzdusd 1h/4h still carry the 04-29 bad tick — auto-clamps at next fetch.
 
 ## Last Session
-2026-06-11 PM (**shadow ledger + bad-tick guard shipped**): (1) `scripts/zone_ledger.py` — every
-published zone registered to `data/zone_ledger.csv` (now MANDATORY step 1 of /weekly post-forecast);
-`scripts/zone_outcomes.py` replays OHLC → would-be R outcomes + confluence calibration
-(`data/zone_outcomes.csv`). W24 seeded: 15 zones; first results — gbpusd SECONDARY would-be **LOSS −1R**
-(filled 06-09, CPI spike stopped it; live system never traded it = V3 saved −1R), 13 PENDING.
-(2) `ohlc_store.upsert()` bad-tick guard: wick-clamp/bar-drop vs rolling-median (>10% D1/>5% intraday),
-log `_quarantine.csv`. Found REAL leftover nzdusd bad tick (1.71632) still in 1h+4h CSVs — heals
-automatically on next fetch (guard runs on merged history). Docs: CLAUDE/AGENTS/_INDEX/weekly.md.
+2026-06-11 PM (**shadow ledger + bad-tick guard shipped**): (1) `zone_ledger.py` (registry, MANDATORY
+at /weekly) + `zone_outcomes.py` (OHLC replay → would-be R + confluence calibration). W24 seeded 15
+zones; first result: gbpusd SECONDARY would-be **−1R** (CPI spike; V3 block saved it), 14 open.
+(2) `ohlc_store.upsert()` bad-tick guard (wick-clamp/bar-drop vs rolling-median, `_quarantine.csv` log);
+found nzdusd 1.71632 tick still live in 1h/4h. Docs: CLAUDE/AGENTS/_INDEX/weekly.md.
 2026-06-11 PM (**deep review + 12 fixes, operator-approved**): (1) weekly_pull risk_unit was
 `min(H4, 0.5×D1)` — CONTRADICTED constitution (always ≤ H4 → lots ~9% oversized); now constitution
 formula + 0.01-lot floor. (2) validate.md lots `int(2000//(SL×TICK))` gave 0 lots gold → floored

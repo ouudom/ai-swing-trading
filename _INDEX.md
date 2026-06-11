@@ -99,6 +99,15 @@
 - `forecasts/weekly/gbpusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT fade zones (1.3400–1.3447, 1.3370–1.3390), conviction MEDIUM.
 - `forecasts/weekly/eurgbp/2026-W24.md` — NEUTRAL/range (ADX 13.8); LONG 0.8608–0.8624 (ZC 8.0) + SHORT 0.8664–0.8682 (ZC 7.5), conviction MEDIUM. First eurgbp forecast.
 
+## Forecasts — D024 pairs (first /weekly 2026-06-11, mid-week W24)
+- `forecasts/weekly/audusd/2026-W24.md` — BEARISH/MEDIUM; SHORT 0.7065–0.7110 (7.0) + counter LONG 0.6940–0.6996 (7.0); ADX 28.4 → floor 6.0.
+- `forecasts/weekly/nzdusd/2026-W24.md` — NEUTRAL range; SHORT 0.5855–0.5890 (6.5) + counter LONG 0.5750–0.5790 (7.5); bad tick 2026-04-29 repaired (ADX 79.6→18.5).
+- `forecasts/weekly/usdcad/2026-W24.md` — BULLISH/MEDIUM; LONG 1.3885–1.3905 (7.0); SHORT vetoed (ADX 32.3>30 uptrend).
+- `forecasts/weekly/usdchf/2026-W24.md` — BULLISH/MEDIUM-HIGH; LONG 0.7945–0.7960 (7.5) + counter SHORT 0.8005–0.8030 (5.5); SNB 06-18 W25.
+- `forecasts/weekly/usdjpy/2026-W24.md` — **NO ZONES: active MoF intervention regime** (Apr-30 ~160.7 + June jawboning; spot in trigger zone).
+- `forecasts/weekly/eurjpy/2026-W24.md` — NO ZONES (MoF block, crosses slam in sympathy); D1+H4 squeeze loading for W25 long.
+- `forecasts/weekly/gbpjpy/2026-W24.md` — NO ZONES (MoF block + no extreme to fade anyway).
+
 ## Forecasts — XAUUSD
 - `forecasts/weekly/xauusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH. (renamed W23→W24: files now named by trade week, not run week)
 

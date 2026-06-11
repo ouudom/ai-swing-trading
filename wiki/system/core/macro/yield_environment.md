@@ -59,6 +59,20 @@ Macro thin/DEAD for the cross (EG2): no DXY, no US rates. EUR−GBP rate diff (E
 over GBP, INVERTED vs majors; no VIX-veto). Price action: **NEUTRAL/range** (ADX 13.8, 0.8614–0.8682),
 spot 0.86352. Fade both edges. `baseline_rate_diff` = −1.73.
 
+## D024 Pairs Macro Snapshot (2026-06-11, first /weekly for all 7)
+- **US 2Y (DGS2) 4.13%** (+0.08% wk), 20d slope +0.0053 %/day rising. **VIX 19.87 — between
+  regimes for every VIX-level pair** (no AUD/NZD inverted-long tilt, no CAD fade-USD short bias);
+  a close >20 flips AUD long-tilt ON and turns VIX against the USDCAD long.
+- **DXY 99.93–99.94, 20d slope RISING** → live bullish leg for usdchf + usdjpy.
+- audusd BEARISH/MEDIUM (US2Y rising) · nzdusd NEUTRAL (macro dead) · usdcad BULLISH/MEDIUM
+  (US2Y flipped + COT) · usdchf BULLISH/MEDIUM-HIGH (DXY+US2Y both long).
+- **🚨 MoF intervention regime ACTIVE:** Japan bought yen ~USDJPY 160.7 on 2026-04-30; FinMin
+  Katayama verbal intervention late April; Mimura jawboning into June ("speculative shorts built
+  up… ready to act"). Spot 160.5 = trigger zone → **usdjpy/eurjpy/gbpjpy hard-blocked W24**;
+  reassess after BoJ 06-15/16. JPY COT: spec short yen −136,611 = the positions MoF is targeting.
+- `baseline_dgs2 4.13` (audusd/nzdusd/usdcad/usdchf/usdjpy) · `baseline_ecb_rate 2.00` (eurjpy)
+  · `baseline_sonia_rate 3.73` (gbpjpy) · `baseline_dxy ≈99.94`.
+
 ## Belief Log
 | Date | Bias | Real Yield | DXY | Trigger |
 |---|---|---|---|---|

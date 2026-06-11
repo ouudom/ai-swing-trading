@@ -35,8 +35,20 @@ Known: backfill forward catch-up throws non-fatal "No data available" at weekend
 - **GBPUSD** [W24](forecasts/weekly/gbpusd/2026-W24.md) — SHORT 1.3400–1.3447 (8.0) + 1.3370–1.3390 (6.5). Spot 1.3384.
 - **EURGBP** [W24](forecasts/weekly/eurgbp/2026-W24.md) — NEUTRAL/range. LONG 0.8608–0.8624 (8.0) +
   SHORT 0.8664–0.8682 (7.5). Spot 0.8630. Fade both edges; no VIX-veto; netting ledger required.
-- FX strategy: sell bounce into resistance (USD strength); both majors SHORT → if both fill = 2× long
-  USD → netting gate keeps best EC, skips other (D022).
+- **AUDUSD** [W24](forecasts/weekly/audusd/2026-W24.md) — BEARISH/MEDIUM. PRIMARY SHORT 0.7065–0.7110 (7.0)
+  + COUNTER LONG 0.6940–0.6996 (7.0, MEDIUM cap). Spot 0.7010. ADX 28.4 trending → floor 6.0.
+- **NZDUSD** [W24](forecasts/weekly/nzdusd/2026-W24.md) — NEUTRAL range. PRIMARY SHORT 0.5855–0.5890 (6.5)
+  + COUNTER LONG 0.5750–0.5790 (7.5, MEDIUM cap). Spot 0.5799. Antipodean gate vs AUDUSD.
+- **USDCAD** [W24](forecasts/weekly/usdcad/2026-W24.md) — BULLISH/MEDIUM. PRIMARY LONG 1.3885–1.3905 (7.0).
+  SHORT side VETOED (ADX 32.3>30 up). Spot 1.3938. Abort long if VIX closes >20 (fade-USD flip).
+- **USDCHF** [W24](forecasts/weekly/usdchf/2026-W24.md) — BULLISH/MEDIUM-HIGH. PRIMARY LONG 0.7945–0.7960
+  (7.5) + COUNTER SHORT 0.8005–0.8030 (5.5). Spot 0.7985. ADX 23.5 → validate floor 6.5. SNB 06-18 W25.
+- **USDJPY / EURJPY / GBPJPY** [W24](forecasts/weekly/usdjpy/2026-W24.md) — **⛔ NO ZONES: active MoF
+  intervention regime** (Apr-30 intervention ~160.7, Mimura jawboning June; spot 160.5 in trigger zone;
+  crosses slam in sympathy). Reassess after BoJ 06-15/16. [eurjpy](forecasts/weekly/eurjpy/2026-W24.md) ·
+  [gbpjpy](forecasts/weekly/gbpjpy/2026-W24.md)
+- FX strategy: sell bounce into resistance (USD strength); USD-stack note: usdcad+usdchf LONG +
+  audusd+nzdusd+majors SHORT all = long USD → netting gate keeps best EC (D022, advisory).
 
 ## Open Position
 None
@@ -49,52 +61,33 @@ XAUUSD limits expired 06-09 21:00 UTC, NOT re-placed (CPI block + spot ~$200 bel
 
 ## Pending Actions
 - **/validate daily 07:30 UTC** — no limits live; re-validate each morning.
-- **CPI TODAY 06-10 12:30 UTC = V3 HARD BLOCK** (US-event instruments). PPI Thu, UMich Fri caution.
-  Re-validate post-CPI; watch cool-print squeeze (oversold all TFs) — sell bounce, don't chase.
+- **PPI TODAY 06-11 12:30 UTC = HARD ±2h** (US-event instruments). AU jobs Fri 01:30 UTC (audusd
+  hard, nzdusd caution). UMich Fri 14:00 caution. W25: BoJ 06-15/16, FOMC 06-16/17, SNB+BoE 06-18.
 - **T5 drift watch:** DFII10 2.21 vs baseline 2.11 = +0.10 (WITH bias); >0.15 total forces re-forecast.
 - **GBPUSD watch:** closest USD fade — fresh rally into 1.3400 + H1 OB + bearish E0 → ~7.5 ORDER LIMIT.
 - **EURGBP watch:** primary LONG 0.8608–0.8624 — needs D1 oversold + in-zone + bullish E0.
 - **FX netting gate (D022):** both majors ORDER LIMIT same day → keep higher EC, SKIP other.
-- **EXPANSION (D024) ✅ COMPLETE 2026-06-11:** W0 ledger + all 7 pairs onboarded and ACTIVE
-  (AUDUSD, NZDUSD, USDCAD, USDCHF, USDJPY, EURJPY, **GBPJPY #7 — LAST, scan GO**). All scans GO,
-  10 instruments live. Rulings: USD sizing no convert; netting ADVISORY only.
-  First /weekly for the 7 new pairs still pending (no zones yet).
+- **EXPANSION (D024) ✅ COMPLETE:** all 7 pairs onboarded + first /weekly published 2026-06-11
+  (all 10 instruments forecast for W24). Rulings: USD sizing no convert; netting ADVISORY only.
+- **MoF watch:** JPY trio blocked all W24. Post-BoJ (06-15/16) washout = A+ setups for W25
+  (eurjpy squeeze long 183–184; gbpjpy washout 211–213; usdjpy dip 158–159 if calm holds).
 
 ## Last Session
-2026-06-11 (expansion, GBPJPY #7 — LAST PAIR, D024 COMPLETE): gbpjpy config (eurjpy pattern:
-USD_BETA_SIGN=0, JPY pip 0.01/3dp/TICK 650; V1b 0.05 = 10% median H4 ATR 54p; one-leg macro live
-leg = SONIA via RATE_EUR slot; **COT DISABLED** — no CFTC cross contract). Pipeline: one-leg
-branch GENERALIZED (cfg LIVE_LEG_LABEL/LIVE_LEG_CCY/BASELINE_LABEL, FLAT tie tolerance 0.005;
-backtest X9/X10 label now series-driven) — eurgbp X-rows regression ✅. Backfill D1 4289 (2010→)/
-H4 9793/H1 39248/15min 60260 (one DNS-failure retry mid-backfill, data complete). Scan **GO —
-extension-fade SHORT-dominant** (template #4): SHORT Keltner-high t=4.64(H4)/4.01(D1), BB-upper
-63%win +0.42%, RSI>65 all TFs; LONG washout RSI<35 2.43/2.26 73%win, Keltner-low 2.33/2.27;
-🔑 carry-trend hypothesis REJECTED (all trend rows anti, C26 −5.0/−4.7); 🔑 **NO calm engine**
-(D6 1.42, B11 −0.32 — only JPY pair without); 🔑 macro NONE (SONIA 0.58, VIX 0.89 — second 100%
-price-driven pair); sessions NY long-only (overlap 4.20, NY-open SHORT ANTI −3.84, London DEAD);
-seasonals: Sept short +2.34, turn-of-month long −2.99, Jan long −2.28. ATR D1 med 151p (now 93
-compressed), H4 med 54p. Spot 214.6 record — BoJ/MoF + BoE hard blocks. R1/R2 ACTIVE (multi-TF
-alignment 1.5 replaces calm row; SHORT E2: outside 12–16 = 0.75, inside 13–15 = 0); wired weekly/
-validate/constitution (+GBPJPY column, baseline_sonia_rate). Smoke: pull W24 ✅ (3dp, SONIA block
-FLAT, lots 8.24 = 2000/(0.373×650) ✓), check_v1b ✅ intact, ledger usdjpy+eurjpy+gbpjpy long =
-−3.00u short JPY flagged ✅, selftest PASS.
-2026-06-11 (expansion, EURJPY #6 — FIRST cross-JPY): eurjpy config (_fx_base + USD_BETA_SIGN=0 +
-JPY pip 0.01/3dp/TICK 650, V1b 0.04 = 10% median H4 ATR 42p, COT "EURO FX/JAPANESE YEN XRATE"
-DIRECT thin OI 21k, FRED +ECBDFR). Pipeline generalized for ONE-LEG cross: weekly_pull new
-cross_rate_diff branch when RATE_GBP=None (ECB-only block, `baseline_ecb_rate`); backtest guards
-load_fred(None) — eurgbp X-rows regression ✅. Backfill D1 4289 (2010→)/H4 9791/H1 39226/15min
-60235 (2024→). Scan **GO — symmetric mean-reversion + calm-drift** on long-drift floor (D1 LNG
-55.6%): LONG washout-buy (D1 Stoch<20 t=3.10 73%win, H1 Keltner-low 2.62, 20d-low 3.07) + calm/
-squeeze (H4 D6 t=3.96, B11 2.71); SHORT extension-fade ALL TFs (Keltner-high 3.36/3.48/2.82,
-H1 W%R>−20 t=4.21 — H1 fade WORKS, unlike usdjpy); 🔑 **macro NONE** (ECB leg ANTI −1.2/−1.3,
-VIX DEAD 0.91 despite carry reputation — first 100% price-driven pair); sessions two-sided
-(London fade-short 2.77 / NY-overlap drift-long 3.02); anti: C26 chase −4.24, calm-short −3.99,
-turn-of-month −3.10. ATR D1 med 118p (now 76 compressed), H4 med 42p. Spot 185.2 record — MoF
-slams hit crosses → BoJ/MoF + ECB hard blocks, record-high longs cap MEDIUM. R1/R2 ACTIVE
-(extreme engine 2.5 both sides, NO macro/VIX rows); wired weekly/validate/constitution (+EURJPY
-column). Smoke: pull W24 ✅ (3dp, one-leg macro block, COT +1,336 direct, lots 2000/(SL×650) ✓
-11.35), check_v1b ✅ 3dp intact, ledger usdjpy+eurjpy long = −2.00u short JPY flagged ✅, selftest
-PASS.
+2026-06-11 PM (**first /weekly for all 7 new pairs — W24 mid-week**, operator request): pulls
+refreshed; zones published audusd (SHORT 0.7065–0.7110 7.0 + counter LONG 0.6940–0.6996 7.0),
+nzdusd (SHORT 0.5855–0.5890 6.5 + counter LONG 0.5750–0.5790 7.5), usdcad (LONG 1.3885–1.3905
+7.0; short VETOED ADX 32.3), usdchf (LONG 0.7945–0.7960 7.5 + counter SHORT 0.8005–0.8030 5.5).
+**JPY trio = NO ZONES — active MoF intervention regime** (web-confirmed: Apr-30 intervention
+~160.7, Katayama + Mimura jawboning into June; usdjpy spot 160.5 in trigger zone; crosses hard-
+blocked in sympathy). 🔧 **nzdusd bad tick repaired**: D1 2026-04-29 high 1.71632 → 0.58853
+(provider error; ADX was falsely 79.6 → true 18.5 RANGING); pull recomputed. yield_environment
++FX-pairs section updated. All zones PENDING — /validate gates orders.
+2026-06-11 (expansion, GBPJPY #7 — LAST, D024 COMPLETE): GO extension-fade SHORT-dominant; NO
+calm engine; macro NONE; COT DISABLED (no cross contract); one-leg macro generalized (SONIA).
+Detail → `wiki/research/gbpjpy/signal-results.md` + decisions.md D024.
+2026-06-11 (expansion, EURJPY #6 — first cross-JPY): GO symmetric mean-reversion + calm-drift;
+macro NONE; H1 fade works (unlike usdjpy); one-leg ECB branch built.
+Detail → `wiki/research/eurjpy/signal-results.md`.
 2026-06-11 (expansion, USDJPY #5): GO ASYMMETRIC (LONG drift / SHORT extremes; H1 fade ANTI);
 3 plumbing fixes (PRICE_DP override, check_v1b dp heuristic, S1 PIP_SIZE). Detail →
 `wiki/research/usdjpy/signal-results.md`.

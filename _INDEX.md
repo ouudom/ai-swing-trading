@@ -50,6 +50,10 @@
 - `wiki/system/eurjpy/eurjpy_profile.md` — cross-JPY: pip 0.01/3dp/TICK 650, macro NONE (first 100% price-driven pair), two-sided sessions (London fade-short / NY drift-long), MoF slams hit crosses, COT XRATE direct but thin
 - `wiki/system/eurjpy/confluence_criteria.md` — EURJPY R1/R2 ACTIVE: symmetric mean-reversion on long-drift floor — extreme engine 2.5 both sides; NO macro/VIX rows; BoJ/MoF + ECB hard blocks
 
+## System — GBPJPY (ACTIVE — D024 pair #7 LAST, cross-JPY #2, no zones yet)
+- `wiki/system/gbpjpy/gbpjpy_profile.md` — cross-JPY #2: pip 0.01/3dp/TICK 650, V1b 0.05 (highest ATR in book), macro NONE, NO calm engine, NY long-only sessions (short anti 13–15 UTC), COT DISABLED (no CFTC cross contract), MoF slams largest
+- `wiki/system/gbpjpy/confluence_criteria.md` — GBPJPY R1/R2 ACTIVE: extension-fade SHORT-dominant — extreme engine 2.5, multi-TF alignment 1.5 (replaces dead calm row); NO macro/VIX/calm rows; BoJ/MoF + BoE hard blocks
+
 ## Templates
 - `wiki/system/templates/weekly_forecast.md` — skeleton for forecasts/weekly/xauusd/YYYY-WNN.md (zones)
 - `wiki/system/templates/daily_validation.md` — skeleton for forecasts/daily/xauusd/YYYY-MM-DD.md (entry confluence)
@@ -73,6 +77,7 @@
 - `wiki/research/usdchf/signal-results.md` — USDCHF: mean-reverting → **GO**; 🔑 DXY 20d slope LIVE (t=2.3, only pair beyond EUR/GBP), VIX WASHOUT; H1 short-fade machine (t 4.5–5.5), London LONG drift (+ raw scan)
 - `wiki/research/usdjpy/signal-results.md` — USDJPY: **GO, ASYMMETRIC** — NOT the fade template: LONG drift (D1 squeeze t=3.27, H4 calm t=4.51, NY drift t=4.71) / SHORT D1-H4 extremes only; 🔑 H1 fade = ANTI (−3.3); DXY slope live, VIX washout, US2Y dead (+ raw scan)
 - `wiki/research/eurjpy/signal-results.md` — EURJPY: **GO, symmetric mean-reversion + calm-drift** — H1 fade works (A9 t=4.21, unlike usdjpy), D1 dip-buy strong (Stoch<20 t=3.10); 🔑 macro NONE (ECB anti, VIX dead); London fade-short / NY drift-long (+ raw scan)
+- `wiki/research/gbpjpy/signal-results.md` — GBPJPY: **GO, extension-fade SHORT-dominant** — Keltner-high fade t=4.64/4.01, strongest long-drift floor (D1 LNG 56.7%); 🔑 macro NONE (SONIA ns, VIX dead), NO calm engine (only JPY pair without), NY long-only; carry-trend hypothesis REJECTED — all trend rows anti (+ raw scan)
 
 ## Research — XAUUSD
 - `wiki/research/xauusd/_INDEX.md` — data sources, scripts, standards, pending research
@@ -135,14 +140,15 @@
 - `scripts/config/usdchf/config.py` — USDCHF config (D024 pair #4; USD-base, no oil leg, COT 6S inverted, SNB carry off)
 - `scripts/config/usdjpy/config.py` — USDJPY config (D024 pair #5; USD-base + FIRST JPY: PIP_SIZE 0.01, PRICE_DP 3, TICK 650 static, COT 6J inverted, BoJ carry off)
 - `scripts/config/eurjpy/config.py` — EURJPY config (D024 pair #6; FIRST cross-JPY: USD_BETA_SIGN 0, JPY pip plumbing, one-leg macro RATE_GBP=None, COT EUR/JPY XRATE direct)
+- `scripts/config/gbpjpy/config.py` — GBPJPY config (D024 pair #7 LAST; cross-JPY #2: one-leg macro live leg = SONIA via RATE_EUR slot + LIVE_LEG_LABEL/BASELINE_LABEL, V1b 0.05, COT disabled — no CFTC cross contract)
 - `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities
 
 ## Data
 - `data/trades_log.csv` — manual trade log (plain CSV)
 - `data/gld_holdings.csv` — daily GLD ETF tonnage (auto-appended by weekly_pull)
 - `data/weekly_pull/xauusd/` — IMMUTABLE weekly pull text files (also eurusd/, gbpusd/)
-- `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/, nzdusd/, usdcad/, usdchf/, usdjpy/, eurjpy/ (D1 2010→now, intraday 2020→now; usdchf/usdjpy/eurjpy 15min 2024→)
-- `forecasts/{weekly,daily}/{eurusd,gbpusd,eurgbp,audusd,nzdusd,usdcad,usdchf,usdjpy,eurjpy}/` — FX forecast output dirs
+- `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/, nzdusd/, usdcad/, usdchf/, usdjpy/, eurjpy/, gbpjpy/ (D1 2010→now, intraday 2020→now; usdchf/usdjpy/eurjpy/gbpjpy 15min 2024→)
+- `forecasts/{weekly,daily}/{eurusd,gbpusd,eurgbp,audusd,nzdusd,usdcad,usdchf,usdjpy,eurjpy,gbpjpy}/` — FX forecast output dirs
 - `data/fred/` — macro series CSVs (DFII10, VIXCLS, DGS10, T5YIE, FEDFUNDS, DCOILWTICO 1986→, etc.)
 - `data/yahoo/` — ICE DXY daily
 - `data/cftc/deahistfo{year}.zip` — COT yearly archives (24h refresh)

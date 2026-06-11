@@ -1,0 +1,244 @@
+
+==============================================================================
+GBPJPY Signal Edge Scan — D1 fwd=5 — baseline LNG=56.7% / SHT=43.3% — bars=1159
+==============================================================================
+Code  Signal                          Dir       N   win%    edge    avg%      t  
+------------------------------------------------------------------------------
+B10   Close>Keltner high              SHT     165   58.8   +15.5   +0.16   4.01 **
+A3    RSI>65                          SHT     191   56.5   +13.2   +0.12   3.69 **
+A11   CCI>+100                        SHT     167   55.7   +12.4   +0.13   3.22 **
+B1    Close>BB upper                  SHT      57   63.2   +19.8   +0.42   3.02 **
+B8    z-score>+2 → short              SHT      57   63.2   +19.8   +0.42   3.02 **
+C11   Near 20d HIGH                   SHT     199   51.8    +8.4   +0.05   2.40 *
+G7    September                       SHT      86   55.8   +12.5   -0.06   2.34 *
+B9    Close<Keltner low               LNG      73   69.9   +13.2   +0.56   2.27 *
+A4    RSI<35                          LNG      45   73.3   +16.7   +0.65   2.26 *
+A12   CCI<-100                        LNG      96   67.7   +11.0   +0.53   2.18 *
+A1    RSI>70                          SHT      92   52.2    +8.8   +0.11   1.71 
+C28   ADX<20 & RSI<30 (range OS)      LNG       3  100.0   +43.3   +0.76   1.51  INSUFF
+A7    Stoch K>80                      SHT     365   47.1    +3.8   -0.06   1.46 
+A2    RSI<30                          LNG      21   71.4   +14.8   +0.69   1.36  INSUFF
+B11   TTM squeeze on                  LNG     181   61.3    +4.7   +0.23   1.26 
+A9    Williams%R>-20                  SHT     376   46.3    +2.9   -0.03   1.15 
+D6s   ATR pctile<0.2 (calm)           SHT     287   46.7    +3.4   -0.10   1.15 
+C29   ADX<20 & RSI>70 (range OB)      SHT       1  100.0   +56.7   +2.93   1.14  INSUFF
+A8    Stoch K<20                      LNG      88   62.5    +5.8   +0.37   1.10 
+G2s   Tue → short                     SHT     231   46.8    +3.4   -0.15   1.05 
+B2    Close<BB lower                  LNG      50   64.0    +7.3   +0.39   1.05 
+B7    z-score<-2 → long               LNG      50   64.0    +7.3   +0.39   1.05 
+A5    RSI2<10 (Connors)               LNG     276   59.8    +3.1   +0.25   1.04 
+D2    ATR>1.5x med (expanding)        LNG      32   65.6    +9.0   +0.76   1.02 
+E13   VIX>20                          LNG     406   58.9    +2.2   +0.18   0.89 
+D4s   NR7                             SHT     174   46.6    +3.2   -0.13   0.86 
+A10   Williams%R<-80                  LNG     119   59.7    +3.0   +0.16   0.66 
+X9    base rate(IUDSOIA) 20d slope>0  LNG     745   57.7    +1.0   +0.18   0.58 
+D5s   Inside bar                      SHT     176   45.5    +2.1   -0.21   0.57 
+G3    Wed → long                      LNG     231   58.4    +1.8   +0.14   0.54 
+G5    Fri → long                      LNG     230   58.3    +1.6   +0.14   0.49 
+D1    ATR<20-med (compressed)         LNG     608   57.6    +0.9   +0.17   0.44 
+B5    BB squeeze (bw 20-low)          LNG     163   58.3    +1.6   +0.12   0.41 
+P3    Bullish pin (tail≥2.5body)      LNG     217   58.1    +1.4   +0.12   0.41 
+X10   base rate(IUDSOIA) 20d slope<0  SHT     347   44.1    +0.8   -0.21   0.29 
+C14   MACD cross down                 SHT      51   45.1    +1.8   -0.02   0.26 
+B6    BB expanding (>20-med)          LNG     498   57.0    +0.4   +0.16   0.16 
+G1    Mon → long                      LNG     231   57.1    +0.5   +0.15   0.14 
+G4s   Thu → short                     SHT     231   43.7    +0.4   -0.14   0.12 
+E15   VIX<15                          SHT     277   43.7    +0.4   -0.16   0.12 
+C12   Near 20d LOW                    LNG      33   57.6    +0.9   +0.33   0.10 
+P2    Bearish engulfing               SHT      78   43.6    +0.3   -0.03   0.05 
+P4    Bearish pin                     SHT     171   43.3    -0.1   -0.08  -0.01 
+C12r  Near 20d LOW REV                SHT      33   42.4    -0.9   -0.33  -0.10 
+G4    Thu → long                      LNG     231   56.3    -0.4   +0.14  -0.12 
+G1s   Mon → short                     SHT     231   42.9    -0.5   -0.15  -0.14 
+C24   ROC10>0                         LNG     704   56.2    -0.4   +0.10  -0.23 
+D1s   ATR<20-med (compressed)         SHT     608   42.4    -0.9   -0.17  -0.44 
+G5s   Fri → short                     SHT     230   41.7    -1.6   -0.14  -0.49 
+G3s   Wed → short                     SHT     231   41.6    -1.8   -0.14  -0.54 
+D5    Inside bar                      LNG     176   54.5    -2.1   +0.21  -0.57 
+C13   MACD cross up                   LNG      52   51.9    -4.7   +0.03  -0.69 
+C25   ROC10<0                         SHT     439   41.7    -1.6   -0.23  -0.69 
+C22   PSAR bull                       LNG     688   55.2    -1.4   +0.11  -0.76 
+P1    Bullish engulfing               LNG      71   52.1    -4.6   +0.13  -0.78 
+D4    NR7                             LNG     174   53.4    -3.2   +0.13  -0.86 
+C23   PSAR bear                       SHT     465   41.3    -2.0   -0.20  -0.89 
+A6    RSI2>90 (Connors)               SHT      39   35.9    -7.4   -0.28  -0.94 
+B2r   Close<BB lower REV              SHT      50   36.0    -7.3   -0.39  -1.05 
+G2    Tue → long                      LNG     231   53.2    -3.4   +0.15  -1.05 
+D6    ATR pctile<0.2 (calm)           LNG     287   53.3    -3.4   +0.10  -1.15 
+C19   Aroon down>70 & up<30           SHT      94   37.2    -6.1   -0.52  -1.19 
+C5    Close>EMA200                    LNG     952   54.7    -1.9   +0.05  -1.21 
+C3    Close>EMA50                     LNG     815   54.1    -2.6   +0.03  -1.48 
+C1    Close>EMA20                     LNG     739   53.9    -2.8   +0.04  -1.54 
+E16   VIX 1d spike>3                  LNG      42   42.9   -13.8   -0.09  -1.81 
+C9    Donchian20 breakout UP          LNG     101   47.5    -9.1   -0.15  -1.86 
+C10   Donchian20 breakdown            SHT      42   28.6   -14.8   -0.80  -1.93 
+C2    Close<EMA20                     SHT     414   38.4    -4.9   -0.33  -2.02 *
+C4    Close<EMA50                     SHT     338   37.3    -6.0   -0.42  -2.24 *
+C20   Supertrend bull                 LNG     672   52.4    -4.3   +0.01  -2.25 *
+C7    EMA20>EMA50                     LNG     855   52.9    -3.8   -0.02  -2.25 *
+G6    January                         LNG     111   45.9   -10.7   +0.01  -2.28 *
+C11r  Near 20d HIGH REV               LNG     199   48.2    -8.4   -0.05  -2.40 *
+C26   ADX>25 & EMA20>50               LNG     247   48.6    -8.1   -0.13  -2.57 *
+C6    Close<EMA200                    SHT     201   34.3    -9.0   -0.58  -2.57 *
+C21   Supertrend bear                 SHT     482   37.3    -6.0   -0.33  -2.65 **
+C18   Aroon up>70 & down<30           LNG     376   49.5    -7.2   -0.14  -2.82 **
+C27   ADX>25 & EMA20<50               SHT     121   30.6   -12.7   -0.74  -2.83 **
+G9    Turn of month (day>=26)         LNG     205   46.3   -10.3   -0.15  -2.99 **
+B1r   Close>BB upper REV              LNG      57   36.8   -19.8   -0.42  -3.02 **
+C8    EMA20<EMA50                     SHT     298   32.6   -10.8   -0.62  -3.75 **
+------------------------------------------------------------------------------
+* |t|>2.0 (p<.05)   ** |t|>2.6 (p<.01)   N<30 INSUFF
+
+==============================================================================
+GBPJPY Signal Edge Scan — H4 fwd=6 — baseline LNG=54.8% / SHT=45.1% — bars=6845
+==============================================================================
+Code  Signal                          Dir       N   win%    edge    avg%      t  
+------------------------------------------------------------------------------
+B10   Close>Keltner high              SHT    1071   52.1    +7.1   +0.02   4.64 **
+A11   CCI>+100                        SHT     962   51.7    +6.6   +0.03   4.12 **
+A7    Stoch K>80                      SHT    1808   49.5    +4.5   -0.02   3.80 **
+A3    RSI>65                          SHT    1015   50.6    +5.6   +0.02   3.58 **
+B1    Close>BB upper                  SHT     391   53.7    +8.7   +0.07   3.44 **
+B8    z-score>+2 → short              SHT     391   53.7    +8.7   +0.07   3.44 **
+A1    RSI>70                          SHT     472   52.3    +7.3   +0.00   3.18 **
+A9    Williams%R>-20                  SHT    1945   48.5    +3.5   -0.02   3.09 **
+A4    RSI<35                          LNG     542   60.0    +5.2   +0.07   2.43 *
+B9    Close<Keltner low               LNG     679   59.2    +4.4   +0.07   2.33 *
+C14   MACD cross down                 SHT     266   51.9    +6.8   +0.04   2.24 *
+C11   Near 20d HIGH                   SHT    2175   47.3    +2.3   -0.02   2.12 *
+C12   Near 20d LOW                    LNG    1053   57.8    +3.1   +0.02   2.00 *
+P4    Bearish pin                     SHT    1108   47.7    +2.7   +0.01   1.80 
+A6    RSI2>90 (Connors)               SHT     251   49.8    +4.8   -0.04   1.51 
+D6    ATR pctile<0.2 (calm)           LNG    1743   56.5    +1.7   +0.04   1.42 
+D5    Inside bar                      LNG    1105   56.7    +1.9   +0.05   1.26 
+H3    NY open 13-15                   LNG     530   56.8    +2.0   +0.05   0.94 
+H2    London open 07-09               LNG    1157   55.8    +1.1   +0.03   0.73 
+A2    RSI<30                          LNG     240   57.1    +2.3   +0.07   0.72 
+B2    Close<BB lower                  LNG     346   56.4    +1.6   +0.02   0.60 
+B7    z-score<-2 → long               LNG     346   56.4    +1.6   +0.02   0.60 
+C28   ADX<20 & RSI<30 (range OS)      LNG      11   63.6    +8.9   +0.75   0.59  INSUFF
+D4    NR7                             LNG     903   55.6    +0.8   +0.04   0.50 
+D1    ATR<20-med (compressed)         LNG    3486   55.2    +0.4   +0.04   0.48 
+P3    Bullish pin (tail≥2.5body)      LNG    1231   55.4    +0.6   +0.02   0.45 
+P1    Bullish engulfing               LNG     534   55.4    +0.7   +0.04   0.31 
+A12   CCI<-100                        LNG     754   54.8    +0.0   +0.02   0.01 
+B5    BB squeeze (bw 20-low)          LNG    1138   54.7    -0.0   +0.02  -0.01 
+A8    Stoch K<20                      LNG     907   54.5    -0.3   -0.04  -0.18 
+C29   ADX<20 & RSI>70 (range OB)      SHT      49   42.9    -2.2   -0.08  -0.31 
+B11   TTM squeeze on                  LNG     854   54.2    -0.5   -0.00  -0.32 
+D1s   ATR<20-med (compressed)         SHT    3486   44.7    -0.4   -0.04  -0.46 
+C18   Aroon up>70 & down<30           LNG    1958   54.2    -0.5   +0.01  -0.46 
+C24   ROC10>0                         LNG    3823   54.4    -0.4   +0.03  -0.47 
+C25   ROC10<0                         SHT    2996   44.6    -0.5   -0.03  -0.50 
+D4s   NR7                             SHT     903   44.2    -0.9   -0.04  -0.52 
+C27   ADX>25 & EMA20<50               SHT    1305   44.3    -0.8   -0.05  -0.55 
+C22   PSAR bull                       LNG    3727   54.3    -0.5   +0.05  -0.56 
+C23   PSAR bear                       SHT    3111   44.5    -0.6   -0.01  -0.63 
+H4o   NY/London overlap 12-16         LNG    1787   53.9    -0.8   +0.03  -0.69 
+A10   Williams%R<-80                  LNG    1066   53.7    -1.1   -0.02  -0.72 
+H2s   London open 07-09               SHT    1157   44.0    -1.1   -0.03  -0.72 
+B2r   Close<BB lower REV              SHT     346   43.1    -2.0   -0.02  -0.74 
+C7    EMA20>EMA50                     LNG    4248   54.1    -0.7   +0.02  -0.87 
+C13   MACD cross up                   LNG     267   52.1    -2.7   +0.00  -0.89 
+C8    EMA20<EMA50                     SHT    2590   44.1    -1.0   -0.05  -1.02 
+C10   Donchian20 breakdown            SHT     292   41.8    -3.3   -0.05  -1.12 
+H3s   NY open 13-15                   SHT     530   42.5    -2.6   -0.05  -1.20 
+D5s   Inside bar                      SHT    1105   43.1    -2.0   -0.05  -1.32 
+A5    RSI2<10 (Connors)               LNG    1740   53.2    -1.6   +0.01  -1.34 
+D6s   ATR pctile<0.2 (calm)           SHT    1743   43.4    -1.6   -0.04  -1.36 
+C3    Close>EMA50                     LNG    4164   53.7    -1.1   +0.02  -1.44 
+C5    Close>EMA200                    LNG    4661   53.7    -1.1   +0.01  -1.45 
+C1    Close>EMA20                     LNG    3988   53.5    -1.3   +0.02  -1.62 
+P2    Bearish engulfing               SHT     469   41.2    -3.9   -0.07  -1.70 
+C4    Close<EMA50                     SHT    2674   43.3    -1.7   -0.05  -1.77 
+D2    ATR>1.5x med (expanding)        LNG     146   47.3    -7.5   -0.08  -1.82 
+C2    Close<EMA20                     SHT    2850   43.3    -1.8   -0.05  -1.92 
+C6    Close<EMA200                    SHT    2177   42.9    -2.1   -0.07  -2.01 *
+C9    Donchian20 breakout UP          LNG     548   50.4    -4.4   +0.00  -2.07 *
+C12r  Near 20d LOW REV                SHT    1053   41.9    -3.2   -0.02  -2.07 *
+C11r  Near 20d HIGH REV               LNG    2175   52.6    -2.2   +0.02  -2.07 *
+B6    BB expanding (>20-med)          LNG    3134   52.9    -1.9   +0.01  -2.09 *
+C19   Aroon down>70 & up<30           SHT    1097   41.4    -3.7   -0.08  -2.44 *
+C20   Supertrend bull                 LNG    3719   52.6    -2.1   +0.01  -2.62 **
+C21   Supertrend bear                 SHT    3120   42.5    -2.6   -0.05  -2.90 **
+B1r   Close>BB upper REV              LNG     391   46.3    -8.5   -0.07  -3.36 **
+C26   ADX>25 & EMA20>50               LNG    1438   48.2    -6.6   -0.04  -5.00 **
+------------------------------------------------------------------------------
+* |t|>2.0 (p<.05)   ** |t|>2.6 (p<.01)   N<30 INSUFF
+
+==============================================================================
+GBPJPY Signal Edge Scan — H1 fwd=4 — baseline LNG=52.4% / SHT=46.8% — bars=27388
+==============================================================================
+Code  Signal                          Dir       N   win%    edge    avg%      t  
+------------------------------------------------------------------------------
+H4o   NY/London overlap 12-16         LNG    5760   55.2    +2.8   +0.02   4.20 **
+H3    NY open 13-15                   LNG    3457   55.6    +3.2   +0.02   3.75 **
+D5    Inside bar                      LNG    3771   54.6    +2.1   +0.01   2.62 **
+A3    RSI>65                          SHT    3832   48.9    +2.1   +0.00   2.59 *
+C12   Near 20d LOW                    LNG   11470   53.6    +1.2   +0.00   2.56 *
+B10   Close>Keltner high              SHT    4023   48.7    +1.9   -0.01   2.42 *
+A9    Williams%R>-20                  SHT    7237   48.0    +1.2   -0.00   2.07 *
+A8    Stoch K<20                      LNG    3989   54.0    +1.6   +0.00   1.97 
+A12   CCI<-100                        LNG    3116   54.1    +1.7   +0.00   1.90 
+A10   Williams%R<-80                  LNG    4653   53.8    +1.4   +0.00   1.87 
+C11   Near 20d HIGH                   SHT   14938   47.5    +0.7   -0.01   1.76 
+A7    Stoch K>80                      SHT    6638   47.8    +1.0   -0.01   1.68 
+B9    Close<Keltner low               LNG    3078   53.9    +1.5   +0.00   1.62 
+B2    Close<BB lower                  LNG    1537   54.3    +1.9   +0.01   1.48 
+B7    z-score<-2 → long               LNG    1537   54.3    +1.9   +0.01   1.48 
+D6    ATR pctile<0.2 (calm)           LNG    6198   53.2    +0.8   +0.01   1.26 
+A4    RSI<35                          LNG    2601   53.6    +1.2   -0.00   1.22 
+A1    RSI>70                          SHT    1934   48.1    +1.3   +0.00   1.12 
+A5    RSI2<10 (Connors)               LNG    7168   53.1    +0.6   +0.01   1.06 
+D2    ATR>1.5x med (expanding)        LNG    1052   53.6    +1.2   +0.03   0.76 
+H2s   London open 07-09               SHT    3456   47.4    +0.6   +0.00   0.71 
+P4    Bearish pin                     SHT    4412   47.3    +0.5   -0.00   0.70 
+B11   TTM squeeze on                  LNG    4290   52.9    +0.5   +0.00   0.62 
+D4s   NR7                             SHT    4702   47.2    +0.4   -0.01   0.57 
+A2    RSI<30                          LNG    1188   53.2    +0.8   -0.01   0.52 
+B1    Close>BB upper                  SHT    1773   47.4    +0.6   -0.00   0.47 
+B8    z-score>+2 → short              SHT    1773   47.4    +0.6   -0.00   0.47 
+C28   ADX<20 & RSI<30 (range OS)      LNG      53   54.7    +2.3   +0.02   0.33 
+C19   Aroon down>70 & up<30           SHT    4713   47.0    +0.2   +0.00   0.30 
+A11   CCI>+100                        SHT    3795   47.0    +0.2   -0.02   0.23 
+D1s   ATR<20-med (compressed)         SHT   14097   46.8    +0.0   -0.00   0.07 
+D1    ATR<20-med (compressed)         LNG   14097   52.5    +0.0   +0.00   0.02 
+C9    Donchian20 breakout UP          LNG    1982   52.4    -0.1   +0.01  -0.06 
+C14   MACD cross down                 SHT    1094   46.7    -0.1   +0.00  -0.07 
+A6    RSI2>90 (Connors)               SHT     826   46.6    -0.2   -0.00  -0.12 
+B5    BB squeeze (bw 20-low)          LNG    4234   52.2    -0.2   -0.00  -0.26 
+C29   ADX<20 & RSI>70 (range OB)      SHT     138   45.7    -1.2   -0.02  -0.27 
+C22   PSAR bull                       LNG   14642   52.3    -0.1   +0.01  -0.29 
+B1r   Close>BB upper REV              LNG    1773   52.1    -0.4   +0.00  -0.32 
+P3    Bullish pin (tail≥2.5body)      LNG    4770   52.2    -0.3   +0.01  -0.39 
+H2    London open 07-09               LNG    3456   52.1    -0.4   -0.00  -0.46 
+C23   PSAR bear                       SHT   12741   46.6    -0.2   -0.00  -0.50 
+C27   ADX>25 & EMA20<50               SHT    5948   46.4    -0.4   +0.00  -0.62 
+C10   Donchian20 breakdown            SHT    1296   45.8    -1.1   -0.01  -0.77 
+C20   Supertrend bull                 LNG   14312   52.1    -0.3   +0.01  -0.78 
+D4    NR7                             LNG    4702   51.9    -0.6   +0.01  -0.78 
+C13   MACD cross up                   LNG    1093   51.2    -1.2   -0.01  -0.80 
+B6    BB expanding (>20-med)          LNG   12838   52.1    -0.4   +0.01  -0.82 
+P1    Bullish engulfing               LNG    2086   51.4    -1.1   +0.01  -0.96 
+P2    Bearish engulfing               SHT    1781   45.6    -1.2   -0.01  -0.99 
+C21   Supertrend bear                 SHT   13072   46.4    -0.4   -0.00  -1.00 
+C24   ROC10>0                         LNG   14647   52.0    -0.4   +0.01  -1.08 
+D6s   ATR pctile<0.2 (calm)           SHT    6198   46.1    -0.7   -0.01  -1.14 
+B2r   Close<BB lower REV              SHT    1537   45.3    -1.5   -0.01  -1.16 
+C25   ROC10<0                         SHT   12620   46.2    -0.6   -0.00  -1.31 
+C11r  Near 20d HIGH REV               LNG   14938   51.8    -0.7   +0.01  -1.62 
+C7    EMA20>EMA50                     LNG   15750   51.7    -0.8   +0.01  -1.96 
+C18   Aroon up>70 & down<30           LNG    6890   51.1    -1.4   +0.01  -2.25 *
+C8    EMA20<EMA50                     SHT   11633   45.8    -1.1   -0.00  -2.29 *
+D5s   Inside bar                      SHT    3771   44.9    -2.0   -0.01  -2.40 *
+C12r  Near 20d LOW REV                SHT   11470   45.7    -1.2   -0.00  -2.49 *
+C3    Close>EMA50                     LNG   15675   51.4    -1.0   +0.00  -2.63 **
+C5    Close>EMA200                    LNG   16677   51.3    -1.1   +0.00  -2.96 **
+C4    Close<EMA50                     SHT   11708   45.4    -1.4   -0.01  -3.07 **
+C1    Close>EMA20                     LNG   15169   51.2    -1.3   +0.00  -3.09 **
+C2    Close<EMA20                     SHT   12214   45.2    -1.6   -0.01  -3.56 **
+C6    Close<EMA200                    SHT   10706   45.1    -1.7   -0.01  -3.61 **
+H3s   NY open 13-15                   SHT    3457   43.6    -3.3   -0.02  -3.84 **
+C26   ADX>25 & EMA20>50               LNG    5986   49.4    -3.0   +0.00  -4.69 **
+------------------------------------------------------------------------------
+* |t|>2.0 (p<.05)   ** |t|>2.6 (p<.01)   N<30 INSUFF

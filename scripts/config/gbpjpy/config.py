@@ -40,9 +40,9 @@ PRICE_DP        = 3        # display/rounding precision
 TICK_MULTIPLIER = 650      # static ≈ 100000/USDJPY(154) — $/lot per 1.0 price move
 MIN_BAR_RANGE   = 0.05     # 5 JPY pips (vestigial — session filter is time-based; high-ATR pair)
 
-# V1b invalidation buffer: ~10% median H4 ATR. PLACEHOLDER 0.06 — RECALIBRATE from
-# backfilled H4 trading-day ATR median before first live validate.
-V1B_BUFFER = 0.06
+# V1b invalidation buffer: ~10% median H4 ATR (median 54 JPY pips, 2020-2026 trading-day
+# bars, range>=0.05 filter) → 5 pips. 1.28× eurjpy's 0.04 — highest in the book.
+V1B_BUFFER = 0.05
 
 # ── Macro: one-leg cross — GBP (SONIA) only; JPY has NO daily FRED series ──
 # MACRO_MODE="cross_rate_diff" with RATE_GBP=None → one-leg branch. RATE_EUR slot

@@ -25,7 +25,11 @@ later decision but still in force).
 ---
 
 ## D024 — 7-pair expansion; netting demoted to ADVISORY; USD sizing everywhere (no quote-CCY convert)
-**Status:** ACTIVE (2026-06-10). Amends D022 (netting enforcement dropped). See [[currency_exposure]].
+**Status:** ACTIVE (2026-06-10). **COMPLETE 2026-06-11 — all 7 pairs onboarded, all scans GO,
+10 instruments live.** The carry-trend NO-GO contingency was never needed: even GBPJPY scans as
+extension-fade (all trend rows anti). Crosses (EURGBP/EURJPY/GBPJPY) all macro-dead → 100%
+price-driven confluence. GBPJPY = first pair with COT disabled (no CFTC cross contract).
+Amends D022 (netting enforcement dropped). See [[currency_exposure]].
 **Decision:** Expand to **all 7 new pairs** — AUDUSD, NZDUSD, USDCAD, USDCHF, USDJPY, EURJPY,
 GBPJPY — onboarded **sequentially, one at a time** (easy→hard: USD-quote clones → USD-base class →
 JPY block), each gating on its own 16yr signal-scan GO before its confluence goes ACTIVE.

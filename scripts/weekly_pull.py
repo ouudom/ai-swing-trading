@@ -684,7 +684,7 @@ def _compute_and_write(out_path):
             f"⚠ {display} CROSS — one-leg macro (no daily {getattr(cfg,'RATE_FOREIGN_NAME','foreign')} series); "
             f"LOW-weight NON-SCORING tilt.\n"
             f"  {leg_label}: {leg_now:.2f}%  (was {leg_20d:.2f}% 20d ago, Δ {leg_now-leg_20d:+.2f}%)\n"
-            f"  → {leg_ccy + ' carry UP (bullish ' + display + ')' if leg_now > leg_20d else leg_ccy + ' carry DOWN (bearish ' + display + ')' if leg_now < leg_20d else 'FLAT (policy step unchanged)'}\n"
+            f"  → {leg_ccy + ' carry UP (bullish ' + display + ')' if leg_now - leg_20d > 0.005 else leg_ccy + ' carry DOWN (bearish ' + display + ')' if leg_20d - leg_now > 0.005 else 'FLAT (policy step unchanged)'}\n"
             f"VIX:              {float(vix['value'].iloc[-1]):.2f}  (carry barometer — polarity per-pair, see signal-results)")
         baseline_label = getattr(cfg, "BASELINE_LABEL", "baseline_ecb_rate"); baseline_val = round(leg_now, 3)
     elif macro_mode == "cross_rate_diff":

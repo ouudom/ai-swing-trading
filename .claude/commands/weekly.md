@@ -1,6 +1,6 @@
 Run the full weekly forecast → produce Trading Zones.
 
-Argument: `[instrument]` ∈ {xauusd, eurusd, gbpusd, eurgbp, audusd, nzdusd, usdcad, usdchf, usdjpy, eurjpy} (default xauusd).
+Argument: `[instrument]` ∈ {xauusd, eurusd, gbpusd, eurgbp, audusd, nzdusd, usdcad, usdchf, usdjpy, eurjpy, gbpjpy} (default xauusd).
 One instrument per invocation.
 (eurgbp = CROSS: macro-light mean-reversion, no VIX-veto, European event blocks. audusd: no VIX-veto +
 no DXY block — VIX level INVERTED tilt, DXY-jump dead; RBA/AU-CPI/China events. nzdusd: macro-light,
@@ -13,18 +13,21 @@ usdjpy = **USD-BASE + JPY-quoted + ASYMMETRIC**: NOT the fade template — LONG 
 live, VIX washout, COT 6J inverted; pip 0.01, 3dp; BoJ/MoF intervention regime ≥158.
 eurjpy = **CROSS-JPY, macro NONE**: symmetric mean-reversion on long-drift floor — buy washouts,
 fade extension, never chase; NO VIX/DXY/rate gates (all dead); pip 0.01, 3dp; COT EUR/JPY XRATE
-direct but THIN; BoJ/MoF + ECB hard blocks — interventions slam crosses.)
+direct but THIN; BoJ/MoF + ECB hard blocks — interventions slam crosses.
+gbpjpy = **CROSS-JPY #2, macro NONE**: extension-fade, SHORT-side dominant, on strongest long-drift
+floor (D1 LNG 56.7%); NO calm/squeeze row (dead — only JPY pair without it); NO VIX/rate gates;
+pip 0.01, 3dp; **COT DISABLED** (no CFTC cross contract); BoJ/MoF + BoE hard blocks; highest ATR.)
 
 Goal: a weekly forecast that publishes up to **3 Trading Zones** (at most 1 counter-trend), each
 scored by **Zone Confluence** (max 10, floor 5.0 — `wiki/system/{instrument}/confluence_criteria.md` R1).
 
 ## Step 0 — Instrument parametrization
-| Param | xauusd | eurusd | gbpusd | eurgbp (cross) | audusd | nzdusd | usdcad (USD-base) | usdchf (USD-base) | usdjpy (USD-base, JPY) | eurjpy (cross, JPY) |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Character | momentum (pro-trend) | mean-reversion (fade) | mean-reversion (fade) | mean-reversion (fade), macro-light | mean-reversion (fade), H4-centric | mean-reversion (fade), macro-light/squeeze-led | mean-reversion (fade), USD-base | mean-reversion (fade), H1-centric, DXY proxy | **asymmetric carry-drift**: LONG drift-continuation / SHORT D1-H4-extreme fade | **symmetric mean-reversion + calm-drift** on long-drift floor; macro NONE |
-| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` | `baseline_rate_diff` (ECBDFR−SONIA, weak) | `baseline_dgs2` | `baseline_dgs2` (context only) | `baseline_dgs2` (FLIPPED polarity) | `baseline_dgs2` (FLIPPED, weak tilt) | `baseline_dgs2` (DEAD — drift in baseline) | `baseline_ecb_rate` (context only — macro dead) |
-| Profile | xauusd_profile.md | eurusd_profile.md | gbpusd_profile.md | eurgbp_profile.md | audusd_profile.md | nzdusd_profile.md | usdcad_profile.md | usdchf_profile.md | usdjpy_profile.md | eurjpy_profile.md |
-| Confluence R1 | xauusd | eurusd | gbpusd | eurgbp | audusd | nzdusd | usdcad | usdchf | usdjpy (direction-aware) | eurjpy |
+| Param | xauusd | eurusd | gbpusd | eurgbp (cross) | audusd | nzdusd | usdcad (USD-base) | usdchf (USD-base) | usdjpy (USD-base, JPY) | eurjpy (cross, JPY) | gbpjpy (cross, JPY) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Character | momentum (pro-trend) | mean-reversion (fade) | mean-reversion (fade) | mean-reversion (fade), macro-light | mean-reversion (fade), H4-centric | mean-reversion (fade), macro-light/squeeze-led | mean-reversion (fade), USD-base | mean-reversion (fade), H1-centric, DXY proxy | **asymmetric carry-drift**: LONG drift-continuation / SHORT D1-H4-extreme fade | **symmetric mean-reversion + calm-drift** on long-drift floor; macro NONE | **extension-fade, SHORT-dominant**, strongest long-drift floor; NO calm row; macro NONE |
+| Macro baseline field | `baseline_dfii10` | `baseline_dgs2` | `baseline_dgs2` | `baseline_rate_diff` (ECBDFR−SONIA, weak) | `baseline_dgs2` | `baseline_dgs2` (context only) | `baseline_dgs2` (FLIPPED polarity) | `baseline_dgs2` (FLIPPED, weak tilt) | `baseline_dgs2` (DEAD — drift in baseline) | `baseline_ecb_rate` (context only — macro dead) | `baseline_sonia_rate` (context only — macro dead) |
+| Profile | xauusd_profile.md | eurusd_profile.md | gbpusd_profile.md | eurgbp_profile.md | audusd_profile.md | nzdusd_profile.md | usdcad_profile.md | usdchf_profile.md | usdjpy_profile.md | eurjpy_profile.md | gbpjpy_profile.md |
+| Confluence R1 | xauusd | eurusd | gbpusd | eurgbp | audusd | nzdusd | usdcad | usdchf | usdjpy (direction-aware) | eurjpy | gbpjpy |
 
 ## Prerequisites — Read First
 1. `wiki/system/core/macro/yield_environment.md` — prior macro baseline
@@ -86,6 +89,10 @@ Read the full `weekly_pull_{YEAR}_W{WW}.txt` before analysis.
   ECB leg (ECBDFR) scans ANTI (t −1.2/−1.3) — context line only; **VIX DEAD** (E13 t=0.91) despite
   carry-barometer reputation — no gate, no score. Bias = structure/oscillator/calm-regime only.
   ⚠ MoF/BoJ regime shared with usdjpy — interventions slam crosses; spot 185+ = record territory.
+- gbpjpy (**CROSS-JPY #2 — macro NONE, second 100% price-driven pair**): no USD leg, no DXY/US2Y
+  rows; SONIA leg (IUDSOIA) scans dead (t 0.58/0.29) — context line only; **VIX DEAD** (E13 t=0.89,
+  spike −1.81 mildly anti) — no gate, no score. Bias = structure/oscillator/session only.
+  ⚠ MoF/BoJ regime shared — GBPJPY slams are the LARGEST of the crosses; spot 214+ = record territory.
 Bias: BULLISH/BEARISH/NEUTRAL + confidence. Flag regime shift vs baseline.
 
 **2. News Analysis** — scheduled high-impact calendar next week (UTC, mark hard blocks),
@@ -116,6 +123,7 @@ differs by instrument**:
 - **usdchf (USD-base):** Z1 Structural 2.0 (MAND) | Z2 H1 oscillator extreme cluster 2.0 (short t 4.0–5.5) | Z3 DXY 20d slope aligned 2.0 | Z4 compression/squeeze (H1 TTM/calm) 1.5 | Z5 D1 pattern/extreme 1.0 | Z6 H4 band/big-figure 1.0 | Z7 non-trend ADX<25 0.5. (NO VIX row — washout; H4 thin, H1-centric.)
 - **usdjpy (USD-base, DIRECTION-AWARE):** Z1 Structural 2.0 (MAND) | Z2 side engine 2.5 — LONG: D1 TTM squeeze/calm ATR (t 3.3–4.5) · SHORT: ≥2 of D1 RSI>65 / H4 CCI>+100 / H4 Keltner-high (t 2.1–3.1) | Z3 DXY 20d slope aligned 2.0 | Z4 LONG dip at 20d low 1.0 | Z5 D1 pattern (PSAR/engulf) 1.0 | Z6 LONG big-figure 1.0 | Z7 not-extended ADX<25 0.5. (NO VIX row; counter = SHORT.)
 - **eurjpy (cross-JPY, NO macro):** Z1 Structural 2.0 (MAND) | Z2 extreme engine 2.5 — LONG: washout (D1 Stoch<20 / H1 Keltner-low / 20d low, t 2.6–3.1) · SHORT: extension (D1/H4 Keltner-high / RSI>65–70, t 2.8–3.5) | Z3 calm/squeeze regime 1.5 (LONG full, SHORT half) | Z4 H4 oscillator stack 1.5 | Z5 D1 trigger (inside-bar/compression) 1.0 | Z6 big-figure 1.0 | Z7 not-extended ADX<25 0.5. (NO macro row at all; counter = SHORT.)
+- **gbpjpy (cross-JPY, NO macro, NO calm row):** Z1 Structural 2.0 (MAND) | Z2 extreme engine 2.5 — SHORT: extension (D1/H4 Keltner-high / BB-upper / RSI>65 / CCI>+100, t 3.0–4.6) · LONG: washout (D1/H4 Keltner-low / RSI<35 / CCI<−100 / 20d low, t 2.2–2.6) | Z3 multi-TF extreme alignment ≥2 TFs 1.5 | Z4 H4 oscillator stack 1.5 | Z5 H4 reversal trigger (MACD-down/pin) 1.0 | Z6 big-figure 1.0 | Z7 not-extended ADX<25 0.5. (NO macro, NO calm/squeeze; counter = SHORT.)
 
 Rules: publish if score ≥ 5.0 (Z1 mandatory). Max 3 zones, ≤1 counter.
 - Counter zone (xauusd): macro Z2+Z3 score 0; RSI divergence MANDATORY; macro conf LOW/MEDIUM.
@@ -144,6 +152,12 @@ Rules: publish if score ≥ 5.0 (Z1 mandatory). Max 3 zones, ≤1 counter.
   zone at fresh record highs during intervention watch → conviction cap MEDIUM; zones are REVERSION
   zones only — never breakout/continuation (C26 anti −4.2, Donchian-up −2.6, momentum shorts −3.3);
   turn-of-month LONG −0.5 (t=−3.10).
+  **gbpjpy (cross-JPY #2): NO VIX veto/score, NO DXY/US2Y anything** (cross, all dead). Vetoes: BoJ
+  decision / active MoF jawboning / BoE decision = HARD BLOCK (interventions slam GBPJPY hardest);
+  LONG zone at fresh record highs during intervention watch → conviction cap MEDIUM; REVERSION zones
+  only — never breakout/continuation (C26 anti −5.0/−4.7, band-break long B1r −3.4, momentum shorts
+  C8 −3.75); turn-of-month LONG −0.5 (G9 −2.99); January LONG caution (G6 −2.28); NO calm/squeeze
+  scoring (dead).
 - Write IF/THEN in one sentence + name zone (Primary/Secondary/Counter), direction, box, score, signals.
 - SL/offset/TP computed at `/validate`, not here — but name the TP structural anchor + indicative R.
 
@@ -151,7 +165,7 @@ Rules: publish if score ≥ 5.0 (Z1 mandatory). Max 3 zones, ≤1 counter.
 Template `wiki/system/templates/weekly_forecast.md`. Frontmatter (instrument-aware baseline):
 ```yaml
 type: weekly_forecast
-instrument: xauusd | eurusd | gbpusd | eurgbp | audusd | nzdusd | usdcad | usdchf | usdjpy | eurjpy
+instrument: xauusd | eurusd | gbpusd | eurgbp | audusd | nzdusd | usdcad | usdchf | usdjpy | eurjpy | gbpjpy
 week: YYYY-WNN
 generated: YYYY-MM-DD
 macro_bias: BULLISH | BEARISH | NEUTRAL
@@ -164,6 +178,7 @@ baseline_dgs2: x.xx          # FX majors only
 baseline_policy_diff: x.xx   # FX majors context only
 baseline_rate_diff: x.xx     # eurgbp only (ECBDFR−SONIA; weak/context)
 baseline_ecb_rate: x.xx      # eurjpy only (ECBDFR level; context — macro dead)
+baseline_sonia_rate: x.xx    # gbpjpy only (IUDSOIA level; context — macro dead)
 baseline_dxy: xxx.xxx
 weekend_gap_pct: x.xxx
 cot_net: ±xxxxx

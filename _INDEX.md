@@ -112,6 +112,7 @@
 - `forecasts/weekly/xauusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH. (renamed W23→W24: files now named by trade week, not run week)
 
 ## Daily Validations
+- `forecasts/daily/{all 10}/2026-06-11.md` — **`/validate all`, ECB + PPI day, V3 HARD BLOCK** (ECB rate decision 12:15 UTC + US PPI 12:30 UTC, both <2h of NY open). 06:11 UTC run: ALL 10 instruments NO TRADE, all zones held PENDING (structure intact, none invalidated), no re-forecast (T1–T5 sub-threshold). 🔎 ECB decision was MISSED in W24 weekly — flagged. Gold $4080 (zones $309–404 OTM). JPY trio = NO ZONES (MoF). EUR pairs: re-validate after 12:45 presser.
 - `forecasts/daily/{xauusd,eurusd,gbpusd,eurgbp}/2026-06-10.md` — **CPI day, V3 HARD BLOCK** (US May CPI 12:30 UTC). 08:06 UTC London run: ALL 4 instruments, ALL zones = NO TRADE, held PENDING, no orders. XAU spot $4162 EC 6.0 (V3 override); EUR 1.1549 EC 2.0; GBP 1.33836 EC 2.0 (in-zone, bounce faded); EURGBP 0.86296 EC 3.0 (above LONG support, D1 osc not extreme).
 - `forecasts/daily/xauusd/2026-06-09.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). 13:47 UTC NY run: SL $46.45, lots 0.43, limits $4415.66 / $4504.66. VIX fresh.
 - `forecasts/daily/xauusd/2026-06-08.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). SL $51.08, lots 0.39.

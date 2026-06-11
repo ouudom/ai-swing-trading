@@ -29,8 +29,9 @@ Known: backfill forward catch-up throws non-fatal "No data available" at weekend
 
 ## Active Forecasts — 2026-W24
 - **XAUUSD** [W24](forecasts/weekly/xauusd/2026-W24.md) — BEARISH/MEDIUM-HIGH, conviction HIGH.
-  PRIMARY SHORT $4367–$4390 (9.5), SECONDARY SHORT $4450–$4485 (9.5), no counter. Spot ~$4162,
-  ADX 48 — zones ~$200 OTM, re-anchor likely Sunday. Invalidate: D1 close > zone top.
+  PRIMARY SHORT $4367–$4390 (9.5), SECONDARY SHORT $4450–$4485 (9.5), no counter. Spot ~$4080
+  (fell further), ADX 42 — zones now ~$309–404 OTM, unreachable, re-anchor at next /weekly.
+  Invalidate: D1 close > zone top (not breached).
 - **EURUSD** [W24](forecasts/weekly/eurusd/2026-W24.md) — SHORT 1.1618–1.1640 (7.5) + 1.1574–1.1593 (6.5). Spot 1.1549.
 - **GBPUSD** [W24](forecasts/weekly/gbpusd/2026-W24.md) — SHORT 1.3400–1.3447 (8.0) + 1.3370–1.3390 (6.5). Spot 1.3384.
 - **EURGBP** [W24](forecasts/weekly/eurgbp/2026-W24.md) — NEUTRAL/range. LONG 0.8608–0.8624 (8.0) +
@@ -53,16 +54,25 @@ Known: backfill forward catch-up throws non-fatal "No data available" at weekend
 ## Open Position
 None
 
-## Live Order Limits — NONE (2026-06-10 08:06 UTC, CPI day = V3 HARD BLOCK)
-XAUUSD limits expired 06-09 21:00 UTC, NOT re-placed (CPI block + spot ~$200 below zone). 0 FX orders.
+## Live Order Limits — NONE (2026-06-11 06:11 UTC, `/validate all` — ECB + PPI day = V3 HARD BLOCK)
+All 10 instruments validated → **❌ NO TRADE across the board (V3)**. 0 order limits placed. All zones
+held PENDING (structure intact, NONE invalidated). No re-forecast triggered (T1–T5 sub-threshold).
+> [!warning] **ECB rate decision is TODAY 06-11 12:15 UTC (presser 12:45)** — confirmed 2026 schedule
+> (Mar 19 / Apr 30 / **Jun 11** / Jul 23…). This was MISSED in the W24 weekly (only PPI was flagged).
+> Hard-blocks EUR pairs (eurusd, eurgbp, eurjpy). **Re-validate EUR pairs after 12:45 UTC** — ECB
+> outcome (possible rate-cut-cycle reversal on Iran oil/stagflation) can shift EUR bias for rest of W24.
 
 ## Week Status
 - Week: 2026-W24 | Trades: 0 | Risk allocated: $0 | weekly_reforecast_count: 0
 
 ## Pending Actions
 - **/validate daily 07:30 UTC** — no limits live; re-validate each morning.
-- **PPI TODAY 06-11 12:30 UTC = HARD ±2h** (US-event instruments). AU jobs Fri 01:30 UTC (audusd
-  hard, nzdusd caution). UMich Fri 14:00 caution. W25: BoJ 06-15/16, FOMC 06-16/17, SNB+BoE 06-18.
+- **TODAY 06-11: ECB 12:15 UTC (EUR pairs HARD) + PPI 12:30 UTC (US-leg HARD)** — both within 2h of
+  NY open → all 10 pairs NO TRADE today. **Re-validate EUR pairs (eurusd/eurgbp) after 12:45 presser.**
+  AU jobs Fri 01:30 UTC (audusd hard, nzdusd caution). UMich Fri 14:00 caution. W25: BoJ 06-15/16,
+  FOMC 06-16/17, SNB+BoE 06-18.
+- **⚠ Weekly miss:** W24 forecast omitted today's ECB decision — add ECB/BoE/central-bank dates to the
+  /weekly event scan so EUR/GBP zones aren't published into an undisclosed hard block.
 - **T5 drift watch:** DFII10 2.21 vs baseline 2.11 = +0.10 (WITH bias); >0.15 total forces re-forecast.
 - **GBPUSD watch:** closest USD fade — fresh rally into 1.3400 + H1 OB + bearish E0 → ~7.5 ORDER LIMIT.
 - **EURGBP watch:** primary LONG 0.8608–0.8624 — needs D1 oversold + in-zone + bullish E0.
@@ -73,6 +83,12 @@ XAUUSD limits expired 06-09 21:00 UTC, NOT re-placed (CPI block + spot ~$200 bel
   (eurjpy squeeze long 183–184; gbpjpy washout 211–213; usdjpy dip 158–159 if calm holds).
 
 ## Last Session
+2026-06-11 06:11 UTC (**`/validate all` — 10 instruments, operator request**): all pulls refreshed.
+**Result: ❌ NO TRADE on every zone — V3 hard block (ECB 12:15 + PPI 12:30, both <2h of NY open).**
+0 limits placed; all zones held PENDING (structure intact, none invalidated); no re-forecast (T1–T5
+sub-threshold; DFII10 drift +0.09<0.15, US2Y slope +0.13). 🔎 **Discovered ECB decision is TODAY** —
+missed in W24 weekly; flagged for re-validate post-presser + /weekly event-scan fix. Gold $4080 (zones
+$309–404 OTM). Files: `forecasts/daily/{inst}/2026-06-11.md` (all 10). JPY trio still NO ZONES (MoF).
 2026-06-11 PM (**first /weekly for all 7 new pairs — W24 mid-week**, operator request): pulls
 refreshed; zones published audusd (SHORT 0.7065–0.7110 7.0 + counter LONG 0.6940–0.6996 7.0),
 nzdusd (SHORT 0.5855–0.5890 6.5 + counter LONG 0.5750–0.5790 7.5), usdcad (LONG 1.3885–1.3905

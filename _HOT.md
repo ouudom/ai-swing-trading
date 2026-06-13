@@ -84,37 +84,36 @@ option). Netting: INDEPENDENT. All other zones ❌ NO TRADE; gbpusd SECONDARY �
   gbpjpy 211–213; usdjpy 158–159 if calm holds).
 - **Shadow ledger:** /weekly MUST `zone_ledger.py add` per zone + `zone_outcomes.py --week` for prior
   week. ⚠ Verify RBNZ H2 + SNB Sep/Dec dates in cb_calendar JSON (estimated/TBC).
+- **⭐ PENDING RESEARCH — better E0 found:** `e0-variants-backtest.md` shows **oscillator RECLAIM (RSI
+  back through 35/65) beats current pin/engulf E0** (avgR +0.104 vs +0.038, wins 7/11 pairs). Candidate:
+  reclaim primary + pin/engulf secondary, **on 1H close** (15M tested: edge collapses/flips, noisier,
+  keep 1H). VALIDATE on gated subset + live ledger BEFORE editing E0. Gold keeps continuation E0.
 
 ## Last Session
-2026-06-13 PM (**indicator backtest, scoring audit**): ran `backtest_signals.py --all --tf D1 H4
---since 2015` on the 8 D025 indicators → `wiki/research/general/indicator-backtest-2026-06.md`.
-Verdict: Stoch/W%R/CCI/Keltner ✅ confirmed (mean-rev FX, already scored); Donchian/Supertrend/PSAR
-❌ anti-edge FX (already excluded); TTM marginal; gold D1 oscillators dead. 3 fix candidates → only 1
-real: **usdjpy Z5 PSAR dropped** (2015+ t≈0.2, prior 2.36 not OOS) → engulf/pin. CCI/gold MOOT (already correct).
-2026-06-13 PM (**TA engine + news store, D025**): closed rubric/engine mismatch — pull now COMPUTES
-the confluence oscillators (Stoch/W%R/CCI/Keltner/Donchian/TTM-squeeze/PSAR/Supertrend, D1+H4) with
-an EXTREMES line + **BOS/CHoCH market structure** (`structure.py structure_events`) + **time-at-price
-VP substitute** for USD-base pairs (`time_at_price`). Were all eyeballed before. Plus **news store**
-(`fetch_news` Finnhub → `data/news/headlines.csv`; `check_news.py` pair-filter; NEWS FEED block).
-Wired Section 2/3/5 + template + docs. Verified: compute renders all blocks, Stoch cross-check exact
-(31.4=31.4), usdjpy tap HTN 158.95. Collect+display only (weights need research scan). **Same
-FINNHUB_KEY activates news + econ-cal.**
+2026-06-13 PM (**E0 backtest T1+T2+variants**): 3 scripts `backtest_entry_confirm.py`/`_sim.py`/
+`_e0_variants.py` → 3 reports (entry-confirm / entry-sim / e0-variants). **T1** win-rate: trigger adds
+NO directional edge (1/66 +). **T2** entry-sim: **offset beats market avgR/PF 9/11; E0 adds on top
+~6 pairs** — E0's payoff is fill-price/R not win-rate (both validated, keep offset+E0). **Variants:
+RSI-reclaim E0 > current pin/engulf** (see ⭐ pending above). Gold/usdjpy fade-reading correctly worse.
+2026-06-13 PM (**indicator backtest, scoring audit**) → `indicator-backtest-2026-06.md`: 8 D025
+indicators — Stoch/W%R/CCI/Keltner ✅ (already scored); Donchian/Supertrend/PSAR ❌ anti-edge (already
+excluded). 1 fix: **usdjpy Z5 PSAR dropped** (t≈0.2)→engulf/pin. CCI/gold-gate MOOT.
+2026-06-13 PM (**TA engine + news store, D025**): pull now COMPUTES the confluence oscillators
+(Stoch/W%R/CCI/Keltner/Donchian/TTM/PSAR/Supertrend D1+H4) + EXTREMES line + **BOS/CHoCH structure**
+(`structure_events`) + **time-at-price VP sub** USD-base + **news store** (`fetch_news`, `check_news.py`).
+Wired Section 2/3/5 + template + docs. Collect+display only. **Same FINNHUB_KEY activates news + econ-cal.**
 2026-06-13 (**3 upgrades shipped**): (A) **calibration layer** — `scripts/calibration.py` →
 `wiki/system/core/calibration.md` (edge report by instrument/direction/R1/conviction/session, min-n
 gated, `--json`); W24 = 1 LOSS (gbpusd SEC −1R) + 3 RUNNING + 11 PENDING → all edges UNPROVEN (n=1).
-(B) **/weekly Step 2b Prior-Week Retrospective** (resolve last week + read last forecast + data
-surprises → HELD/BROKE/UNTESTED; Section 0 in template) = narrative learning loop. (C) **data adds
-#1–4**: econ-calendar `check_econ_calendar.py` (#1/#2 Finnhub, needs `FINNHUB_KEY`; `--retro`
-surprises) + JPY `check_intervention_watch.py` (#4, `intervention_watch.json`) — both mandatory gates
-in /weekly+/validate; AUD/NZD commodity intermarket (#3, copper/iron-ore/dairy, context-only).
-Verified: compile + gates run; intervention HARD_BLOCKs usdjpy@160.5. **NOTE: add FINNHUB_KEY to
-.env then `weekly_pull.py --force` to activate #1/#2.** No frontend/DB (deferred). Read calibration.md.
+(B) **/weekly Step 2b Prior-Week Retrospective** (Section 0 template) = narrative learning loop.
+(C) **data adds #1–4**: econ-calendar `check_econ_calendar.py` (#1/#2 Finnhub, `--retro`) + JPY
+`check_intervention_watch.py` (#4) — mandatory gates /weekly+/validate; AUD/NZD commodity (#3, context).
+**NOTE: add FINNHUB_KEY to .env then `weekly_pull.py --force` to activate #1/#2.** No frontend (deferred).
 2026-06-12 07:30 UTC (**`/validate all` — 10 instruments**): pulls refreshed; CB calendar clear;
 UMich 14:00 = caution only (first non-V3 day of W24). **✅ FIRST ORDER LIMIT: USDCHF BUY 0.79477**
 (zone tagged + bounced, EC 6.5 at floor). ❌ NO TRADE: eurusd (ECB-hike conflict→MEDIUM cap),
-gbpusd PRIMARY (in zone, no E0 — closest watch), eurgbp, audusd, nzdusd, usdcad (VIX>20 abort),
-xauusd (**T3 re-forecast fired**, +4.21%). ❌ INVALIDATED: gbpusd SECONDARY (V1). JPY trio no zones
-(MoF). VIX stale (06-10=22.22). Files: `forecasts/daily/*/2026-06-12.md` (all 10).
+gbpusd PRIMARY (in zone, no E0), eurgbp, audusd, nzdusd, usdcad (VIX>20), xauusd (**T3 re-forecast
+fired** +4.21%). ❌ INVALIDATED: gbpusd SECONDARY (V1). JPY trio no zones (MoF). Files: `forecasts/daily/*/2026-06-12.md`.
 2026-06-11 PM (**shadow ledger + bad-tick guard + deep review/12 fixes**): `zone_ledger.py` +
 `zone_outcomes.py` (W24 seeded 15 zones); `ohlc_store` bad-tick guard; sizing/0.01-lot/ISO-year/UTC/
 gap-15M/closed-bars/CB-gate/VP-off-USD-base fixes — detail in `decisions.md` + `forecasts/daily/*/2026-06-11.md`.

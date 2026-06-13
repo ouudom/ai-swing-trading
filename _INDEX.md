@@ -81,6 +81,9 @@
 - `wiki/research/gbpjpy/signal-results.md` — GBPJPY: **GO, extension-fade SHORT-dominant** — Keltner-high fade t=4.64/4.01, strongest long-drift floor (D1 LNG 56.7%); 🔑 macro NONE (SONIA ns, VIX dead), NO calm engine (only JPY pair without), NY long-only; carry-trend hypothesis REJECTED — all trend rows anti (+ raw scan)
 
 ## Research — Cross-pair
+- `wiki/research/general/e0-variants-backtest.md` — E0 trigger bake-off: **oscillator RECLAIM (RSI back through 35/65) beats current pin/engulf — avgR +0.104 vs +0.038, PF 1.15 vs 1.05, wins 7/11 pairs**; band_reclaim wins 2 (incl gold); pin/engulf wins only gbpusd + barely beats raw limit. Candidate E0 redefinition (reclaim primary, pin/engulf secondary) — VALIDATE on gated subset + live ledger first. Script `scripts/backtest_e0_variants.py`
+- `wiki/research/general/entry-sim-backtest.md` — E0 Tier-2 entry-sim (MARKET vs offset-LIMIT vs LIMIT+E0; SL=ATR TP=2.5R): **offset beats market avgR/PF 9/11 pairs**, E0 adds on top ~6 pairs (flips audusd/usdcad +) at 22-25% fill. Validates offset+E0 on R (Tier-1 win-rate was blind). Gold/usdjpy fade-reading correctly underperforms. Script `scripts/backtest_entry_sim.py`. Keep as-is, no reweight
+- `wiki/research/general/entry-confirm-backtest.md` — E0 (1H pin/engulf) conditional Tier-1: trigger adds **NO win-rate edge** (1 of 66 cells +, 6 −) → confirms "trigger alone no edge"; value is fill-price/R via offset (needs Tier-2 entry-sim). Script `scripts/backtest_entry_confirm.py`. Keep E0 as-is
 - `wiki/research/general/indicator-backtest-2026-06.md` — 8-indicator validation (Stoch/W%R/CCI/Keltner ✅ keep, Donchian/Supertrend/PSAR ❌ anti-edge already-excluded, TTM marginal); 2015+ rescan all 11 pairs D1+H4. Applied: usdjpy Z5 PSAR dropped (t≈0.2 dead). CCI/gold gating MOOT (already correct)
 
 ## Research — XAUUSD

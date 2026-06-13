@@ -11,8 +11,8 @@ related: [confluence_criteria, calibration, backtest_signals]
 **Question:** the D025 round made 8 indicators *computed* instead of *eyeballed*. Do they have
 edge? Should confluence scoring change?
 
-**Method:** `scripts/backtest_signals.py --instrument all --tf D1 H4 --since 2015-01-01`. Forward
-return D1 fwd=5 (1wk), H4 fwd=6 (24h). Edge = win% over directional baseline. t = significance.
+**Method:** `scripts/backtest_signals.py --instrument all --tf D1 H4 H1 --since 2015-01-01`. Forward
+return D1 fwd=5 (1wk), H4 fwd=6 (24h), H1 fwd=4 (4h). Edge = win% over directional baseline. t = sig.
 N ≈ 600–2300/signal. **Independent forward-return test — NOT the live zone ledger (that's n=1).**
 
 > [!note] This validates *existing* rubric weights — it does not propose new ones. Signals already
@@ -59,6 +59,37 @@ N ≈ 600–2300/signal. **Independent forward-return test — NOT the live zone
 | C21 | Supertrend↓ | SHT | 1.0 | -0.0 | -2.4 | -3.6 | -1.3 | -1.3 | -0.7 | -0.3 | 0.4 | -1.6 | -2.5 |
 | C22 | PSAR bull  | LNG | 1.1 | -1.2 | 0.3 | -1.1 | -0.9 | -1.5 | -0.6 | 0.1 | -0.2 | -1.0 | -2.1 |
 | C23 | PSAR bear  | SHT | 1.2 | -1.0 | 0.5 | -0.9 | -1.0 | -1.5 | -0.6 | 0.1 | -0.2 | -1.1 | -2.2 |
+
+## t-stat matrix — H1 (fwd=4 bars = 4h; the fade-machine timeframe)
+
+| code | signal | dir | xau | eur | gbp | eurg | aud | nzd | ucad | uchf | ujpy | eurj | gbpj |
+|---|---|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| A8  | Stoch<20  | LNG | 0.7 | **6.7** | **3.7** | **6.5** | 1.0 | 0.3 | 1.6 | 1.2 | 1.2 | **3.2** | 1.0 |
+| A7  | Stoch>80  | SHT | **4.4** | **3.3** | 1.9 | **3.6** | **4.6** | **2.9** | 0.8 | **4.0** | 2.1 | 2.4 | 1.7 |
+| A10 | W%R<-80   | LNG | 1.0 | **5.8** | **3.0** | **7.5** | 0.3 | 1.7 | **3.4** | 2.5 | 1.2 | 2.5 | 1.0 |
+| A9  | W%R>-20   | SHT | **4.2** | **5.4** | **3.0** | **5.2** | **4.2** | **2.9** | 1.5 | **5.9** | **2.6** | **4.2** | 2.5 |
+| A11 | CCI>100   | SHT | -1.6 | -0.5 | 0.8 | **3.4** | **6.6** | 2.1 | **3.0** | **3.8** | -0.1 | 1.1 | 0.8 |
+| A12 | CCI<-100  | LNG | 0.7 | **2.9** | 1.4 | **4.1** | 0.3 | 0.2 | **3.1** | -0.1 | 0.4 | 1.7 | 0.8 |
+| B9  | Keltner<lo | LNG | 0.9 | **4.5** | **3.0** | **6.1** | 1.1 | 0.7 | 1.7 | -0.4 | 0.6 | 2.3 | 1.4 |
+| B10 | Keltner>hi | SHT | 1.4 | **2.6** | **2.6** | **3.4** | **5.3** | **3.0** | 1.4 | **5.1** | 1.7 | **2.8** | **3.5** |
+| B11 | TTM squeeze | LNG | 0.1 | 0.3 | 1.2 | -1.0 | 1.0 | 2.5 | 1.5 | 1.7 | 2.2 | 1.4 | 1.8 |
+| C9  | Donchian↑  | LNG | -1.2 | -1.1 | -1.1 | -3.2 | **-4.8** | -1.3 | -0.5 | -3.3 | 1.9 | -1.8 | -0.8 |
+| C10 | Donchian↓  | SHT | -0.7 | -2.2 | -0.2 | -3.9 | -1.5 | -1.3 | -2.8 | -0.2 | -0.5 | -2.0 | -1.0 |
+| C20 | Supertrend↑ | LNG | -1.4 | **-2.9** | **-4.0** | **-4.5** | **-4.3** | **-3.1** | -1.5 | -0.2 | 0.1 | -1.8 | -1.1 |
+| C21 | Supertrend↓ | SHT | -1.4 | **-2.9** | **-4.0** | **-4.7** | **-4.5** | **-3.4** | -1.7 | -0.4 | 0.2 | -1.7 | -1.1 |
+| C22 | PSAR bull  | LNG | **-3.4** | **-2.9** | -2.3 | -3.3 | -1.9 | -1.7 | -1.4 | -2.4 | -1.9 | 0.1 | -0.4 |
+| C23 | PSAR bear  | SHT | **-3.5** | **-3.1** | -2.1 | -3.4 | -1.8 | -1.6 | -1.4 | -2.2 | -2.1 | -0.0 | -0.6 |
+
+**H1 is the strongest oscillator timeframe** — mean-rev fades that are marginal on D1/H4 are
+decisive on H1 (eurusd Stoch<20 6.7, eurgbp W%R<-80 7.5, usdchf W%R>-20 5.9, audusd CCI>100 6.6).
+This validates every H1-leg rubric row (gbpusd Z3/E2, usdcad/usdchf/eurjpy H1 fade machines) — no
+change, confirmed. Trend trio (Donchian/Supertrend/PSAR) is **even more anti-edge on H1**
+(Supertrend −4.0 to −4.7 on majors; PSAR −3.4 gold) — exclusion re-confirmed hard.
+
+> [!note] **Untapped (research flag, not a change):** xauusd H1 short-fades carry edge
+> (Stoch>80 4.4, W%R>-20 4.2) — but the gold model is momentum and scores no H1 oscillators.
+> Acting on this would contradict the D1 momentum thesis. Logged for a future gold-H1 study, not
+> wired now.
 
 ---
 

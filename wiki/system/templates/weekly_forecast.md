@@ -45,6 +45,16 @@ adx_val: xx.x
 ```markdown
 # XAUUSD Weekly Forecast — WNN (Mon YYYY-MM-DD)
 
+## 0. Prior-Week Retrospective
+_Last forecast: WNN-1 — bias <BIAS> / <CONVICTION>. Standing edge verdict (calibration.md): <…>._
+| Prior zone | Dir | Thesis | Outcome | Verdict |
+|---|---|---|---|---|
+| PRIMARY | L/S | <one line> | WIN/LOSS/BE/NO_TOUCH/INVALIDATED (±xR) | HELD / BROKE / UNTESTED — why |
+| SECONDARY | … | … | … | … |
+
+**Carry-forward:** <re-issuing same thesis? why still valid, or what changed. Repeated break on
+same reason → conviction cap MEDIUM + flag.> _(First forecast → "no retrospective".)_
+
 ## 1. Fundamental Analysis — <BIAS> / <CONFIDENCE>
 | Driver | Value | Δ1W | Signal |
 |---|---|---|---|

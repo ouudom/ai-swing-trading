@@ -40,7 +40,9 @@ Context resets each session. Load state in order:
 
 ### /weekly [instrument]
 Full weekly forecast, one instrument per invocation. Steps in `.claude/commands/weekly.md`.
-Pull data → **CB calendar check (mandatory, `scripts/check_cb_calendar.py`)** → 5-section analysis
+Pull data → **CB calendar check (mandatory, `scripts/check_cb_calendar.py`)** → **prior-week
+retrospective (Step 2b: resolve last week + read last forecast → HELD/BROKE/UNTESTED, feeds new
+bias)** → 5-section analysis
 (Fundamental / News / Technical / Positioning & Flows / Top-Down D→H4→1H) → score candidate
 **Trading Zones** with Zone Confluence (R1, max 10, floor 5.0) → publish ≤3 zones (≤1 counter) →
 write markdown `forecasts/weekly/{instrument}/YYYY-WNN.md` → update `yield_environment.md` →

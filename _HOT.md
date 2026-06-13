@@ -92,6 +92,9 @@ instrument/direction/R1/conviction/session, min-n gated, `--json` side-output). 
 `/weekly` (after `zone_outcomes.py`), Memory Protocol + System Files in CLAUDE.md, `_INDEX.md`.
 W24 resolved: 1 LOSS (gbpusd SECONDARY −1R), 3 RUNNING, 11 PENDING → all edges **UNPROVEN (n=1)**.
 No frontend / no DB this round (deferred by decision). Read calibration.md each session.
+Also added **/weekly Step 2b — Prior-Week Retrospective** (resolve last week + read last forecast →
+HELD/BROKE/UNTESTED, feeds new bias; Section 0 in forecast template). Closes the narrative learning
+loop the calibration layer only covers statistically.
 2026-06-12 07:30 UTC (**`/validate all` — 10 instruments**): pulls refreshed; CB calendar clear;
 UMich 14:00 = caution only (first non-V3 day of W24). **✅ FIRST ORDER LIMIT: USDCHF BUY 0.79477**
 (zone tagged + bounced, EC 6.5 at floor). ❌ NO TRADE: eurusd (ECB-hike conflict→MEDIUM cap),

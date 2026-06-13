@@ -68,6 +68,29 @@ verified far enough — update `scripts/config/cb_calendar_{year}.json` before p
 ## Step 2 — Read Data
 Read the full `weekly_pull_{YEAR}_W{WW}.txt` before analysis.
 
+## Step 2b — Prior-Week Retrospective (MANDATORY — feeds the new bias)
+Before any new analysis, close the loop on the last forecast for THIS instrument. Without this the
+forecast is blind to its own track record and can repeat a wrong thesis indefinitely.
+1. Resolve last week's zones for this instrument and read the outcome:
+   ```bash
+   bash scripts/pyrun.sh scripts/zone_outcomes.py --week <prev YYYY-WNN> --instrument <INSTRUMENT>
+   ```
+   (`prev` = the ISO week immediately before the trade week being forecast.)
+2. Read the prior forecast `forecasts/weekly/<INSTRUMENT>/<prev YYYY-WNN>.md` — its `macro_bias`,
+   conviction, and each zone's thesis. Also glance at `wiki/system/core/calibration.md` for this
+   instrument's standing edge verdict.
+3. Judge, per zone and for the week's bias: **HELD / BROKE / UNTESTED** (no touch). For each, one
+   line on WHY — was the macro read right, did structure invalidate, did an unscheduled event hit,
+   was the zone simply never reached?
+4. Carry it forward: if the same thesis is about to be re-issued, state explicitly why it is still
+   valid given last week's result (or why the read changes). A bias that BROKE two weeks running on
+   the same structural reason → cap conviction MEDIUM and flag it.
+5. If the break exposes a **repeatable** lesson (not noise), add one line to
+   `wiki/system/{instrument}/{instrument}_profile.md` (or `setup_library.md` for a cross-pair
+   pattern) — this is how the profile learns. One-off / event-driven misses do NOT get recorded.
+Write the result into Section 0 of the report (template). NO prior forecast (first week) → state
+"first forecast — no retrospective" and skip.
+
 ## Step 3 — 5-Section Analysis
 
 **1. Fundamental / Macro** —
@@ -219,8 +242,9 @@ Save to `forecasts/weekly/<INSTRUMENT>/YYYY-WNN.md` (Claude writes markdown dire
        --conviction <conviction> [--invalidation-level Z] [--tp-anchor T]
    ```
    `--invalidation-level` = D1-close kill level if the zone states one (else resolver defaults to
-   the zone's far edge). NO ZONES published → nothing to register. Also resolve LAST week's zones
-   while here: `bash scripts/pyrun.sh scripts/zone_outcomes.py --week <prev YYYY-WNN>`.
+   the zone's far edge). NO ZONES published → nothing to register. (Last week's zones for this
+   instrument were already resolved in Step 2b; if running a full portfolio, resolve any remaining
+   instruments now: `bash scripts/pyrun.sh scripts/zone_outcomes.py --week <prev YYYY-WNN>`.)
    Then refresh the calibration report (reads the freshly-resolved outcomes):
    `bash scripts/pyrun.sh scripts/calibration.py` → rewrites `wiki/system/core/calibration.md`.
    Scan it: any instrument×direction or R1 bucket flipped to **DEAD** (n≥min-n) → flag in `_HOT.md`

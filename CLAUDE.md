@@ -40,9 +40,11 @@ Context resets each session. Load state in order:
 
 ### /weekly [instrument]
 Full weekly forecast, one instrument per invocation. Steps in `.claude/commands/weekly.md`.
-Pull data → **CB calendar check (mandatory, `scripts/check_cb_calendar.py`)** → **prior-week
-retrospective (Step 2b: resolve last week + read last forecast → HELD/BROKE/UNTESTED, feeds new
-bias)** → 5-section analysis
+Pull data → **CB calendar check (mandatory, `scripts/check_cb_calendar.py`)** → **econ-calendar
+data-release gate (`scripts/check_econ_calendar.py`) + JPY intervention gate
+(`scripts/check_intervention_watch.py`, JPY only)** → **prior-week retrospective (Step 2b:
+resolve last week + read last forecast + data surprises → HELD/BROKE/UNTESTED, feeds new bias)**
+→ 5-section analysis
 (Fundamental / News / Technical / Positioning & Flows / Top-Down D→H4→1H) → score candidate
 **Trading Zones** with Zone Confluence (R1, max 10, floor 5.0) → publish ≤3 zones (≤1 counter) →
 write markdown `forecasts/weekly/{instrument}/YYYY-WNN.md` → update `yield_environment.md` →
@@ -79,7 +81,8 @@ Linux scheduled-task sandbox**, which silently breaks unattended `/validate` and
 `pyrun.sh` auto-selects: macOS `.venv` locally → system `python3` + persistent `.pydeps` in the
 sandbox. If `.pydeps` is missing (fresh sandbox), rebuild once with `bash scripts/pyrun.sh --setup`
 (installs from `requirements.txt` — single source of truth for deps).
-Keys live in `.env` (`TWELVE_DATA_KEY`, `FRED_KEY`).
+Keys live in `.env` (`TWELVE_DATA_KEY`, `FRED_KEY`, `FINNHUB_KEY` — econ calendar #1/#2;
+optional, missing → web-search fallback).
 
 ## Architecture (markdown-only)
 No database. Claude reads markdown for context and writes forecast/validation markdown directly.
@@ -88,6 +91,10 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
 - `scripts/structure.py`, `scripts/lib/ohlc_store.py` — shared structure/OHLC helpers
 - `scripts/check_v1b.py` — V1b intraday invalidation (CLI zone args)
 - `scripts/check_cb_calendar.py` — central-bank decision dates (static JSON, mandatory gate)
+- `scripts/check_econ_calendar.py` — scheduled data-release gate (#1/#2, Finnhub CSV) + `--retro`
+  surprise readout for the Step 2b retrospective; mandatory at /weekly + /validate
+- `scripts/check_intervention_watch.py` — JPY MoF intervention/jawboning gate (#4, static JSON
+  `config/intervention_watch.json`); spot-vs-level; mandatory for JPY pairs at /weekly + /validate
 - `scripts/check_structured_news_event.py` — T4-X validation
 - `scripts/fx_exposure.py` — FX currency-leg netting ledger (advisory)
 - `scripts/zone_ledger.py` — shadow-trade registry: every published zone → `data/zone_ledger.csv`

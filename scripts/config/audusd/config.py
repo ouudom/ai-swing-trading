@@ -38,3 +38,9 @@ COT_CONTRACT_NAME = "AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE"
 
 # Volume Profile via CME AUD futures continuous (yfinance).
 VP_TICKER = "6A=F"
+
+# Intermarket commodity proxies (#3, D025) — narrative CONTEXT only, NOT scored (needs a
+# research scan before any confluence weight). Copper = China-demand proxy (no clean free
+# China PMI series); iron ore = AU's #1 export. FRED monthly + yfinance daily.
+COMMODITY_FRED = ["PIORECRUSDM"]      # global price of iron ore (monthly)
+COMMODITY_YF   = {"copper": "HG=F"}   # COMEX copper front-month (daily)

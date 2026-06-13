@@ -86,15 +86,16 @@ option). Netting: INDEPENDENT. All other zones ❌ NO TRADE; gbpusd SECONDARY �
   week. ⚠ Verify RBNZ H2 + SNB Sep/Dec dates in cb_calendar JSON (estimated/TBC).
 
 ## Last Session
-2026-06-13 (**calibration visibility layer shipped**): new `scripts/calibration.py` aggregates
-`zone_outcomes.csv` → `wiki/system/core/calibration.md` (sliceable edge report by
-instrument/direction/R1/conviction/session, min-n gated, `--json` side-output). Wired into
-`/weekly` (after `zone_outcomes.py`), Memory Protocol + System Files in CLAUDE.md, `_INDEX.md`.
-W24 resolved: 1 LOSS (gbpusd SECONDARY −1R), 3 RUNNING, 11 PENDING → all edges **UNPROVEN (n=1)**.
-No frontend / no DB this round (deferred by decision). Read calibration.md each session.
-Also added **/weekly Step 2b — Prior-Week Retrospective** (resolve last week + read last forecast →
-HELD/BROKE/UNTESTED, feeds new bias; Section 0 in forecast template). Closes the narrative learning
-loop the calibration layer only covers statistically.
+2026-06-13 (**3 upgrades shipped**): (A) **calibration layer** — `scripts/calibration.py` →
+`wiki/system/core/calibration.md` (edge report by instrument/direction/R1/conviction/session, min-n
+gated, `--json`); W24 = 1 LOSS (gbpusd SEC −1R) + 3 RUNNING + 11 PENDING → all edges UNPROVEN (n=1).
+(B) **/weekly Step 2b Prior-Week Retrospective** (resolve last week + read last forecast + data
+surprises → HELD/BROKE/UNTESTED; Section 0 in template) = narrative learning loop. (C) **data adds
+#1–4**: econ-calendar `check_econ_calendar.py` (#1/#2 Finnhub, needs `FINNHUB_KEY`; `--retro`
+surprises) + JPY `check_intervention_watch.py` (#4, `intervention_watch.json`) — both mandatory gates
+in /weekly+/validate; AUD/NZD commodity intermarket (#3, copper/iron-ore/dairy, context-only).
+Verified: compile + gates run; intervention HARD_BLOCKs usdjpy@160.5. **NOTE: add FINNHUB_KEY to
+.env then `weekly_pull.py --force` to activate #1/#2.** No frontend/DB (deferred). Read calibration.md.
 2026-06-12 07:30 UTC (**`/validate all` — 10 instruments**): pulls refreshed; CB calendar clear;
 UMich 14:00 = caution only (first non-V3 day of W24). **✅ FIRST ORDER LIMIT: USDCHF BUY 0.79477**
 (zone tagged + bounced, EC 6.5 at floor). ❌ NO TRADE: eurusd (ECB-hike conflict→MEDIUM cap),
@@ -103,17 +104,9 @@ xauusd (**T3 re-forecast fired**, +4.21%). ❌ INVALIDATED: gbpusd SECONDARY (V1
 (MoF). VIX stale (06-10=22.22). Files: `forecasts/daily/*/2026-06-12.md` (all 10).
 2026-06-11 PM (**shadow ledger + bad-tick guard shipped**): `zone_ledger.py` + `zone_outcomes.py`;
 W24 seeded 15 zones; gbpusd SECONDARY would-be −1R. `ohlc_store.upsert()` bad-tick guard live.
-2026-06-11 PM (**deep review + 12 fixes, operator-approved**): (1) weekly_pull risk_unit was
-`min(H4, 0.5×D1)` — CONTRADICTED constitution (always ≤ H4 → lots ~9% oversized); now constitution
-formula + 0.01-lot floor. (2) validate.md lots `int(2000//(SL×TICK))` gave 0 lots gold → floored
-0.01-step formula. (3) ISO-year filename bug fixed (Dec/Jan boundary) + ALL time math now UTC,
-reports add local tz. (4) 15M fetch now gap-aware (sizes request from last bar; >5000 bars → hard
-fail with backfill instruction). (5) All indicators on CLOSED bars only. (6) CB calendar gate (see
-Pending). (7) ohlc_store `vol>0` weekend-filter bypass deleted. (8) policy-diff prev now date-joined.
-(9) VP cleanly disabled for USD-base. (10) CLAUDE.md/AGENTS.md/constitution de-staled (10
-instruments). (11) requirements.txt trimmed to 5 real deps; pyrun --setup reads it. (12) removed
-.venv-linux, legacy `.venv/bin/python` docstrings. All snapshots rebuilt + verified (xauusd SL
-53.66 avg-branch ✓, usdchf VP-disabled ✓, gbpjpy 7.5 lots ✓, fx_exposure selftest PASS).
+2026-06-11 PM (**deep review + 12 fixes, operator-approved**): sizing-formula contradiction,
+0.01-lot floor, ISO-year filename bug, UTC time math, gap-aware 15M, closed-bars-only, CB-calendar
+gate, VP off for USD-base, deps trimmed — full detail in `decisions.md` + `forecasts/daily/*/2026-06-11.md`.
 2026-06-11 (3 sessions): `/validate all` → all NO TRADE (V3: ECB+PPI; ECB-day miss discovered →
 CB-calendar gate shipped) · first /weekly for 7 new pairs (JPY trio NO ZONES, MoF; nzdusd bad tick
 repaired) · 12 deep-review fixes + shadow ledger + bad-tick guard shipped (→ `decisions.md`,

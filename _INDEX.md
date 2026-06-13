@@ -141,18 +141,21 @@
 ## Scripts — Validation
 - `scripts/check_v1b.py` — V1b intraday H4 invalidation checker (CLI zone args, no DB)
 - `scripts/check_cb_calendar.py` — central-bank decision-date gate (MANDATORY at /weekly + /validate; reads static JSON; exit 1 = calendar unverified for window)
+- `scripts/check_econ_calendar.py` — scheduled data-release gate (#1/#2, MANDATORY; reads `data/econ_calendar/calendar.csv`; HIGH-impact releases for the pair's legs; `--retro <week>` = actual-vs-est surprise for Step 2b; exit 1 = CSV stale)
+- `scripts/check_intervention_watch.py` — JPY MoF intervention/jawboning gate (#4, MANDATORY for JPY; spot vs `config/intervention_watch.json` level → HARD_BLOCK/CAUTION; exit 1 = watch stale)
 - `scripts/check_structured_news_event.py` — T4-X structured news event check
 - `scripts/structure.py` — shared fractal pivots, MTF structure helpers
 
 ## Scripts — Config & Lib
 - `scripts/config/cb_calendar_2026.json` — static central-bank decision dates 2026 (8 banks, hard-block/caution map; RBNZ H2 + SNB Sep/Dec need verification; rebuild every December)
+- `scripts/config/intervention_watch.json` — JPY MoF intervention levels + jawboning log (#4; Claude updates jawboning[] from web search each /weekly JPY run; push verified_through forward)
 - `scripts/config/_fx_base.py` — shared FX-major defaults (rate_diff macro, COT on, ETF off, TICK 100000)
 - `scripts/config/xauusd/config.py` — XAUUSD instrument config (real_yield macro)
 - `scripts/config/eurusd/config.py` — EURUSD config (DGS2 + DFF−ECBDFR, COT 6E, VP 6E=F)
 - `scripts/config/gbpusd/config.py` — GBPUSD config (DGS2 + DFF−SONIA, COT 6B, VP 6B=F)
 - `scripts/config/eurgbp/config.py` — EURGBP CROSS config (EG1; no USD leg, macro PLACEHOLDER pending EG2, COT off)
-- `scripts/config/audusd/config.py` — AUDUSD config (D024 pair #1; no daily RBA series → carry leg off, COT 6A, VP 6A=F)
-- `scripts/config/nzdusd/config.py` — NZDUSD config (D024 pair #2; no daily RBNZ series → carry leg off, COT 6N, VP 6N=F)
+- `scripts/config/audusd/config.py` — AUDUSD config (D024 pair #1; no daily RBA series → carry leg off, COT 6A, VP 6A=F; COMMODITY iron-ore+copper #3)
+- `scripts/config/nzdusd/config.py` — NZDUSD config (D024 pair #2; no daily RBNZ series → carry leg off, COT 6N, VP 6N=F; COMMODITY dairy+copper #3)
 - `scripts/config/_fx_usd_base.py` — shared USD-BASE defaults (USD_BETA_SIGN=+1, COT_INVERTED, VP off)
 - `scripts/config/usdcad/config.py` — USDCAD config (D024 pair #3; USD-base, OIL_SERIES=DCOILWTICO, COT 6C inverted)
 - `scripts/config/usdchf/config.py` — USDCHF config (D024 pair #4; USD-base, no oil leg, COT 6S inverted, SNB carry off)
@@ -166,6 +169,8 @@
 - `data/zone_ledger.csv` — shadow-ledger zone registry (script-managed: `zone_ledger.py`; W24 seeded 15 zones 2026-06-11)
 - `data/zone_outcomes.csv` — would-be R outcomes per zone (script-managed: `zone_outcomes.py`)
 - `data/calibration/summary.json` — optional JSON edge summary (script-managed: `calibration.py --json`)
+- `data/econ_calendar/calendar.csv` — Finnhub economic calendar (#1/#2; date/country/event/impact/estimate/actual/prev; script-managed: `weekly_pull.fetch_econ_calendar`)
+- `data/commodities/*.csv` — intermarket commodity daily closes (#3; copper HG=F etc.; script-managed: `weekly_pull.fetch_commodities_yf`)
 - `data/gld_holdings.csv` — daily GLD ETF tonnage (auto-appended by weekly_pull)
 - `data/weekly_pull/xauusd/` — IMMUTABLE weekly pull text files (also eurusd/, gbpusd/)
 - `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/, nzdusd/, usdcad/, usdchf/, usdjpy/, eurjpy/, gbpjpy/ (D1 2010→now, intraday 2020→now; usdchf/usdjpy/eurjpy/gbpjpy 15min 2024→)

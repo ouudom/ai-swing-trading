@@ -103,6 +103,7 @@ load_dotenv()
 
 TWELVE_KEY = os.getenv("TWELVE_DATA_KEY")
 FRED_KEY   = os.getenv("FRED_KEY")
+FINNHUB_KEY = os.getenv("FINNHUB_KEY")   # economic calendar (#1/#2); optional — web-search fallback
 
 # All time math in UTC. YEAR must be the ISO year (not calendar year) so the
 # weekly_pull filename stays consistent with WEEK_NUM across the Dec/Jan boundary
@@ -125,6 +126,10 @@ FRED_SERIES = ["DFII10", "DGS10", "T5YIE", "DFF", "VIXCLS"]
 DXY_CSV       = Path("data/yahoo/DXY.csv")
 GLD_HOLD_CSV  = Path("data/gld_holdings.csv")
 COT_CACHE_DIR = Path("data/cftc")
+ECON_DIR      = Path("data/econ_calendar")        # economic calendar (#1/#2, Finnhub)
+ECON_CSV      = ECON_DIR / "calendar.csv"
+ECON_COLS     = ["date", "time_utc", "country", "event", "impact", "estimate", "actual", "prev", "unit"]
+COMMODITIES_DIR = Path("data/commodities")        # intermarket (#3, yfinance)
 TF_RESAMPLE = {"1h": "1h", "4h": "4h", "1day": "1D"}
 
 # ── STEP 1: FETCH 15M + RESAMPLE ─────────────────────────────────────────────
@@ -187,10 +192,13 @@ def _fred_manifest():
 def _save_fred_manifest(data):
     (FRED_DIR / "_manifest.json").write_text(json.dumps(data, indent=2))
 
-def update_fred(force=False):
+def update_fred(force=False, series=None):
+    """Fetch/append FRED series CSVs. `series` defaults to the instrument's FRED_SERIES;
+    pass an explicit list (e.g. commodity ids) to reuse the same fetch+manifest path."""
+    series = series if series is not None else FRED_SERIES
     manifest = _fred_manifest()
     results  = []
-    for sid in FRED_SERIES:
+    for sid in series:
         csv_path  = FRED_DIR / f"{sid}.csv"
         last_date = manifest.get(sid, {}).get("last_dt")
         obs_start = ((datetime.now(timezone.utc) - timedelta(days=90)).strftime("%Y-%m-%d")
@@ -497,6 +505,85 @@ def load_dxy_local():
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
     return df.dropna()
 
+# ── ECONOMIC CALENDAR (#1/#2 — Finnhub) ───────────────────────────────────────
+
+def fetch_econ_calendar(force=False, days_back=10, days_fwd=10):
+    """Finnhub economic calendar → data/econ_calendar/calendar.csv (all countries, deduped on
+    date+country+event). Re-pull merges so `actual` backfills onto a previously-estimate-only
+    row (this is what feeds #2 surprise). Network/credit failure is NON-FATAL — the /weekly
+    web-search fallback still covers the gap, same as before this feed existed."""
+    if not FINNHUB_KEY:
+        return {"error": "FINNHUB_KEY not set in .env"}
+    start = (datetime.now(timezone.utc) - timedelta(days=days_back)).strftime("%Y-%m-%d")
+    end   = (datetime.now(timezone.utc) + timedelta(days=days_fwd)).strftime("%Y-%m-%d")
+    try:
+        r = requests.get("https://finnhub.io/api/v1/calendar/economic",
+                         params={"from": start, "to": end, "token": FINNHUB_KEY}, timeout=20)
+        j = r.json()
+        rows = j.get("economicCalendar", j) if isinstance(j, dict) else j
+        if isinstance(rows, dict):
+            rows = rows.get("economicCalendar") or rows.get("result") or []
+        if not rows:
+            return {"error": f"no rows ({j if isinstance(j, dict) else 'empty'})"}
+        recs = []
+        for e in rows:
+            t = str(e.get("time", "") or "")
+            recs.append({
+                "date": t[:10], "time_utc": t[11:16] if len(t) >= 16 else "",
+                "country": e.get("country", ""), "event": e.get("event", ""),
+                "impact": e.get("impact", ""), "estimate": e.get("estimate", ""),
+                "actual": e.get("actual", ""), "prev": e.get("prev", ""),
+                "unit": e.get("unit", ""),
+            })
+        new = pd.DataFrame(recs, columns=ECON_COLS)
+        ECON_DIR.mkdir(parents=True, exist_ok=True)
+        if ECON_CSV.exists() and not force:
+            old = pd.read_csv(ECON_CSV, dtype=str).fillna("")
+            new = (pd.concat([old, new.astype(str)], ignore_index=True)
+                   .drop_duplicates(["date", "country", "event"], keep="last")
+                   .sort_values(["date", "time_utc"]).reset_index(drop=True))
+        new.to_csv(ECON_CSV, index=False)
+        return {"rows": len(new), "this_pull": len(recs), "from": start, "to": end,
+                "last": new["date"].iloc[-1] if len(new) else "?"}
+    except Exception as ex:
+        return {"error": str(ex)}
+
+# ── INTERMARKET COMMODITIES (#3 — yfinance, AUD/NZD only) ─────────────────────
+
+def fetch_commodities_yf(tickers: dict):
+    """Daily close for yfinance commodity tickers (e.g. {'copper':'HG=F'}) →
+    data/commodities/{name}.csv (date,value). Reuses the yfinance pattern from fetch_dxy."""
+    out = {}
+    COMMODITIES_DIR.mkdir(parents=True, exist_ok=True)
+    for name, tk in tickers.items():
+        try:
+            h = yf.Ticker(tk).history(period="120d")
+            if h.empty:
+                out[name] = {"error": "empty"}; continue
+            new = pd.DataFrame({"date": h.index.strftime("%Y-%m-%d"),
+                                "value": h["Close"].round(4).values})
+            p = COMMODITIES_DIR / f"{name}.csv"
+            if p.exists():
+                new = (pd.concat([pd.read_csv(p), new], ignore_index=True)
+                       .drop_duplicates("date", keep="last")
+                       .sort_values("date").reset_index(drop=True))
+            new.to_csv(p, index=False)
+            out[name] = {"rows": len(new), "last": new["date"].iloc[-1],
+                         "value": float(new["value"].iloc[-1])}
+        except Exception as ex:
+            out[name] = {"error": str(ex)}
+    return out
+
+def load_commodity_local(name: str):
+    """Load a commodity series (FRED dir or commodities dir) → date-indexed 'value' frame."""
+    for d in (COMMODITIES_DIR, FRED_DIR):
+        p = d / f"{name}.csv"
+        if p.exists():
+            df = pd.read_csv(p, parse_dates=["date"]).set_index("date").sort_index()
+            df["value"] = pd.to_numeric(df["value"], errors="coerce")
+            return df.dropna()
+    return None
+
 # ── MAIN ──────────────────────────────────────────────────────────────────────
 
 def fetch_and_update(force=False):
@@ -523,6 +610,28 @@ def fetch_and_update(force=False):
         print(f"  → DXY fetch FAILED: {dxy_res['error']}")
     else:
         print(f"  → DXY: {dxy_res['rows']} rows | last {dxy_res['last_date']} = {dxy_res['value']}")
+
+    # Economic calendar (#1/#2) — shared across instruments, one CSV. Non-fatal on failure.
+    print("Updating economic calendar (Finnhub)...")
+    econ_res = fetch_econ_calendar(force=force)
+    if "error" in econ_res:
+        print(f"  → econ calendar SKIPPED: {econ_res['error']} (web-search fallback still applies)")
+    else:
+        print(f"  → econ calendar: {econ_res['rows']} rows ({econ_res['this_pull']} this pull), last {econ_res['last']}")
+
+    # Intermarket commodities (#3) — only pairs that declare them (AUD/NZD).
+    cfg = _instrument_cfg
+    com_fred = list(getattr(cfg, "COMMODITY_FRED", []) or [])
+    com_yf   = dict(getattr(cfg, "COMMODITY_YF", {}) or {})
+    if com_fred:
+        print(f"Updating commodity FRED series {com_fred}...")
+        for sid, n, last in update_fred(force=force, series=com_fred):
+            print(f"  → {sid}: {n} new | last: {last}")
+    if com_yf:
+        print(f"Updating commodity yfinance series {list(com_yf)}...")
+        for name, info in fetch_commodities_yf(com_yf).items():
+            print(f"  → {name}: {info.get('error') or str(info.get('value')) + ' (' + str(info.get('rows')) + ' rows)'}")
+
     print("✅ CSVs ready.")
     return info_15m
 
@@ -797,6 +906,28 @@ def _compute_and_write(out_path):
                 if not (vp.get("error") or vp.get("disabled"))
                 else vp.get("disabled") or f"VP fetch failed: {vp['error']}")
 
+    # Intermarket commodity block (#3) — only for pairs declaring COMMODITY_* (AUD/NZD).
+    com_names = (list(getattr(cfg, "COMMODITY_FRED", []) or [])
+                 + list((getattr(cfg, "COMMODITY_YF", {}) or {}).keys())) if cfg else []
+    intermarket_block = ""
+    if com_names:
+        lines = []
+        for nm in com_names:
+            s = load_commodity_local(nm)
+            if s is None or s.empty:
+                lines.append(f"{nm:<10} no data"); continue
+            now = float(s["value"].iloc[-1])
+            wk  = float(s["value"].iloc[-6]) if len(s) >= 6 else now
+            chg = ((now / wk) - 1) * 100 if wk else 0.0
+            w20 = s["value"].iloc[-21:]
+            slope = float(np.polyfit(range(len(w20)), w20.values, 1)[0]) if len(w20) >= 2 else 0.0
+            lines.append(f"{nm:<10} {now:<10.4g} (Δ1w {chg:+.2f}%, 20d slope {slope:+.4g}/day)")
+        intermarket_block = (
+            "\n━━━ INTERMARKET (commodity proxies — narrative context, NOT scored) ━━\n"
+            + "\n".join(lines)
+            + "\n  Rising copper/iron ore/dairy = risk-on commodity bid → pair-BULLISH context "
+              "(China-demand proxy). Use in Section 1/4 only.\n")
+
     out = f"""
 ╔══════════════════════════════════════════════════════╗
   {display} WEEKLY DATA — {TODAY.strftime('%Y-%m-%d')} (W{WEEK_NUM})
@@ -843,7 +974,7 @@ VP check: zone within ~8 units of POC/VAH/VAL = confluent
 {gld_block}
 
 {gap_block}
-
+{intermarket_block}
 ━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
 {baseline_label}: {baseline_val}
 {baseline_extra}baseline_dxy:    {dc:.3f}

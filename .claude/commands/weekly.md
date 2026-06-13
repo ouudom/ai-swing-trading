@@ -59,6 +59,23 @@ scheduled banks (FOMC/ECB/BoE/BoJ/SNB/RBA/RBNZ/BoC) — web search supplements, 
 (W24 published EUR zones into an unflagged ECB day; this step is the fix). Exit 1 = calendar not
 verified far enough — update `scripts/config/cb_calendar_{year}.json` before publishing zones.
 
+### Step 1c — Economic data-release calendar (MANDATORY — #1/#2)
+```bash
+bash scripts/pyrun.sh scripts/check_econ_calendar.py --instrument <INSTRUMENT> --days 9
+```
+Lists HIGH-impact scheduled releases for the pair's currency legs in the trade week + 2d, with
+no-trade windows (release ±30min) → feed into Section 2. Exit 1 = calendar CSV stale → it's
+refetched by Step 1's `weekly_pull.py` (needs `FINNHUB_KEY` in `.env`); if the feed is down, the
+web search below is the fallback (never the sole source for CB *decisions* — those are Step 1b).
+
+### Step 1d — JPY intervention watch (JPY pairs only, MANDATORY — #4)
+```bash
+bash scripts/pyrun.sh scripts/check_intervention_watch.py --instrument <usdjpy|eurjpy|gbpjpy> --spot <SPOT>
+```
+HARD_BLOCK longs in the MoF intervention zone / CAUTION in the band or on recent jawboning. Update
+`scripts/config/intervention_watch.json` jawboning[] from the web search below + push
+verified_through forward (same discipline as `cb_calendar`). Exit 1 = stale → refresh first.
+
 ### Web Search (supplementary)
 - Central-bank speaker comments this week (Fed; + ECB for eurusd / BoE for gbpusd)
 - Macro / geopolitical news affecting the instrument
@@ -81,7 +98,9 @@ forecast is blind to its own track record and can repeat a wrong thesis indefini
    instrument's standing edge verdict.
 3. Judge, per zone and for the week's bias: **HELD / BROKE / UNTESTED** (no touch). For each, one
    line on WHY — was the macro read right, did structure invalidate, did an unscheduled event hit,
-   was the zone simply never reached?
+   was the zone simply never reached? Pull last week's data surprises (#2) to ground the "why":
+   `bash scripts/pyrun.sh scripts/check_econ_calendar.py --retro <prev YYYY-WNN> --instrument <INSTRUMENT>`
+   — a BEAT/MISS vs consensus often explains a bias that BROKE.
 4. Carry it forward: if the same thesis is about to be re-issued, state explicitly why it is still
    valid given last week's result (or why the read changes). A bias that BROKE two weeks running on
    the same structural reason → cap conviction MEDIUM and flag it.
@@ -106,6 +125,9 @@ Write the result into Section 0 of the report (template). NO prior forecast (fir
 - nzdusd: **macro nearly all DEAD** — US2Y slope dead (t=−0.7), DXY dead, VIX spike dead. Only weak
   inverted VIX LEVEL tilt (VIX>20→long t=2.18, VIX<15→short t=2.38). Bias = structure/oscillator/
   squeeze, not macro. No daily RBNZ series. Dairy/China = narrative context.
+- audusd/nzdusd **Intermarket** (#3, D025): the pull now carries copper + iron ore (AUD) / dairy
+  (NZD) — rising = risk-on commodity bid = pair-BULLISH **context only, NOT scored** (no confluence
+  weight until a research scan). Use as a tie-breaker in Section 1/4, never as a Z-row.
 - usdcad (**USD-BASE — every USD intuition flips**): US2Y slope vs `baseline_dgs2` with FLIPPED
   polarity (rising US2Y = bullish USDCAD, t≈2.0); **VIX LEVEL = fade-the-USD regime: VIX>20 →
   SHORT bias (+5.5pp t≈3.9), VIX<15 → LONG bias**; 🛢 WTI 5d>+5% → SHORT tilt (t=1.67, ~1wk FRED

@@ -37,3 +37,8 @@ COT_CONTRACT_NAME = "NZ DOLLAR - CHICAGO MERCANTILE EXCHANGE"
 
 # Volume Profile via CME NZD futures continuous (yfinance).
 VP_TICKER = "6N=F"
+
+# Intermarket commodity proxies (#3, D025) — narrative CONTEXT only, NOT scored. Dairy = NZ's
+# #1 export (Fonterra/GDT); copper = China-demand proxy. FRED monthly + yfinance daily.
+COMMODITY_FRED = ["PDAIRYUSDM"]       # global price of dairy (monthly)
+COMMODITY_YF   = {"copper": "HG=F"}   # COMEX copper front-month (daily; shared China proxy)

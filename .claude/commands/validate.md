@@ -123,6 +123,22 @@ Any reported decision today/tomorrow for this instrument's HARD BLOCK list = V3 
 regardless of what web search finds. Exit 1 = calendar unverified for the window — treat as
 unknown event risk, do not place orders until `scripts/config/cb_calendar_{year}.json` is updated.
 
+**Step 3.0b (MANDATORY) — scheduled data-release gate (#1/#2):**
+```bash
+bash scripts/pyrun.sh scripts/check_econ_calendar.py --instrument [INST] --date [DATE] --days 2
+```
+Any HIGH-impact release today/tomorrow for the pair's currency legs = V3 candidate (no-trade
+release ±30min). Exit 1 = calendar CSV stale/missing → refetch via `weekly_pull.py` (or fall
+back to web search) before trusting "no events". Complements 3.0 (decisions) with data releases.
+
+**Step 3.0c (JPY pairs only, MANDATORY) — intervention watch (#4):**
+```bash
+bash scripts/pyrun.sh scripts/check_intervention_watch.py --instrument [usdjpy|eurjpy|gbpjpy] --spot [SPOT]
+```
+HARD_BLOCK new longs if spot in the MoF intervention zone; CAUTION (cap conviction MEDIUM) in the
+band or if recent jawboning. Exit 1 = watch stale → refresh `intervention_watch.json` jawboning[]
+from web search first. This is the structured form of the manual MoF read in Query A.
+
 **Query A (V3 hard block):** economic calendar [DATE]. xauusd + USD pairs share US events (NFP/FOMC/
 CPI/Retail). Pairs also: ECB rate decision (eurusd), BoE rate decision (gbpusd), RBA decision +
 AU CPI/employment (audusd), RBNZ OCR + NZ CPI/jobs (nzdusd; GDT dairy = caution), BoC decision +

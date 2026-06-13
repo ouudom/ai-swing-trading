@@ -80,6 +80,9 @@
 - `wiki/research/eurjpy/signal-results.md` — EURJPY: **GO, symmetric mean-reversion + calm-drift** — H1 fade works (A9 t=4.21, unlike usdjpy), D1 dip-buy strong (Stoch<20 t=3.10); 🔑 macro NONE (ECB anti, VIX dead); London fade-short / NY drift-long (+ raw scan)
 - `wiki/research/gbpjpy/signal-results.md` — GBPJPY: **GO, extension-fade SHORT-dominant** — Keltner-high fade t=4.64/4.01, strongest long-drift floor (D1 LNG 56.7%); 🔑 macro NONE (SONIA ns, VIX dead), NO calm engine (only JPY pair without), NY long-only; carry-trend hypothesis REJECTED — all trend rows anti (+ raw scan)
 
+## Research — Cross-pair
+- `wiki/research/general/indicator-backtest-2026-06.md` — 8-indicator validation (Stoch/W%R/CCI/Keltner ✅ keep, Donchian/Supertrend/PSAR ❌ anti-edge already-excluded, TTM marginal); 2015+ rescan all 11 pairs D1+H4. Applied: usdjpy Z5 PSAR dropped (t≈0.2 dead). CCI/gold gating MOOT (already correct)
+
 ## Research — XAUUSD
 - `wiki/research/xauusd/_INDEX.md` — data sources, scripts, standards, pending research
 - `wiki/research/xauusd/mtf-market-structure.md` — swing trend alignment (HH/HL pivots)

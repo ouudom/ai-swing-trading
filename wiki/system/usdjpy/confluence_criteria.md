@@ -20,7 +20,7 @@ Max 10, floor 5.0, ≤3 zones/wk, ≤1 counter (counter = SHORT here — against
 | Z2 | **Side engine** — LONG: D1 TTM squeeze on or H4/H1 ATR pctile<0.2 (calm) · SHORT: ≥2 of D1 RSI>65 / H4 CCI>+100 / H4 Keltner-high | 2.5 | 3.27/4.51/3.22 · 3.11/2.66/2.35 |
 | Z3 | DXY 20d slope aligned (up=long zone / down=short zone) | 2.0 | 2.21/1.73 |
 | Z4 | LONG only: dip structure — zone at/near 20d low within intact D1 uptrend | 1.0 | H1 3.15, H4 1.85 |
-| Z5 | D1 trigger pattern (PSAR flip toward zone dir / engulfing) | 1.0 | PSAR bear 2.36, engulf 1.43 |
+| Z5 | D1 trigger pattern (engulfing / pin toward zone dir) | 1.0 | engulf 1.43. **PSAR dropped** — 2015+ rescan t≈0.2 (dead); prior 2.36 was window-specific, did not hold out-of-sample (see indicator-backtest-2026-06) |
 | Z6 | LONG only: big-figure confluence (x.00 within 15 pips) | 1.0 | D1 1.60, H4 1.39 (short = anti) |
 | Z7 | Not extended: ADX<25 or zone is a pullback, not extension chase | 0.5 | C26 anti −3.3/−3.4 |
 

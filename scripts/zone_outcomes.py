@@ -47,6 +47,11 @@ from zone_ledger import load_ledger, save_ledger  # noqa: E402
 OUTCOMES_CSV = Path("data/zone_outcomes.csv")
 TERMINAL = {"NO_TOUCH", "TOUCH_NO_FILL", "INVALIDATED", "WIN_TP1", "LOSS_SL", "BREAKEVEN"}
 
+# R1 (zone_confluence) buckets, shared with calibration.py. (label, lo_inclusive, hi_exclusive).
+R1_BUCKETS = [(">=8.0", 8.0, 99.0), ("7.0–7.9", 7.0, 8.0), ("<7.0", 0.0, 7.0)]
+# Completed = a shadow trade that actually filled and reached a terminal R outcome.
+COMPLETED_STATUSES = ["WIN_TP1", "LOSS_SL", "BREAKEVEN"]
+
 OUT_COLS = [
     "zone_id", "instrument", "week", "label", "direction", "zone_confluence",
     "conviction", "status", "touched", "fill_time", "entry", "sl_dist",
@@ -187,7 +192,7 @@ def resolve_zone(z: pd.Series, h1: pd.DataFrame, h4: pd.DataFrame, d1: pd.DataFr
 def summarize(df: pd.DataFrame):
     print("\n── Zone outcome summary " + "─" * 40)
     print(df["status"].value_counts().to_string())
-    done = df[df["status"].isin(["WIN_TP1", "LOSS_SL", "BREAKEVEN"])]
+    done = df[df["status"].isin(COMPLETED_STATUSES)]
     if done.empty:
         print("\nNo completed shadow trades yet.")
         return
@@ -196,8 +201,8 @@ def summarize(df: pd.DataFrame):
     print(f"\nCompleted: {len(done)} | wins {wins} ({wins / len(done):.0%}) | "
           f"total {r.sum():+.1f}R | avg {r.mean():+.2f}R")
     score = pd.to_numeric(done["zone_confluence"])
-    for lbl, m in [(">=8.0", score >= 8), ("7.0–7.9", (score >= 7) & (score < 8)),
-                   ("<7.0", score < 7)]:
+    for lbl, lo, hi in R1_BUCKETS:
+        m = (score >= lo) & (score < hi)
         n = m.sum()
         if n:
             w = ((done["status"] == "WIN_TP1") & m).sum()

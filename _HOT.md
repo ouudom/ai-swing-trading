@@ -33,7 +33,8 @@ catch-up throws non-fatal "No data available" at weekend edge — data lands fin
   (fell further), ADX 42 — zones now ~$309–404 OTM, unreachable, re-anchor at next /weekly.
   Invalidate: D1 close > zone top (not breached).
 - **EURUSD** [W24](forecasts/weekly/eurusd/2026-W24.md) — SHORT 1.1618–1.1640 (7.5) + 1.1574–1.1593 (6.5). Spot 1.1549.
-- **GBPUSD** [W24](forecasts/weekly/gbpusd/2026-W24.md) — SHORT 1.3400–1.3447 (8.0) + 1.3370–1.3390 (6.5). Spot 1.3384.
+- **GBPUSD** [W24](forecasts/weekly/gbpusd/2026-W24.md) — SHORT 1.3400–1.3447 (8.0). Spot 1.3401 IN ZONE.
+  ~~SECONDARY 1.3370–1.3390~~ **INVALIDATED 06-12 (V1: D1 close 1.34144 > top)**.
 - **EURGBP** [W24](forecasts/weekly/eurgbp/2026-W24.md) — NEUTRAL/range. LONG 0.8608–0.8624 (8.0) +
   SHORT 0.8664–0.8682 (7.5). Spot 0.8630. Fade both edges; no VIX-veto; netting ledger required.
 - **AUDUSD** [W24](forecasts/weekly/audusd/2026-W24.md) — BEARISH/MEDIUM. PRIMARY SHORT 0.7065–0.7110 (7.0)
@@ -54,43 +55,51 @@ catch-up throws non-fatal "No data available" at weekend edge — data lands fin
 ## Open Position
 None
 
-## Live Order Limits — NONE (2026-06-11 06:11 UTC, `/validate all` — ECB + PPI day = V3 HARD BLOCK)
-All 10 instruments validated → **❌ NO TRADE across the board (V3)**. 0 order limits placed. All zones
-held PENDING (structure intact, NONE invalidated). No re-forecast triggered (T1–T5 sub-threshold).
-> [!warning] **ECB rate decision is TODAY 06-11 12:15 UTC (presser 12:45)** — confirmed 2026 schedule
-> (Mar 19 / Apr 30 / **Jun 11** / Jul 23…). This was MISSED in the W24 weekly (only PPI was flagged).
-> Hard-blocks EUR pairs (eurusd, eurgbp, eurjpy). **Re-validate EUR pairs after 12:45 UTC** — ECB
-> outcome (possible rate-cut-cycle reversal on Iran oil/stagflation) can shift EUR bias for rest of W24.
+## Live Order Limits — 1 (2026-06-12 07:30 UTC, `/validate all`)
+**USDCHF: BUY LIMIT 0.79477 | 8.23 lots | SL 0.79234 | TP1 0.80085 (2.5R man) | TP2 0.80206 (3.0R
+limit) | BE @1.5R | expires 06-12 21:00 UTC.** EC 6.5/10 at floor 6.5 (E0 1H pin 0.79647 off zone
+top, DXY slope live; E1/E3 absent — marginal). Structural anchor 0.80063 = 2.41R (< TP1, operator
+option). Netting: INDEPENDENT. All other zones ❌ NO TRADE; gbpusd SECONDARY ❌ INVALIDATED (V1).
+> [!warning] **ECB HIKED 25bp → 2.25% on 06-11** (first since 2023, Iran-war inflation; ~fully
+> priced, EUR muted). Cycle reversal = EUR-bullish vs W24 SHORT bias → **eurusd conviction capped
+> MEDIUM** (Contradiction Protocol); eurgbp LONG side favored. Reassess EUR bias at next /weekly.
+> [!warning] **XAUUSD T3 RE-FORECAST TRIGGERED 06-12**: +4.21% 1d counter (4049→4220, Iran
+> safe-haven) vs BEARISH bias. Zones 187–270 OTM. **Re-run /weekly xauusd before any gold order.**
 
 ## Week Status
 - Week: 2026-W24 | Trades: 0 | Risk allocated: $0 | weekly_reforecast_count: 0
 
 ## Pending Actions
-- **/validate daily 07:30 UTC** — no limits live; re-validate each morning.
-- **TODAY 06-11: ECB 12:15 UTC (EUR pairs HARD) + PPI 12:30 UTC (US-leg HARD)** — both within 2h of
-  NY open → all 10 pairs NO TRADE today. **Re-validate EUR pairs (eurusd/eurgbp) after 12:45 presser.**
-  AU jobs Fri 01:30 UTC (audusd hard, nzdusd caution). UMich Fri 14:00 caution. W25: BoJ 06-15/16,
-  FOMC 06-16/17, SNB+BoE 06-18.
-- **✅ ECB-miss fix SHIPPED (2026-06-11):** static CB calendar `scripts/config/cb_calendar_2026.json`
-  + `scripts/check_cb_calendar.py` now MANDATORY at /weekly (10d) + /validate (2d). ⚠ Verify RBNZ
-  H2-2026 + SNB Sep/Dec dates on official sites (marked estimated/TBC in JSON).
-- **T5 drift watch:** DFII10 2.21 vs baseline 2.11 = +0.10 (WITH bias); >0.15 total forces re-forecast.
-- **GBPUSD watch:** closest USD fade — fresh rally into 1.3400 + H1 OB + bearish E0 → ~7.5 ORDER LIMIT.
-- **EURGBP watch:** primary LONG 0.8608–0.8624 — needs D1 oversold + in-zone + bullish E0.
-- **FX netting gate (D022):** both majors ORDER LIMIT same day → keep higher EC, SKIP other.
-- **EXPANSION (D024) ✅ COMPLETE:** all 7 pairs onboarded + first /weekly published 2026-06-11
-  (all 10 instruments forecast for W24). Rulings: USD sizing no convert; netting ADVISORY only.
-- **MoF watch:** JPY trio blocked all W24. Post-BoJ (06-15/16) washout = A+ setups for W25
-  (eurjpy squeeze long 183–184; gbpjpy washout 211–213; usdjpy dip 158–159 if calm holds).
-- **Shadow ledger LIVE:** /weekly MUST register zones (`zone_ledger.py add`) + resolve prior week
-  (`zone_outcomes.py --week`). nzdusd 1h/4h still carry the 04-29 bad tick — auto-clamps at next fetch.
+- **USDCHF BUY 0.79477 live** — cancel if unfilled by 21:00 UTC (Friday, no weekend carry). If
+  filled: BE +1.5R, TP1 2.5R manual; structural anchor 0.80063 (2.41R) = alt full exit.
+- **xauusd: T3 re-forecast required** before any gold order (+4.21% counter, zones unreachable).
+- **usdcad: VIX abort watch** — last close 22.22 >20 (stale 06-10). VIX>20 at next fresh print →
+  INVALIDATE the 1.3885–1.3905 LONG at /weekly. Zone 78p OTM, D1 RSI 74.
+- UMich today 14:00 UTC caution. W25: BoJ 06-15/16, FOMC 06-16/17, SNB+BoE 06-18 — heavy CB week,
+  expect V3 blocks Mon–Thu.
+- **T5 drift watch:** DFII10 2.21 vs baseline 2.11 = +0.10 (WITH bias); >0.15 forces re-forecast.
+- **GBPUSD watch:** spot IN primary zone 1.3400–1.3447, H4 Stoch 83 — bearish E0 → 6.0 ≥ floor → order.
+- **EURGBP watch:** ECB hike favors LONG 0.8608–0.8624 — needs zone touch + D1 oversold + bullish E0.
+- **MoF watch:** JPY trio no zones W24. Post-BoJ (06-15/16) washout = A+ W25 setups (eurjpy 183–184;
+  gbpjpy 211–213; usdjpy 158–159 if calm holds).
+- **Shadow ledger:** /weekly MUST `zone_ledger.py add` per zone + `zone_outcomes.py --week` for prior
+  week. ⚠ Verify RBNZ H2 + SNB Sep/Dec dates in cb_calendar JSON (estimated/TBC).
 
 ## Last Session
-2026-06-11 PM (**shadow ledger + bad-tick guard shipped**): (1) `zone_ledger.py` (registry, MANDATORY
-at /weekly) + `zone_outcomes.py` (OHLC replay → would-be R + confluence calibration). W24 seeded 15
-zones; first result: gbpusd SECONDARY would-be **−1R** (CPI spike; V3 block saved it), 14 open.
-(2) `ohlc_store.upsert()` bad-tick guard (wick-clamp/bar-drop vs rolling-median, `_quarantine.csv` log);
-found nzdusd 1.71632 tick still live in 1h/4h. Docs: CLAUDE/AGENTS/_INDEX/weekly.md.
+2026-06-13 (**calibration visibility layer shipped**): new `scripts/calibration.py` aggregates
+`zone_outcomes.csv` → `wiki/system/core/calibration.md` (sliceable edge report by
+instrument/direction/R1/conviction/session, min-n gated, `--json` side-output). Wired into
+`/weekly` (after `zone_outcomes.py`), Memory Protocol + System Files in CLAUDE.md, `_INDEX.md`.
+W24 resolved: 1 LOSS (gbpusd SECONDARY −1R), 3 RUNNING, 11 PENDING → all edges **UNPROVEN (n=1)**.
+No frontend / no DB this round (deferred by decision). Read calibration.md each session.
+2026-06-12 07:30 UTC (**`/validate all` — 10 instruments**): pulls refreshed; CB calendar clear;
+UMich 14:00 = caution only (first non-V3 day of W24). **✅ FIRST ORDER LIMIT: USDCHF BUY 0.79477**
+(zone tagged + bounced, EC 6.5 at floor). ❌ NO TRADE: eurusd (ECB-hike conflict→MEDIUM cap),
+gbpusd PRIMARY (in zone, no E0 — closest watch), eurgbp, audusd, nzdusd, usdcad (VIX>20 abort),
+xauusd (**T3 re-forecast fired**, +4.21%). ❌ INVALIDATED: gbpusd SECONDARY (V1). JPY trio no zones
+(MoF). VIX stale (06-10=22.22). Files: `forecasts/daily/*/2026-06-12.md` (all 10).
+2026-06-11 PM (**shadow ledger + bad-tick guard shipped**): `zone_ledger.py` + `zone_outcomes.py`;
+W24 seeded 15 zones; gbpusd SECONDARY would-be −1R. `ohlc_store.upsert()` bad-tick guard live.
 2026-06-11 PM (**deep review + 12 fixes, operator-approved**): (1) weekly_pull risk_unit was
 `min(H4, 0.5×D1)` — CONTRADICTED constitution (always ≤ H4 → lots ~9% oversized); now constitution
 formula + 0.01-lot floor. (2) validate.md lots `int(2000//(SL×TICK))` gave 0 lots gold → floored
@@ -102,20 +111,7 @@ Pending). (7) ohlc_store `vol>0` weekend-filter bypass deleted. (8) policy-diff 
 instruments). (11) requirements.txt trimmed to 5 real deps; pyrun --setup reads it. (12) removed
 .venv-linux, legacy `.venv/bin/python` docstrings. All snapshots rebuilt + verified (xauusd SL
 53.66 avg-branch ✓, usdchf VP-disabled ✓, gbpjpy 7.5 lots ✓, fx_exposure selftest PASS).
-2026-06-11 06:11 UTC (**`/validate all` — 10 instruments, operator request**): all pulls refreshed.
-**Result: ❌ NO TRADE on every zone — V3 hard block (ECB 12:15 + PPI 12:30, both <2h of NY open).**
-0 limits placed; all zones held PENDING (structure intact, none invalidated); no re-forecast (T1–T5
-sub-threshold; DFII10 drift +0.09<0.15, US2Y slope +0.13). 🔎 **Discovered ECB decision is TODAY** —
-missed in W24 weekly; flagged for re-validate post-presser + /weekly event-scan fix. Gold $4080 (zones
-$309–404 OTM). Files: `forecasts/daily/{inst}/2026-06-11.md` (all 10). JPY trio still NO ZONES (MoF).
-2026-06-11 PM (**first /weekly for all 7 new pairs — W24 mid-week**, operator request): pulls
-refreshed; zones published audusd (SHORT 0.7065–0.7110 7.0 + counter LONG 0.6940–0.6996 7.0),
-nzdusd (SHORT 0.5855–0.5890 6.5 + counter LONG 0.5750–0.5790 7.5), usdcad (LONG 1.3885–1.3905
-7.0; short VETOED ADX 32.3), usdchf (LONG 0.7945–0.7960 7.5 + counter SHORT 0.8005–0.8030 5.5).
-**JPY trio = NO ZONES — active MoF intervention regime** (web-confirmed: Apr-30 intervention
-~160.7, Katayama + Mimura jawboning into June; usdjpy spot 160.5 in trigger zone; crosses hard-
-blocked in sympathy). 🔧 **nzdusd bad tick repaired**: D1 2026-04-29 high 1.71632 → 0.58853
-(provider error; ADX was falsely 79.6 → true 18.5 RANGING); pull recomputed. yield_environment
-+FX-pairs section updated. All zones PENDING — /validate gates orders.
-2026-06-10/11 (expansion D024 #1–#7 COMPLETE → `decisions.md` D024) · 2026-06-10 (`/validate all`:
-CPI V3 block, all NO TRADE → `forecasts/daily/*/2026-06-10.md`).
+2026-06-11 (3 sessions): `/validate all` → all NO TRADE (V3: ECB+PPI; ECB-day miss discovered →
+CB-calendar gate shipped) · first /weekly for 7 new pairs (JPY trio NO ZONES, MoF; nzdusd bad tick
+repaired) · 12 deep-review fixes + shadow ledger + bad-tick guard shipped (→ `decisions.md`,
+`forecasts/daily/*/2026-06-11.md`). 2026-06-10: `/validate all` CPI V3 block, all NO TRADE.

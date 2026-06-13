@@ -11,6 +11,7 @@
 - `wiki/system/core/currency_exposure.md` — FX currency-leg netting (Architecture A); per-factor risk cap; B roadmap (D022)
 - `wiki/system/core/setup_library.md` — recurring zone patterns (grows with experience)
 - `wiki/system/core/macro/yield_environment.md` — current Fed posture, real-yield trend, DXY structure
+- `wiki/system/core/calibration.md` — AUTO-GEN edge performance (win%/R by instrument/direction/R1/conviction/session, min-n gated); ← `scripts/calibration.py`
 
 ## System — XAUUSD
 - `wiki/system/xauusd/xauusd_profile.md` — gold drivers, sessions, ATR ranges, sizing
@@ -135,6 +136,7 @@
 ## Scripts — Shadow Ledger (zone outcome tracking, 2026-06-11)
 - `scripts/zone_ledger.py` — registry of every published Trading Zone → `data/zone_ledger.csv` (`add` MANDATORY per zone at /weekly publish; `list` to inspect)
 - `scripts/zone_outcomes.py` — replays 1H/4H/D1 OHLC vs ledger: fill at zone midpoint from publish time, constitution SL, TP1 2.5R / BE 1.5R / SL −1R → `data/zone_outcomes.csv` + confluence-bucket calibration summary (run for prior week at each /weekly)
+- `scripts/calibration.py` — aggregates `zone_outcomes.csv` → `wiki/system/core/calibration.md` (sliceable edge report: instrument/direction/R1/conviction/session, INSUFFICIENT below `--min-n`, default 10); `--json` side-output; run after `zone_outcomes.py` at /weekly
 
 ## Scripts — Validation
 - `scripts/check_v1b.py` — V1b intraday H4 invalidation checker (CLI zone args, no DB)
@@ -163,6 +165,7 @@
 - `data/trades_log.csv` — manual trade log (plain CSV)
 - `data/zone_ledger.csv` — shadow-ledger zone registry (script-managed: `zone_ledger.py`; W24 seeded 15 zones 2026-06-11)
 - `data/zone_outcomes.csv` — would-be R outcomes per zone (script-managed: `zone_outcomes.py`)
+- `data/calibration/summary.json` — optional JSON edge summary (script-managed: `calibration.py --json`)
 - `data/gld_holdings.csv` — daily GLD ETF tonnage (auto-appended by weekly_pull)
 - `data/weekly_pull/xauusd/` — IMMUTABLE weekly pull text files (also eurusd/, gbpusd/)
 - `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/, nzdusd/, usdcad/, usdchf/, usdjpy/, eurjpy/, gbpjpy/ (D1 2010→now, intraday 2020→now; usdchf/usdjpy/eurjpy/gbpjpy 15min 2024→)

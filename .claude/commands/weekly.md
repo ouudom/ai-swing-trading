@@ -221,6 +221,10 @@ Save to `forecasts/weekly/<INSTRUMENT>/YYYY-WNN.md` (Claude writes markdown dire
    `--invalidation-level` = D1-close kill level if the zone states one (else resolver defaults to
    the zone's far edge). NO ZONES published → nothing to register. Also resolve LAST week's zones
    while here: `bash scripts/pyrun.sh scripts/zone_outcomes.py --week <prev YYYY-WNN>`.
+   Then refresh the calibration report (reads the freshly-resolved outcomes):
+   `bash scripts/pyrun.sh scripts/calibration.py` → rewrites `wiki/system/core/calibration.md`.
+   Scan it: any instrument×direction or R1 bucket flipped to **DEAD** (n≥min-n) → flag in `_HOT.md`
+   Pending Actions for a confluence-criteria review before publishing more of that edge.
 2. Rewrite `wiki/system/core/macro/yield_environment.md` with this week's macro snapshot (note which instrument).
 3. Update `_HOT.md`: Active Forecast link + bias; new zones PENDING (box + direction) tagged by instrument;
    week number; reset risk used + `weekly_reforecast_count` to 0 if new week; refresh Pending Actions.

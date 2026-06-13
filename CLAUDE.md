@@ -25,6 +25,8 @@ Context resets each session. Load state in order:
 4. wiki/system/{instrument}/confluence_criteria.md — Zone (R1) + Entry (R2) Confluence for the
                                                    instrument being worked
 5. wiki/system/core/macro/yield_environment.md   — current macro baseline
+6. wiki/system/core/calibration.md                — edge performance (which pairs/directions
+                                                   are WORKING/DEAD/UNPROVEN); auto-generated
 ```
 
 ## Session Start Protocol
@@ -90,6 +92,9 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
   (MANDATORY at /weekly publish, one `add` per zone)
 - `scripts/zone_outcomes.py` — replays OHLC vs ledger → would-be R outcomes + confluence
   calibration → `data/zone_outcomes.csv` (run at /weekly for prior week)
+- `scripts/calibration.py` — aggregates `zone_outcomes.csv` into sliceable edge-performance
+  report `wiki/system/core/calibration.md` (by instrument/direction/R1/conviction/session,
+  min-n gated); run after `zone_outcomes.py` at /weekly
 - Bad-tick guard: `ohlc_store.upsert()` auto-quarantines provider spikes (wick-clamp or bar-drop,
   logged to `data/{source}/{symbol}/_quarantine.csv`) — never hand-repair ticks again
 
@@ -135,6 +140,7 @@ When macro bias conflicts with technical structure:
 - Decisions log: `wiki/system/core/decisions.md`
 - Zone pattern library: `wiki/system/core/setup_library.md`
 - Macro (current): `wiki/system/core/macro/yield_environment.md`
+- Edge calibration (auto-gen): `wiki/system/core/calibration.md` ← `scripts/calibration.py`
 - Templates: `wiki/system/templates/weekly_forecast.md`, `daily_validation.md`
 - Data pipeline: `scripts/weekly_pull.py --instrument {instrument}` (orchestrator), `fetch.py`, `compute.py`
 

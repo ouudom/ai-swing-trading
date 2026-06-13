@@ -95,7 +95,12 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
   surprise readout for the Step 2b retrospective; mandatory at /weekly + /validate
 - `scripts/check_intervention_watch.py` — JPY MoF intervention/jawboning gate (#4, static JSON
   `config/intervention_watch.json`); spot-vs-level; mandatory for JPY pairs at /weekly + /validate
+- `scripts/check_news.py` — pair-filtered headline readout from `data/news/headlines.csv`
+  (Finnhub feed, `weekly_pull.fetch_news`); context for Section 2 + Step 2b (NOT a gate)
 - `scripts/check_structured_news_event.py` — T4-X validation
+- Pull now COMPUTES the confluence oscillators (Stoch/W%R/CCI/Keltner/Donchian/TTM-squeeze/PSAR/
+  Supertrend, D1+H4) + BOS/CHoCH market structure (`structure.py`) + time-at-price VP substitute
+  for USD-base pairs — previously eyeballed (D025)
 - `scripts/fx_exposure.py` — FX currency-leg netting ledger (advisory)
 - `scripts/zone_ledger.py` — shadow-trade registry: every published zone → `data/zone_ledger.csv`
   (MANDATORY at /weekly publish, one `add` per zone)

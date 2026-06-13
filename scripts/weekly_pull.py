@@ -98,6 +98,7 @@ def is_market_closed_utc(now=None):
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 from ohlc_store import upsert, last_dt as manifest_last_dt, filter_trading_session
+from structure import structure_events, time_at_price
 
 load_dotenv()
 
@@ -130,6 +131,23 @@ ECON_DIR      = Path("data/econ_calendar")        # economic calendar (#1/#2, Fi
 ECON_CSV      = ECON_DIR / "calendar.csv"
 ECON_COLS     = ["date", "time_utc", "country", "event", "impact", "estimate", "actual", "prev", "unit"]
 COMMODITIES_DIR = Path("data/commodities")        # intermarket (#3, yfinance)
+NEWS_DIR      = Path("data/news")                  # news store (Finnhub, D025)
+NEWS_CSV      = NEWS_DIR / "headlines.csv"
+NEWS_COLS     = ["datetime_utc", "category", "headline", "source", "url", "summary", "related"]
+# Per-pair headline keywords for the pull's NEWS FEED filter (US/Fed terms appended globally).
+_NEWS_KEYWORDS = {
+    "xauusd": ["gold", "bullion", "xau", "safe haven", "real yield"],
+    "eurusd": ["euro", "ecb", "eurozone", "lagarde"],
+    "gbpusd": ["pound", "sterling", "boe", "bank of england", "gilt"],
+    "eurgbp": ["euro", "pound", "ecb", "boe"],
+    "audusd": ["aussie", "australian dollar", "rba", "iron ore", "china", "copper"],
+    "nzdusd": ["kiwi", "new zealand dollar", "rbnz", "dairy", "china"],
+    "usdcad": ["loonie", "canadian dollar", "boc", "bank of canada", "oil", "crude", "wti"],
+    "usdchf": ["franc", "swiss", "snb"],
+    "usdjpy": ["yen", "boj", "bank of japan", "mof", "intervention", "ueda"],
+    "eurjpy": ["yen", "euro", "boj", "ecb", "intervention"],
+    "gbpjpy": ["yen", "pound", "boj", "boe", "intervention"],
+}
 TF_RESAMPLE = {"1h": "1h", "4h": "4h", "1day": "1D"}
 
 # ── STEP 1: FETCH 15M + RESAMPLE ─────────────────────────────────────────────
@@ -316,6 +334,126 @@ def calc_macd(df, fast=12, slow=26, sig=9, n=5):
     _md = max(2, PRICE_DP)  # MACD on FX needs more dp or rounds to 0.0
     return [(str(i.date()), round(float(line[i]),_md), round(float(sl[i]),_md), round(float(hist[i]),_md))
             for i in line.iloc[-n:].index]
+
+# ── Oscillators / channels referenced by confluence_criteria (D025 — now COMPUTED,
+#    previously eyeballed). All on CLOSED bars; computed for both D1 and H4. ──────
+
+def calc_stochastic(df, k=14, d=3, smooth=3):
+    h, l, c = df["high"], df["low"], df["close"]
+    ll, hh = l.rolling(k).min(), h.rolling(k).max()
+    fast_k = 100 * (c - ll) / (hh - ll).replace(0, np.nan)
+    sk = fast_k.rolling(smooth).mean()
+    sd = sk.rolling(d).mean()
+    kv, dv = float(sk.iloc[-1]), float(sd.iloc[-1])
+    state = "OVERSOLD" if kv < 20 else "OVERBOUGHT" if kv > 80 else "mid"
+    return {"k": round(kv, 1), "d": round(dv, 1), "state": state}
+
+def calc_williams_r(df, p=14):
+    h, l, c = df["high"], df["low"], df["close"]
+    hh, ll = h.rolling(p).max(), l.rolling(p).min()
+    wr = -100 * (hh - c) / (hh - ll).replace(0, np.nan)
+    v = float(wr.iloc[-1])
+    state = "OVERSOLD" if v < -80 else "OVERBOUGHT" if v > -20 else "mid"
+    return {"wr": round(v, 1), "state": state}
+
+def calc_cci(df, p=20):
+    tp = (df["high"] + df["low"] + df["close"]) / 3
+    sma = tp.rolling(p).mean()
+    mad = (tp - sma).abs().rolling(p).mean()
+    cci = (tp - sma) / (0.015 * mad).replace(0, np.nan)
+    v = float(cci.iloc[-1])
+    state = "OVERBOUGHT (>+100)" if v > 100 else "OVERSOLD (<-100)" if v < -100 else "mid"
+    return {"cci": round(v, 1), "state": state}
+
+def calc_keltner(df, ema=20, atr_mult=2.0, atr_p=10):
+    mid = df["close"].ewm(span=ema, adjust=False).mean()
+    atr = calc_atr_series(df, atr_p)
+    up, lo = mid + atr_mult * atr, mid - atr_mult * atr
+    c = float(df["close"].iloc[-1]); u, m, d = float(up.iloc[-1]), float(mid.iloc[-1]), float(lo.iloc[-1])
+    pos = "ABOVE upper (Keltner-high TAGGED → fade short)" if c >= u else \
+          "BELOW lower (Keltner-low TAGGED → fade long)" if c <= d else "inside"
+    return {"upper": round(u, PRICE_DP), "mid": round(m, PRICE_DP), "lower": round(d, PRICE_DP), "pos": pos}
+
+def calc_donchian(df, p=20):
+    up, lo = df["high"].rolling(p).max(), df["low"].rolling(p).min()
+    c = float(df["close"].iloc[-1]); u, d = float(up.iloc[-1]), float(lo.iloc[-1])
+    pos = "at/above upper (breakout)" if c >= u else "at/below lower (breakdown)" if c <= d else "mid-channel"
+    return {"upper": round(u, PRICE_DP), "lower": round(d, PRICE_DP), "pos": pos}
+
+def calc_ttm_squeeze(df, bb_p=20, bb_k=2.0, kc_p=20, kc_mult=1.5, atr_p=20):
+    c = df["close"]
+    sd = c.rolling(bb_p).std(ddof=0)
+    mid = c.rolling(bb_p).mean()
+    bb_u, bb_l = mid + bb_k * sd, mid - bb_k * sd
+    atr = calc_atr_series(df, atr_p)
+    kc_u, kc_l = mid + kc_mult * atr, mid - kc_mult * atr
+    on = (bb_u < kc_u) & (bb_l > kc_l)   # BB inside KC = squeeze ON
+    bars = 0
+    for v in reversed(on.fillna(False).tolist()):
+        if v: bars += 1
+        else: break
+    return {"on": bool(on.iloc[-1]), "bars": bars}
+
+def calc_psar(df, step=0.02, mx=0.2):
+    h, l = df["high"].to_numpy(), df["low"].to_numpy()
+    n = len(df)
+    if n < 3:
+        return {"psar": None, "dir": "n/a", "flip": False}
+    psar = np.zeros(n); bull = True; af = step
+    ep = h[0]; psar[0] = l[0]
+    for i in range(1, n):
+        psar[i] = psar[i-1] + af * (ep - psar[i-1])
+        if bull:
+            if l[i] < psar[i]:
+                bull = False; psar[i] = ep; ep = l[i]; af = step
+            else:
+                if h[i] > ep: ep = h[i]; af = min(af + step, mx)
+        else:
+            if h[i] > psar[i]:
+                bull = True; psar[i] = ep; ep = h[i]; af = step
+            else:
+                if l[i] < ep: ep = l[i]; af = min(af + step, mx)
+    c = float(df["close"].iloc[-1])
+    flip = (n >= 2) and ((c > psar[-1]) != (float(df["close"].iloc[-2]) > psar[-2]))
+    return {"psar": round(float(psar[-1]), PRICE_DP), "dir": "long" if c > psar[-1] else "short", "flip": bool(flip)}
+
+def calc_supertrend(df, p=10, mult=3.0):
+    h, l, c = df["high"], df["low"], df["close"]
+    hl2 = (h + l) / 2
+    atr = calc_atr_series(df, p)
+    upper = hl2 + mult * atr; lower = hl2 - mult * atr
+    n = len(df); cl = c.to_numpy()
+    fu = upper.to_numpy().copy(); fl = lower.to_numpy().copy()
+    dir_up = np.ones(n, dtype=bool)
+    for i in range(1, n):
+        fu[i] = min(fu[i], fu[i-1]) if cl[i-1] <= fu[i-1] else fu[i]
+        fl[i] = max(fl[i], fl[i-1]) if cl[i-1] >= fl[i-1] else fl[i]
+        if cl[i] > fu[i-1]: dir_up[i] = True
+        elif cl[i] < fl[i-1]: dir_up[i] = False
+        else: dir_up[i] = dir_up[i-1]
+    line = fl[-1] if dir_up[-1] else fu[-1]
+    flip = (n >= 2) and (dir_up[-1] != dir_up[-2])
+    return {"dir": "up" if dir_up[-1] else "down", "value": round(float(line), PRICE_DP), "flip": bool(flip)}
+
+def oscillator_block(df, label):
+    """Compact oscillator/channel read for one timeframe → (text, extremes_list)."""
+    st = calc_stochastic(df); wr = calc_williams_r(df); cci = calc_cci(df)
+    kel = calc_keltner(df); don = calc_donchian(df); sq = calc_ttm_squeeze(df)
+    ps = calc_psar(df); su = calc_supertrend(df)
+    ex = []
+    if st["state"] != "mid": ex.append(f"{label} Stoch {st['k']} {st['state']}")
+    if wr["state"] != "mid": ex.append(f"{label} W%R {wr['wr']} {wr['state']}")
+    if cci["state"] != "mid": ex.append(f"{label} CCI {cci['cci']} {cci['state']}")
+    if "TAGGED" in kel["pos"]: ex.append(f"{label} {kel['pos'].split(' (')[0]}")
+    if sq["on"]: ex.append(f"{label} TTM squeeze ON {sq['bars']}b")
+    txt = (f"  {label}:  Stoch %K {st['k']}/%D {st['d']} ({st['state']}) | W%R {wr['wr']} ({wr['state']}) | "
+           f"CCI {cci['cci']} ({cci['state']})\n"
+           f"        Keltner u{kel['upper']}/m{kel['mid']}/l{kel['lower']} → {kel['pos']}\n"
+           f"        Donchian u{don['upper']}/l{don['lower']} → {don['pos']} | "
+           f"TTM squeeze {'ON ('+str(sq['bars'])+' bars)' if sq['on'] else 'OFF'}\n"
+           f"        PSAR {ps['psar']} ({ps['dir']}{' FLIP' if ps['flip'] else ''}) | "
+           f"Supertrend {su['value']} ({su['dir']}{' FLIP' if su['flip'] else ''})")
+    return txt, ex
 
 def calc_pivots(d1_df):
     gw = d1_df.resample("W").agg({"open":"first","high":"max","low":"min","close":"last"}).dropna()
@@ -548,6 +686,40 @@ def fetch_econ_calendar(force=False, days_back=10, days_fwd=10):
     except Exception as ex:
         return {"error": str(ex)}
 
+# ── NEWS STORE (Finnhub feed, D025) ───────────────────────────────────────────
+
+def fetch_news(force=False, categories=("forex", "general")):
+    """Finnhub market news → data/news/headlines.csv (deduped on url). Accumulates a
+    cross-week corpus for Section 2 + the Step 2b retrospective. Non-fatal on failure."""
+    if not FINNHUB_KEY:
+        return {"error": "FINNHUB_KEY not set in .env"}
+    recs = []
+    try:
+        for cat in categories:
+            r = requests.get("https://finnhub.io/api/v1/news",
+                             params={"category": cat, "token": FINNHUB_KEY}, timeout=20)
+            for e in (r.json() or []):
+                ts = e.get("datetime")
+                dt = (datetime.fromtimestamp(ts, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                      if ts else "")
+                recs.append({"datetime_utc": dt, "category": cat,
+                             "headline": e.get("headline", ""), "source": e.get("source", ""),
+                             "url": e.get("url", ""), "summary": (e.get("summary", "") or "")[:400],
+                             "related": e.get("related", "")})
+        if not recs:
+            return {"error": "no rows"}
+        new = pd.DataFrame(recs, columns=NEWS_COLS)
+        NEWS_DIR.mkdir(parents=True, exist_ok=True)
+        if NEWS_CSV.exists() and not force:
+            old = pd.read_csv(NEWS_CSV, dtype=str).fillna("")
+            new = (pd.concat([old, new.astype(str)], ignore_index=True)
+                   .drop_duplicates("url", keep="last")
+                   .sort_values("datetime_utc").reset_index(drop=True))
+        new.to_csv(NEWS_CSV, index=False)
+        return {"rows": len(new), "this_pull": len(recs), "last": new["datetime_utc"].iloc[-1] if len(new) else "?"}
+    except Exception as ex:
+        return {"error": str(ex)}
+
 # ── INTERMARKET COMMODITIES (#3 — yfinance, AUD/NZD only) ─────────────────────
 
 def fetch_commodities_yf(tickers: dict):
@@ -619,6 +791,14 @@ def fetch_and_update(force=False):
     else:
         print(f"  → econ calendar: {econ_res['rows']} rows ({econ_res['this_pull']} this pull), last {econ_res['last']}")
 
+    # News store (Finnhub feed) — shared across instruments, one CSV. Non-fatal.
+    print("Updating news store (Finnhub)...")
+    news_res = fetch_news(force=force)
+    if "error" in news_res:
+        print(f"  → news SKIPPED: {news_res['error']} (web-search fallback still applies)")
+    else:
+        print(f"  → news: {news_res['rows']} rows ({news_res['this_pull']} this pull), last {news_res['last']}")
+
     # Intermarket commodities (#3) — only pairs that declare them (AUD/NZD).
     cfg = _instrument_cfg
     com_fred = list(getattr(cfg, "COMMODITY_FRED", []) or [])
@@ -681,6 +861,7 @@ def _compute_and_write(out_path):
     price_d       = load_ohlc(TD_DIR / "1day.csv")
     price_h4_full = load_ohlc(TD_DIR / "4h.csv")
     price_h4      = filter_trading_session(price_h4_full.reset_index(), "4h").set_index("datetime")
+    price_h1      = load_ohlc(TD_DIR / "1h.csv")   # for time-at-price (USD-base VP substitute)
 
     # Drop open (still-forming) candle before ATR calcs — fully closed bars only
     price_d_closed  = _drop_open_bar(price_d,  24)   # D1 bar closes 24h after open
@@ -928,6 +1109,50 @@ def _compute_and_write(out_path):
             + "\n  Rising copper/iron ore/dairy = risk-on commodity bid → pair-BULLISH context "
               "(China-demand proxy). Use in Section 1/4 only.\n")
 
+    # ── Oscillators (#C) — computed for D1 + H4, the values Z2 engines read ──
+    osc_d_txt,  osc_d_ex  = oscillator_block(gold_d_closed,  "D1")
+    osc_h4_txt, osc_h4_ex = oscillator_block(gold_h4_closed, "H4")
+    osc_extremes = osc_d_ex + osc_h4_ex
+    oscillators_block = (
+        f"{osc_d_txt}\n{osc_h4_txt}\n"
+        f"  EXTREMES: {' · '.join(osc_extremes) if osc_extremes else 'none (no oscillator at extreme)'}")
+
+    # ── Market structure (#B) — BOS/CHoCH on D1 + H4 (was narrative-only) ──
+    def _struct_line(df, tf):
+        se = structure_events(df, lookback=60)
+        last = se["last"]
+        if last is None:
+            return f"  {tf}: state {se['state'].upper()} | no BOS/CHoCH in last 60 bars"
+        age = len(df.tail(60)) - 1 - last["pos"]
+        return (f"  {tf}: state {se['state'].upper()} | last {last['type']} {last['dir'].upper()} "
+                f"@ {last['level']} ({last['time']}, {age} bars ago)")
+    structure_block = f"{_struct_line(gold_d_closed, 'D1')}\n{_struct_line(gold_h4_closed, 'H4')}"
+
+    # ── Time-at-price (#B) — VP substitute for USD-base pairs (tick volume is 0) ──
+    tap_block = ""
+    if not vp_ticker:  # VP disabled = USD-base pair → acceptance histogram instead
+        tap = time_at_price(price_h1, window=480)
+        if tap:
+            tap_block = (f"\n━━━ TIME-AT-PRICE (H1 acceptance — VP substitute, NOT volume) ━━\n"
+                         f"HTN (most-accepted): {round(tap['htn'], PRICE_DP)}\n"
+                         f"Value area: {round(tap['va_low'], PRICE_DP)} – {round(tap['va_high'], PRICE_DP)} (70% of time)\n"
+                         f"Use as S/R confluence like a POC/VA — acceptance, not traded volume.\n")
+
+    # ── News feed (#A) — recent pair-filtered headlines from the store ──
+    news_block = ""
+    if NEWS_CSV.exists():
+        try:
+            nf = pd.read_csv(NEWS_CSV, dtype=str).fillna("").sort_values("datetime_utc").tail(40)
+            kws = _NEWS_KEYWORDS.get(SYM_CLEAN, []) + ["fed", "fomc", "rate", "inflation", "cpi"]
+            hits = nf[nf["headline"].str.lower().apply(lambda h: any(k in h for k in kws))].tail(8)
+            if not hits.empty:
+                rows = [f"  {r['datetime_utc'][:10]} [{r['source']}] {r['headline']}"
+                        for _, r in hits.iterrows()]
+                news_block = ("\n━━━ NEWS FEED (recent, pair-filtered — context for Section 2) ━━\n"
+                              + "\n".join(rows) + "\n")
+        except Exception:
+            news_block = ""
+
     out = f"""
 ╔══════════════════════════════════════════════════════╗
   {display} WEEKLY DATA — {TODAY.strftime('%Y-%m-%d')} (W{WEEK_NUM})
@@ -965,16 +1190,23 @@ MACD(12,26,9) D1 — last 5 bars:
   Histogram {"POSITIVE (bullish momentum)" if macd_rows[-1][3] > 0 else "NEGATIVE (bearish momentum)"}
   Cross: {"MACD above signal (bullish)" if macd_rows[-1][1] > macd_rows[-1][2] else "MACD below signal (bearish)"}
 
+━━━ OSCILLATORS (D1 / H4 — Z2 engine inputs, were eyeballed pre-D025) ━━
+{oscillators_block}
+
+━━━ MARKET STRUCTURE (BOS/CHoCH, fractal N=2) ━━━━━━━━━━━
+{structure_block}
+
 ━━━ VOLUME PROFILE ({vp_ticker or 'disabled'}, 3mo daily) ━━━━━━━━━━━━
 {vp_block}
 VP check: zone within ~8 units of POC/VAH/VAL = confluent
+{tap_block}
 
 {cot_block}
 
 {gld_block}
 
 {gap_block}
-{intermarket_block}
+{intermarket_block}{news_block}
 ━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
 {baseline_label}: {baseline_val}
 {baseline_extra}baseline_dxy:    {dc:.3f}

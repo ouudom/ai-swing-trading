@@ -86,6 +86,14 @@ option). Netting: INDEPENDENT. All other zones ❌ NO TRADE; gbpusd SECONDARY �
   week. ⚠ Verify RBNZ H2 + SNB Sep/Dec dates in cb_calendar JSON (estimated/TBC).
 
 ## Last Session
+2026-06-13 PM (**TA engine + news store, D025**): closed rubric/engine mismatch — pull now COMPUTES
+the confluence oscillators (Stoch/W%R/CCI/Keltner/Donchian/TTM-squeeze/PSAR/Supertrend, D1+H4) with
+an EXTREMES line + **BOS/CHoCH market structure** (`structure.py structure_events`) + **time-at-price
+VP substitute** for USD-base pairs (`time_at_price`). Were all eyeballed before. Plus **news store**
+(`fetch_news` Finnhub → `data/news/headlines.csv`; `check_news.py` pair-filter; NEWS FEED block).
+Wired Section 2/3/5 + template + docs. Verified: compute renders all blocks, Stoch cross-check exact
+(31.4=31.4), usdjpy tap HTN 158.95. Collect+display only (weights need research scan). **Same
+FINNHUB_KEY activates news + econ-cal.**
 2026-06-13 (**3 upgrades shipped**): (A) **calibration layer** — `scripts/calibration.py` →
 `wiki/system/core/calibration.md` (edge report by instrument/direction/R1/conviction/session, min-n
 gated, `--json`); W24 = 1 LOSS (gbpusd SEC −1R) + 3 RUNNING + 11 PENDING → all edges UNPROVEN (n=1).
@@ -107,7 +115,6 @@ W24 seeded 15 zones; gbpusd SECONDARY would-be −1R. `ohlc_store.upsert()` bad-
 2026-06-11 PM (**deep review + 12 fixes, operator-approved**): sizing-formula contradiction,
 0.01-lot floor, ISO-year filename bug, UTC time math, gap-aware 15M, closed-bars-only, CB-calendar
 gate, VP off for USD-base, deps trimmed — full detail in `decisions.md` + `forecasts/daily/*/2026-06-11.md`.
-2026-06-11 (3 sessions): `/validate all` → all NO TRADE (V3: ECB+PPI; ECB-day miss discovered →
-CB-calendar gate shipped) · first /weekly for 7 new pairs (JPY trio NO ZONES, MoF; nzdusd bad tick
-repaired) · 12 deep-review fixes + shadow ledger + bad-tick guard shipped (→ `decisions.md`,
-`forecasts/daily/*/2026-06-11.md`). 2026-06-10: `/validate all` CPI V3 block, all NO TRADE.
+2026-06-11 (3 sessions): `/validate all` all NO TRADE (V3 ECB+PPI; ECB-day miss → CB-calendar gate);
+first /weekly for 7 new pairs (JPY trio NO ZONES; nzdusd bad tick repaired); 12 fixes + shadow ledger
++ bad-tick guard (→ `decisions.md`, `forecasts/daily/*/2026-06-11.md`).

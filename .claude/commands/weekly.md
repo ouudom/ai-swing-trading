@@ -152,10 +152,19 @@ Write the result into Section 0 of the report (template). NO prior forecast (fir
 Bias: BULLISH/BEARISH/NEUTRAL + confidence. Flag regime shift vs baseline.
 
 **2. News Analysis** — scheduled high-impact calendar next week (UTC, mark hard blocks),
-central-bank commentary, geopolitical drivers. No-trade windows.
+central-bank commentary, geopolitical drivers. No-trade windows. Read the pull's **NEWS FEED
+block** + `bash scripts/pyrun.sh scripts/check_news.py --instrument <INST> --days 7` (Finnhub
+store, D025) for recent pair-relevant headlines; web search supplements, never sole-source.
 
-**3. Technical Analysis** — key S/R zones as boxes (swing points + Volume Profile), EMA 20/50/200,
-RSI state, D1 ATR regime, weekly pivots, ADX regime.
+**3. Technical Analysis** — key S/R zones as boxes (swing points + Volume Profile / time-at-price
+for USD-base), EMA 20/50/200, RSI state, D1 ATR regime, weekly pivots, ADX regime.
+- **OSCILLATORS block (D025): Stoch / Williams %R / CCI / Keltner / Donchian / TTM-squeeze / PSAR /
+  Supertrend are now COMPUTED on D1+H4 in the pull (read the EXTREMES line) — no longer eyeball
+  them. These ARE the Z2-engine inputs the `confluence_criteria` reference; cite the printed value.**
+- **MARKET STRUCTURE block (D025): BOS/CHoCH labeled per D1+H4 (fractal N=2). CHoCH against the
+  prevailing state = the reversal tell the FX fade wants; BOS = continuation.**
+- USD-base pairs (usdcad/usdchf/usdjpy): VP is disabled → use the **TIME-AT-PRICE** block (H1
+  acceptance HTN/value-area) as the POC/VA substitute. It is acceptance, NOT traded volume.
 - xauusd: gold is momentum — RSI>70 is NOT a short signal; structure = breakout locator.
 - FX: **mean-reversion — RSI>65/70 IS a short signal, RSI<35 a long; structure = FADE point.**
   Trend-following (EMA regime/ADX-trend/Supertrend) is anti-edge — do NOT use as pro-trend confluence.
@@ -165,6 +174,7 @@ FX: positioning context only), (xauusd) GLD tonnes, weekend gap %. Flag contradi
 
 **5. Top-Down (D→H4→1H)** — structure on Daily→H4→H1, alignment per candidate direction.
 `mtf_alignment`: ALIGNED / MIXED / OPPOSING. (Note: for FX this informs the FADE, not a trend follow.)
+Ground it in the pull's **MARKET STRUCTURE block** (computed BOS/CHoCH + state per TF), not eyeball.
 
 ## Step 4 — Build Trading Zones (Zone Confluence, R1)
 Score each candidate zone per the instrument's `confluence_criteria.md` R1 — **the Z1–Z7 table

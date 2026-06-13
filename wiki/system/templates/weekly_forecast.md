@@ -81,10 +81,13 @@ same reason → conviction cap MEDIUM + flag.> _(First forecast → "no retrospe
 | RSI(14) D1 | xx.x | divergence? (note: RSI>70 NOT a short signal on gold) |
 | D1 ATR(14) | $xx.xx | compressed? vs 20d median $xx.xx |
 | H4 ATR(14) trading-only | $xx.xx | range>=$1 filter |
+| Oscillators (D1/H4) | Stoch / W%R / CCI / Keltner / Donchian / TTM / PSAR / ST | from pull OSCILLATORS block — cite the EXTREMES line (these are the Z2 inputs) |
+| Market structure (D1/H4) | state + last BOS/CHoCH @ level | from pull MARKET STRUCTURE block (CHoCH = reversal tell) |
 
 **Key resistance:** $xxxx–$xxxx (<confluence>), …
 **Key support:** $xxxx–$xxxx (<confluence>), …
 **Volume Profile (CME GC):** VAH $xxxx / POC $xxxx / VAL $xxxx — <one line>
+_(USD-base pairs: use the TIME-AT-PRICE block — HTN / value area — instead of VP.)_
 
 ## 4. Positioning & Flows
 | | Value | Read |

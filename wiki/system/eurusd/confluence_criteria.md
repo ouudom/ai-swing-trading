@@ -61,7 +61,7 @@ measured-DEAD even at 16yr (t<0.3). The P2 snapshot still *reports* carry/policy
 
 | # | Signal | Weight | Pass when | Evidence |
 |---|---|---|---|---|
-| E0 | **Entry Confirmation** | **3.0** | At zone: H1 reversal pin (tail≥2.5×body) / engulfing / 15M CHoCH AGAINST the approach (mean-reversion turn), confirmed on close | reversal trigger at extreme |
+| E0 | **Entry Confirmation** | **3.0** | At zone, 1H close: **PRIMARY RSI-reclaim** (RSI back through 35/65 toward fade) · 2nd band-reclaim (Keltner re-entry) · fallback pin/engulf / 15M CHoCH AGAINST approach | reclaim > pin (avgR +0.143 vs +0.021); pin retained. PENDING live validation (D027) |
 | E1 | **H4 Oscillator Still Extreme** | **2.5** | H4 RSI/Stoch still beyond fade threshold today | strongest live signal |
 | E2 | **Band Touch Today (H4)** | **1.5** | Price tagged Keltner/BB band on fade side today | live over-extension |
 | E3 | **Still Non-Trending (ADX<25)** | **1.0** | D1 ADX<25 holds | regime guard |

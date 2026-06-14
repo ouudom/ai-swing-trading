@@ -34,7 +34,7 @@ Max 10, floor 5.0, ≤3 zones/wk, ≤1 counter (counter = SHORT here — against
 ## R2 — Entry Confluence (daily, per zone)
 | # | Criterion | Wt |
 |---|---|---|
-| E0 | Confirmation candle (1H engulf / 1H pin tail≥2.5×body / 15M CHoCH) toward zone dir, on close | 3.0 |
+| E0 | 1H close — SHORT (fade): **RSI-reclaim** back through 65 (backtest avgR +0.049, D027 pending) / pin/engulf · LONG (drift): CONTINUATION engulf/pin toward drift, NOT reclaim · 15M CHoCH toward zone dir | 3.0 |
 | E1 | Side engine still live — LONG: squeeze/calm still on · SHORT: H4 oscillator still extreme | 2.5 |
 | E2 | DXY 20d slope still aligned | 1.5 |
 | E3 | LONG only: entry window in NY session 12–16 UTC (H1 drift t=4.71; short = anti −3.97) | 1.0 |

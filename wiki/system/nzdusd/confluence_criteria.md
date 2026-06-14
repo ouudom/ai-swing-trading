@@ -56,7 +56,7 @@ D1 BB squeeze t=2.35) and big-figure is a LONG magnet (H4 t=2.77, short side ant
 
 | # | Signal | Weight | Pass when | Evidence |
 |---|---|---|---|---|
-| E0 | **Entry Confirmation** | **3.0** | At zone: H1 reversal pin (tail≥2.5×body) / engulfing / 15M CHoCH AGAINST the approach, confirmed on close | H4 bullish pin itself scans +3.0 t=2.40 |
+| E0 | **Entry Confirmation** | **3.0** | At zone, 1H close: **PRIMARY RSI-reclaim** (35/65) · 2nd Stoch-reclaim (20/80) · fallback pin/engulf / 15M CHoCH AGAINST approach | reclaim > pin (avgR +0.127 vs +0.012); H4 pin still +3.0 t=2.40. PENDING live validation (D027) |
 | E1 | **H4 Oscillator Still Extreme** | **2.5** | H4 CCI/RSI2/RSI/Stoch still beyond fade threshold today | core fade frame |
 | E2 | **H1 Oscillator Extreme (short) / Band Touch (long)** | **1.5** | SHORT: H1 Stoch>80/W%R/Keltner-high today (t≈2.9–3.0). LONG: H4 band tag on fade side | H1 short-side rows |
 | E3 | **Still Non-Trending (ADX<25)** | **1.0** | D1 ADX<25 holds | regime guard |

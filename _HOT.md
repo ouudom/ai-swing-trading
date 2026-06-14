@@ -84,10 +84,11 @@ option). Netting: INDEPENDENT. All other zones ❌ NO TRADE; gbpusd SECONDARY �
   gbpjpy 211–213; usdjpy 158–159 if calm holds).
 - **Shadow ledger:** /weekly MUST `zone_ledger.py add` per zone + `zone_outcomes.py --week` for prior
   week. ⚠ Verify RBNZ H2 + SNB Sep/Dec dates in cb_calendar JSON (estimated/TBC).
-- **⭐ PENDING RESEARCH — better E0 found:** `e0-variants-backtest.md` shows **oscillator RECLAIM (RSI
-  back through 35/65) beats current pin/engulf E0** (avgR +0.104 vs +0.038, wins 7/11 pairs). Candidate:
-  reclaim primary + pin/engulf secondary, **on 1H close** (15M tested: edge collapses/flips, noisier,
-  keep 1H). VALIDATE on gated subset + live ledger BEFORE editing E0. Gold keeps continuation E0.
+- **⭐ E0 RECLAIM IMPLEMENTED (D027, PENDING-VALIDATION):** E0 PRIMARY now **RSI-reclaim** (most FX) /
+  pin-engulf (gbpusd,eurgbp) / band-reclaim (usdcad) / continuation (gold,usdjpy-LONG); pin/engulf
+  fallback everywhere. Pull block **ENTRY TRIGGERS** computes them (verifiable). All 11 R2 rows +
+  constitution + validate.md + decisions D027 updated. 1H close. **Ledger must confirm on gated subset
+  before settled** — until then pin/engulf still counts. Reverify after live fills accumulate.
 
 ## Last Session
 2026-06-13 PM (**E0 backtest T1+T2+variants**): 3 scripts `backtest_entry_confirm.py`/`_sim.py`/

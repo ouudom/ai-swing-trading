@@ -53,7 +53,7 @@ majors' macro weighting were redistributed to structure (Z1 2.5→3.0) + oscilla
 
 | # | Signal | Weight | Pass when | Evidence |
 |---|---|---|---|---|
-| E0 | **Entry Confirmation** | **3.0** | At zone: H1 reversal pin (tail≥2.5×body) / engulfing / 15M CHoCH turning AGAINST the approach, on close | reversal trigger |
+| E0 | **Entry Confirmation** | **3.0** | At zone, 1H close: **PRIMARY pin/engulf** toward fade · 2nd band-reclaim / close-strength · 15M CHoCH AGAINST approach | pin wins backtest (avgR +0.143); RSI-reclaim weak here (+0.053). PENDING live validation (D027) |
 | E1 | **D1 Oscillator Still Extreme** | **2.5** | D1 RSI/Stoch/CCI still beyond fade threshold | strongest live gate |
 | E2 | **H1 Oscillator Extreme Today** | **1.5** | H1 RSI<30/>65 or Stoch<20/>80 on the fade side | H1 oscillators highly significant both sides (t up to 7.45) |
 | E3 | **Still Non-Trending (ADX<25)** | **1.0** | D1 ADX<25 | |

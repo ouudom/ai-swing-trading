@@ -58,7 +58,7 @@ D1 structure + H1 oscillators, not H4 oscillators.
 
 | # | Signal | Weight | Pass when | Evidence |
 |---|---|---|---|---|
-| E0 | **Entry Confirmation** | **3.0** | At zone: H1 reversal pin (tail≥2.5×body) / engulfing / 15M CHoCH AGAINST the approach, confirmed on close | reversal trigger at extreme |
+| E0 | **Entry Confirmation** | **3.0** | At zone, 1H close: **PRIMARY RSI-reclaim** (35/65) · 2nd pin/engulf · 15M CHoCH AGAINST approach. **Avoid band-reclaim** (−0.003 here) | reclaim > pin (avgR +0.105 vs +0.087). PENDING live validation (D027) |
 | E1 | **H1 Oscillator Still Extreme** | **2.5** | SHORT: W%R>−20/RSI>65/Keltner-high holds today (t 4.5–5.5). LONG: W%R<−80/RSI2<10 | core frame |
 | E2 | **DXY Slope Aligned** | **1.5** | DXY 20d slope still toward zone | t=2.3 |
 | E3 | **Squeeze / Calm Context** | **1.0** | H1 TTM squeeze-on or calm ATR pctile (esp. LONG) | t=3.2/3.0 |

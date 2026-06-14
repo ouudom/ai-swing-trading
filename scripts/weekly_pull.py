@@ -455,6 +455,61 @@ def oscillator_block(df, label):
            f"Supertrend {su['value']} ({su['dir']}{' FLIP' if su['flip'] else ''})")
     return txt, ex
 
+def entry_triggers_block(df_h1):
+    """E0 entry-confirmation triggers on the latest CLOSED 1H bar, both directions (D025-E0).
+    Backtest (e0-variants): RSI-reclaim > band-reclaim > pin/engulf for FX fades. This block makes
+    them VERIFIABLE at /validate instead of eyeballed. Per-pair primary lives in confluence_criteria.
+    """
+    d = _drop_open_bar(df_h1, 1)
+    if len(d) < 30:
+        return "  (insufficient closed 1H bars for E0 triggers)"
+    o, h, l, c = d["open"], d["high"], d["low"], d["close"]
+    o1, c1, h1, l1 = float(o.iloc[-1]), float(c.iloc[-1]), float(h.iloc[-1]), float(l.iloc[-1])
+    po, pc = float(o.iloc[-2]), float(c.iloc[-2])
+    body = abs(c1 - o1)
+    low_wick, up_wick = min(c1, o1) - l1, h1 - max(c1, o1)
+    pin_bull = body > 0 and low_wick >= 2.5 * body
+    pin_bear = body > 0 and up_wick >= 2.5 * body
+    eng_bull = pc < po and c1 > o1 and c1 >= po and o1 <= pc
+    eng_bear = pc > po and c1 < o1 and c1 <= po and o1 >= pc
+    # RSI(14) reclaim — cross back THROUGH the 35/65 threshold (the strongest gate in backtest)
+    delta = c.diff()
+    ag = delta.clip(lower=0).ewm(alpha=1/14, adjust=False).mean()
+    al = (-delta).clip(lower=0).ewm(alpha=1/14, adjust=False).mean()
+    rsi = 100 - 100/(1 + ag/al)
+    rn, rp = float(rsi.iloc[-1]), float(rsi.iloc[-2])
+    rsi_rec_bull, rsi_rec_bear = rp < 35 <= rn, rp > 65 >= rn
+    # Stochastic %K reclaim through 20/80
+    ll, hh = l.rolling(14).min(), h.rolling(14).max()
+    k = (100 * (c - ll) / (hh - ll).replace(0, np.nan)).rolling(3).mean()
+    kn, kp = float(k.iloc[-1]), float(k.iloc[-2])
+    st_rec_bull, st_rec_bear = kp < 20 <= kn, kp > 80 >= kn
+    # Keltner(20 EMA, 2×ATR10) band reclaim — close re-enters the band
+    mid = c.ewm(span=20, adjust=False).mean(); atr = calc_atr_series(d, 10)
+    kl, ku = mid - 2 * atr, mid + 2 * atr
+    bnd_bull = float(c.iloc[-2]) < float(kl.iloc[-2]) and c1 >= float(kl.iloc[-1])
+    bnd_bear = float(c.iloc[-2]) > float(ku.iloc[-2]) and c1 <= float(ku.iloc[-1])
+
+    def fired(d):
+        return " · ".join(d) if d else "none"
+    longs, shorts = [], []
+    if rsi_rec_bull: longs.append(f"RSI-reclaim✦ ({rp:.0f}→{rn:.0f})")
+    if bnd_bull:     longs.append("band-reclaim (Keltner-low re-entry)")
+    if st_rec_bull:  longs.append(f"Stoch-reclaim ({kp:.0f}→{kn:.0f})")
+    if pin_bull:     longs.append("pin (bull)")
+    if eng_bull:     longs.append("engulf (bull)")
+    if rsi_rec_bear: shorts.append(f"RSI-reclaim✦ ({rp:.0f}→{rn:.0f})")
+    if bnd_bear:     shorts.append("band-reclaim (Keltner-high re-entry)")
+    if st_rec_bear:  shorts.append(f"Stoch-reclaim ({kp:.0f}→{kn:.0f})")
+    if pin_bear:     shorts.append("pin (bear)")
+    if eng_bear:     shorts.append("engulf (bear)")
+    bar_t = str(d.index[-1])
+    return (f"  latest closed 1H bar: {bar_t}  (RSI {rn:.0f}, Stoch %K {kn:.0f})\n"
+            f"  LONG-confirm fired:  {fired(longs)}\n"
+            f"  SHORT-confirm fired: {fired(shorts)}\n"
+            f"  ✦ = RSI-reclaim is the highest-R E0 gate (backtest); per-pair primary in "
+            f"confluence_criteria. Toward zone dir only.")
+
 def calc_pivots(d1_df):
     gw = d1_df.resample("W").agg({"open":"first","high":"max","low":"min","close":"last"}).dropna()
     b  = gw.iloc[-2]
@@ -1128,6 +1183,9 @@ def _compute_and_write(out_path):
                 f"@ {last['level']} ({last['time']}, {age} bars ago)")
     structure_block = f"{_struct_line(gold_d_closed, 'D1')}\n{_struct_line(gold_h4_closed, 'H4')}"
 
+    # ── Entry triggers (#E0) — RSI/band/Stoch reclaim + pin/engulf on latest closed 1H bar ──
+    entry_trig_block = entry_triggers_block(price_h1)
+
     # ── Time-at-price (#B) — VP substitute for USD-base pairs (tick volume is 0) ──
     tap_block = ""
     if not vp_ticker:  # VP disabled = USD-base pair → acceptance histogram instead
@@ -1195,6 +1253,9 @@ MACD(12,26,9) D1 — last 5 bars:
 
 ━━━ MARKET STRUCTURE (BOS/CHoCH, fractal N=2) ━━━━━━━━━━━
 {structure_block}
+
+━━━ ENTRY TRIGGERS (E0, latest closed 1H — reclaim > pin/engulf, D027) ━━
+{entry_trig_block}
 
 ━━━ VOLUME PROFILE ({vp_ticker or 'disabled'}, 3mo daily) ━━━━━━━━━━━━
 {vp_block}

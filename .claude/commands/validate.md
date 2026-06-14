@@ -214,6 +214,12 @@ counter-move (gold 2.5% / FX 1.5%), T4 = shock, T5 = cumulative macro drift vs b
 ### Q4 — Entry Confluence (max 10, floor 5.0)
 **Use `wiki/system/{INSTRUMENT}/confluence_criteria.md` R2 — the table differs by instrument.**
 
+> **E0 trigger (D027):** read the pull **ENTRY TRIGGERS (E0, latest closed 1H)** block — it computes
+> RSI-reclaim / band-reclaim / Stoch-reclaim / pin / engulf both directions (no longer eyeballed).
+> Each pair's **PRIMARY** E0 is set in its R2 E0 row (RSI-reclaim for most FX; pin/engulf for
+> gbpusd/eurgbp; band-reclaim for usdcad; continuation for xauusd + usdjpy-LONG). Pin/engulf retained
+> as fallback everywhere. **PENDING live-ledger validation** — pin/engulf still counts if reclaim absent.
+
 - **xauusd (momentum):** E0 entry confirm 3.0 | E1 H4 structure 2.5 | E2 DFII10 slope 2.0 |
   E3 macro drift 1.0 | E4 ATR compression 1.0 | E5 DXY slope 0.5.
 - **eurusd / gbpusd (mean-reversion):** E0 reversal confirm 3.0 | E1 oscillator still extreme 2.5 |

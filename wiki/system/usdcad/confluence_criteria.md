@@ -53,7 +53,7 @@ continuation t=−3.83, Donchian breakdown −2.83, EMA/Aroon-regime anti-edge).
 
 | # | Signal | Weight | Pass when | Evidence |
 |---|---|---|---|---|
-| E0 | **Entry Confirmation** | **3.0** | At zone: H1 reversal pin (tail≥2.5×body) / engulfing / 15M CHoCH AGAINST the approach, confirmed on close | reversal trigger at extreme |
+| E0 | **Entry Confirmation** | **3.0** | At zone, 1H close: **PRIMARY band-reclaim** (close re-enters Keltner) · 2nd micro-BOS / RSI-reclaim · fallback pin/engulf / 15M CHoCH AGAINST approach | band wins backtest here (avgR +0.107). PENDING live validation (D027) |
 | E1 | **H4 Oscillator/Band Still Extreme** | **2.5** | H4 Stoch/CCI/BB still beyond fade threshold today | core frame (BB-upper short t=3.19) |
 | E2 | **H1 Oscillator Extreme** | **1.5** | LONG: H1 W%R<−80 / CCI<−100 / RSI2<10 (t 2.9–3.45). SHORT: H1 CCI>+100 (t=3.08) | H1 long-side machine |
 | E3 | **Still Non-Trending (ADX<25)** | **1.0** | D1 ADX<25 holds | regime guard |

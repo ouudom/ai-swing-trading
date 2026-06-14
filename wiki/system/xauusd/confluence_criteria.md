@@ -68,7 +68,7 @@ the other 7.0 are daily-recomputable time-decay checks (conditions can shift bet
 
 | # | Signal | Weight | Pass when | Evidence |
 |---|---|---|---|---|
-| E0 | **Entry Confirmation** | **3.0** | One of: 1H engulfing candle / 1H pin bar (tail ≥ 2.5× body) / 15M CHoCH over 60-candle structure — **toward zone direction, confirmed on candle CLOSE** | pin+offset = highest-quality cell (PF 3.38). Trigger alone has no edge — value is as a quality filter combined with the outward offset. |
+| E0 | **Entry Confirmation** | **3.0** | One of: 1H engulfing candle / 1H pin bar (tail ≥ 2.5× body) / 15M CHoCH over 60-candle structure — **toward zone direction (CONTINUATION), confirmed on 1H CLOSE** | pin+offset = highest-quality cell (PF 3.38). Trigger alone has no edge — value is as a quality filter combined with the outward offset. **Fade RSI-reclaim does NOT apply (gold = momentum, D027).** |
 | E1 | **H4 Structure Aligned (today)** | **2.5** | H4 HH+HL (long) / LH+LL (short) | +3.0pp gate. H1 dropped — pullback-into-zone entries run counter-trend on H1 at fill, so H1 alignment penalized valid discount entries; E0 governs the H1/15M trigger at the zone. |
 | E2 | **Real-Yield Slope Still Supports** | **2.0** | DFII10 20d slope direction holds today | strongest macro signal, re-checked live |
 | E3 | **Macro Drift OK** | **1.0** | \|DFII10 now − baseline\| < 0.10 against direction | regime-shift guard |

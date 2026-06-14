@@ -55,7 +55,7 @@ Aroon / PSAR / EMA-regime continuation (t −2 to −4.4), ADX+EMA trend-follow.
 
 | # | Signal | Weight | Pass when | Evidence |
 |---|---|---|---|---|
-| E0 | **Entry Confirmation** | **3.0** | At zone: H1 reversal pin (tail≥2.5×body) / engulfing / 15M CHoCH AGAINST the approach, confirmed on close | reversal trigger at extreme |
+| E0 | **Entry Confirmation** | **3.0** | At zone, 1H close: **PRIMARY RSI-reclaim** (RSI back through 35/65) · 2nd band-reclaim · fallback pin/engulf / 15M CHoCH AGAINST approach | reclaim > pin (avgR +0.118 vs +0.018). PENDING live validation (D027) |
 | E1 | **H4 Oscillator Still Extreme** | **2.5** | H4 RSI/CCI/Stoch still beyond fade threshold today | strongest live frame |
 | E2 | **H1 Oscillator Extreme (short) / Band Touch (H4)** | **1.5** | SHORT: H1 RSI>65 / CCI>+100 / Keltner-high today (H1 t 5.2–6.5). LONG: H4 band tag on fade side | H1 short-side machine; H4 bands |
 | E3 | **Still Non-Trending (ADX<25)** | **1.0** | D1 ADX<25 holds | regime guard |

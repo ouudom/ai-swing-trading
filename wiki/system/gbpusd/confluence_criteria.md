@@ -51,7 +51,7 @@ VIX>30 OR VIX 1d spike>3 → block LONG GBP (risk-off → GBP crashes, spike→l
 
 | # | Signal | Weight | Pass when | Evidence |
 |---|---|---|---|---|
-| E0 | **Entry Confirmation** | **3.0** | At zone: H1 reversal pin (tail≥2.5×body) / engulfing / 15M CHoCH turning AGAINST the approach, on close | reversal trigger |
+| E0 | **Entry Confirmation** | **3.0** | At zone, 1H close: **PRIMARY pin/engulf** (tail≥2.5×body / body-engulf toward fade) · 2nd band-reclaim · 15M CHoCH AGAINST approach | only pair where pin wins backtest (avgR +0.143). PENDING live validation (D027) |
 | E1 | **D1 Oscillator Still Extreme** | **2.5** | D1 RSI/Stoch still beyond fade threshold | strongest live GBP gate |
 | E2 | **H1 Oscillator Extreme Today** | **1.5** | H1 RSI<30/>65 or Stoch<20/>80 on the fade side | H1 edges high-N, high-t |
 | E3 | **Still Non-Trending (ADX<25)** | **1.0** | D1 ADX<25 | |

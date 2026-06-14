@@ -24,6 +24,34 @@ later decision but still in force).
 
 ---
 
+## D027 — E0 entry-confirmation upgraded to oscillator RECLAIM (pin/engulf demoted to fallback)
+**Status:** ACTIVE-PENDING-VALIDATION (2026-06-14). Implemented in pipeline + all rubrics; awaiting
+live-ledger confirmation on the confluence-gated subset before "settled".
+**Decision:** The E0 trigger is no longer "pin/engulf/15M-CHoCH" by default. Per-pair PRIMARY E0 is
+now set by the e0-variants backtest: **RSI-reclaim** (RSI(14) crossing back through 35/65 toward the
+fade) for most FX (eurusd, audusd, nzdusd, usdchf, eurjpy, gbpjpy, + usdjpy SHORT leg);
+**pin/engulf** retained as primary only on gbpusd & eurgbp (the two pairs it wins); **band-reclaim**
+(close re-entering Keltner) primary on usdcad. xauusd + usdjpy-LONG keep CONTINUATION E0 (momentum/
+drift — the fade reclaim does not apply). Pin/engulf is kept as a **fallback everywhere** so E0 is
+never weaker than before. New pull block **ENTRY TRIGGERS (E0, latest closed 1H)** computes all
+triggers both directions (verifiable, not eyeballed) via `weekly_pull.entry_triggers_block`.
+**Rationale:** Tier-2 entry-sim (`backtest_entry_sim.py`) showed E0's payoff is fill-price/R via the
+outward offset, not win-rate (Tier-1 found no directional edge). The trigger bake-off
+(`backtest_e0_variants.py`, 1H, 2015+) then showed the current pin/engulf is one of the *weakest*
+gates — barely above a raw limit — while RSI-reclaim delivers ~3× the per-trade R (pooled avgR +0.104
+vs +0.038, PF 1.15 vs 1.05) and wins 7/11 pairs. A reclaim confirms momentum actually turned, which
+fits the mean-reversion thesis better than a single candle shape.
+**Caveats / why PENDING:** in-sample forward-return sim on the *unfiltered* extreme universe, not the
+live zone ledger (n=1). 15M tested — the edge collapses/flips (noisier, shorter 2024+ sample) → E0
+stays on **1H close**. Validate on the gated subset + ledger before treating as final; pin/engulf
+fallback bounds the downside. Reports: `wiki/research/general/e0-variants-backtest.md` (+ entry-sim,
+entry-confirm). _(D025 = TA-engine compute round; D026 = indicator/E0 backtest research — logged in
+research dir + _HOT, not as formal decisions.)_
+**belief_log:**
+- date: 2026-06-14
+  belief: "E0 PRIMARY = oscillator reclaim (RSI 35/65), pin/engulf fallback; per-pair per backtest"
+  trigger: "e0-variants bake-off — reclaim ~3× pin's per-trade R, wins 7/11 pairs (in-sample, 1H)"
+
 ## D024 — 7-pair expansion; netting demoted to ADVISORY; USD sizing everywhere (no quote-CCY convert)
 **Status:** ACTIVE (2026-06-10). **COMPLETE 2026-06-11 — all 7 pairs onboarded, all scans GO,
 10 instruments live.** The carry-trend NO-GO contingency was never needed: even GBPJPY scans as

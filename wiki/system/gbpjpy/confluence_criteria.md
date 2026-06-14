@@ -39,7 +39,7 @@ Max 10, floor 5.0, ≤3 zones/wk, ≤1 counter.
 ## R2 — Entry Confluence (daily, per zone)
 | # | Criterion | Wt |
 |---|---|---|
-| E0 | Confirmation candle (1H engulf / 1H pin tail≥2.5×body / 15M CHoCH) toward zone dir, on close | 3.0 |
+| E0 | 1H close: **PRIMARY RSI-reclaim** (35/65; backtest avgR +0.091 vs pin −0.024 — pin DE-PRIORITIZED here, D027 pending) · 2nd band-reclaim · 15M CHoCH toward zone dir | 3.0 |
 | E1 | Extreme still live — SHORT: H4 still overbought (Stoch>80 t=3.80 / W%R>−20 / RSI>65) · LONG: washout readings still present (Keltner-low / RSI<35 / 20d low) | 2.5 |
 | E2 | Session — LONG: NY/London overlap 12–16 UTC (t=4.20) = 1.5 · SHORT: outside 12–16 UTC = 0.75; **inside 13–15 UTC = 0 (anti −3.84)** | 1.5 |
 | E3 | H1 timing structure (LONG: inside-bar break t=2.62 / near 20d low · SHORT: H1 RSI>65 t=2.59 / Keltner-high) | 1.0 |

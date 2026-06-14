@@ -106,10 +106,24 @@ Daily workflow (07:30 UTC, before London open):
   4. Order expires 21:00 UTC — re-validate next morning, never carry forward.
 ```
 
-### Entry confirmation (E0 — confirmed on candle CLOSE)
-- 1H engulfing candle (body engulfs prior body, toward zone direction), OR
-- 1H pin bar (rejection wick ≥ 2.5× body, toward zone direction), OR
-- 15M CHoCH over a 60-candle structure window, **toward zone direction**.
+### Entry confirmation (E0 — confirmed on 1H candle CLOSE)
+Trigger menu, **toward zone direction**, all on the latest CLOSED 1H bar (pull block ENTRY TRIGGERS).
+Per-pair PRIMARY trigger is set in each `confluence_criteria.md` E0 row (ranked by the e0-variants
+backtest, `wiki/research/general/e0-variants-backtest.md`). Any one listed for the pair satisfies E0:
+- **Oscillator RECLAIM (preferred for FX mean-reversion fades):**
+  - RSI(14) crosses back **through 35** (long) / **65** (short) — highest-R gate in backtest, OR
+  - close re-enters the Keltner band (band-reclaim: above Keltner-low long / below Keltner-high short), OR
+  - Stoch %K crosses back through 20 (long) / 80 (short).
+- **Candle (retained fallback — primary only on gbpusd):** 1H engulfing (body engulfs prior body) OR
+  1H pin (rejection wick ≥ 2.5× body).
+- **15M CHoCH** over a 60-candle window (tactical fast-entry leg, unchanged).
+- **xauusd (momentum) + usdjpy LONG (carry-drift):** E0 = CONTINUATION toward the zone (engulf/pin
+  toward drift), NOT a reclaim — the fade reclaim does not apply.
+
+> [!note] PENDING LIVE VALIDATION (added 2026-06-14, D027). The reclaim ranking is from an in-sample
+> forward-return sim on the unfiltered extreme universe (2015+), 1H. The shadow ledger
+> (`zone_outcomes.csv`) must confirm the reclaim-primary E0 on the confluence-gated subset before
+> this is treated as settled; pin/engulf is retained as fallback so E0 is never worse than before.
 
 ### Order-limit outward offset (v2)
 ```

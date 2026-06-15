@@ -16,42 +16,38 @@ Most USD pairs tradeable **Mon + Fri only**; Wed fully blocked.
 - **EURUSD** [W25](forecasts/weekly/eurusd/2026-W25.md) — NEUTRAL/MEDIUM. LONG 1.1500–1.1520 (7.5) + SHORT 1.1618–1.1640 (7.0). Spot 1.1575. ECB hiked 2.25% (EUR+). FOMC Wed.
 - **GBPUSD** [W25](forecasts/weekly/gbpusd/2026-W25.md) — NEUTRAL/MEDIUM. SHORT 1.3440–1.3465 (6.5) + COUNTER LONG 1.3304–1.3330 (7.0). Spot 1.3407. Squeeze ON. FOMC Wed + BoE Thu block.
 - **EURGBP** [W25](forecasts/weekly/eurgbp/2026-W25.md) — NEUTRAL(long-tilt)/MEDIUM. LONG 0.8608–0.8625 (8.5, best) + SHORT 0.8660–0.8682 (6.0). Spot 0.8634. ECB favors long. BoE Thu block.
-- **AUDUSD** [W25](forecasts/weekly/audusd/2026-W25.md) — BEARISH/MEDIUM. SHORT 0.7065–0.7110 (6.5) + COUNTER LONG 0.6980–0.7000 (7.0). Spot 0.7045. ADX 28.9 (veto>30). RBA Tue + FOMC Wed block.
+- **AUDUSD** [W25](forecasts/weekly/audusd/2026-W25.md) — BEARISH/MEDIUM. SHORT 0.7065–0.7110 (6.5) **→ ✅ LIVE ORDER LIMIT SELL 0.70902 (EC 6.5, 07:16 UTC)** + COUNTER LONG 0.6980–0.7000 (7.0, NO TRADE). Spot 0.70734. ADX 28.9 (veto>30). RBA Tue event risk if filled.
 - **NZDUSD** [W25](forecasts/weekly/nzdusd/2026-W25.md) — NEUTRAL/MEDIUM. SHORT 0.5855–0.5890 (6.5) + COUNTER LONG 0.5750–0.5790 (6.5, best, D1 OS). Spot 0.5831. Antipodean gate vs AUD. FOMC Wed.
 - **USDCAD** [W25](forecasts/weekly/usdcad/2026-W25.md) — BULLISH/MEDIUM. LONG 1.3830–1.3875 (6.0). Spot 1.3987, RSI 75 OB. SHORT **ADX-vetoed** (34.8>30). VIX abort if >20. FOMC Wed.
-- **USDCHF** [W25](forecasts/weekly/usdchf/2026-W25.md) — BEARISH/MEDIUM. SHORT 0.8005–0.8025 (8.5, SNB-cap). Spot 0.7946. DXY slope flipped down. FOMC Wed + SNB Thu block. ⚠ **operator IS long 0.79477 (W24) — thesis now flipped bearish; see Open Position.**
+- **USDCHF** [W25](forecasts/weekly/usdchf/2026-W25.md) — BEARISH/MEDIUM. SHORT 0.8005–0.8025 (8.5, SNB-cap). Spot 0.7946. DXY slope flipped down. FOMC Wed + SNB Thu block. W24 long 0.79477 closed -1R (SL hit).
 - **USDJPY/EURJPY/GBPJPY** [usdjpy](forecasts/weekly/usdjpy/2026-W25.md)·[eurjpy](forecasts/weekly/eurjpy/2026-W25.md)·[gbpjpy](forecasts/weekly/gbpjpy/2026-W25.md) — **⛔ NO ZONES**: BoJ 06-16 + active MoF intervention regime (spots 160.2/185.5/214.8 in/above bands, Mimura 06-10). gbpjpy also BoE. Reassess W26 post-BoJ.
 - FX stack: USDCAD LONG + USDCHF SHORT + EUR/GBP fades + AUD/NZD shorts → run `fx_exposure.py` netting at /validate.
 
 ## Open Position / Carryover
-- **⚠ USDCHF LONG — REAL FILL (corrected 06-15).** Operator confirms entry **0.79477** (8.23 lots,
-  W24 order). SL **0.79234** · TP1 2.5R **0.80085** (manual) · TP2 3.0R **0.80206** (limit) · BE @+1.5R
-  **0.79842**. R = 0.00243. Spot **0.79461 ≈ flat** (−1.6p, ~−0.07R). SL/TP intact, BE not triggered.
-  **Thesis FLIPPED:** the long was justified by DXY 20d slope RISING; W25 that slope rolled DOWN and the
-  pair flipped BEARISH (W25 SHORT zone 0.8005–0.8025). D1 overbought (Stoch 82.9). **SNB Thu 06-18 = event
-  risk.** Operator decision pending: cut ~BE / move stop to BE / hold. Note: long's TP1 (0.80085) ≈ the new
-  short zone — the long's exit = where bias flips short. (Supersedes the 06-14 "no fill" note, which was wrong.)
+- none. USDCHF W24 long 0.79477 → **SL HIT 0.79234, LOSS −1R** (logged to `data/trades_log.csv`,
+  trade_id usdchf-2026-W24-PRIMARY). Position closed.
 
 ## Live Order Limits
-**None.** `/validate all` re-ran 2026-06-15 **03:14 UTC** (hourly, fresh pulls) → **0 order limits**
-(all zones PENDING/below floor; confirms the 02:00 + 02:48 runs). Spots barely moved (Asian session).
-Gates clear: BoJ/RBA Tue, FOMC Wed, BoE/SNB Thu all future-dated, today's opens clean (limits expire
-21:00 UTC tonight). Per-zone read: **audusd SHORT ≈4.5** (spot 0.70773 INSIDE zone, H4 Stoch 85.2 OB,
-**no E0**, ADX 28.9 fails E3) ← still closest · gbpusd SHORT (spot 1.34395 just BELOW zone, TTM squeeze
-ON = not at-resistance, no SHORT E0) · nzdusd SHORT (spot 0.585 below zone, D1 Stoch 19.5 OVERSOLD = wrong
-side, no SHORT E0) · eurgbp LONG (spot 0.86314 ~6p above zone, short-pin = wrong dir) · eurusd between
-zones · usdcad/usdchf/xauusd price away from zones. JPY trio NO ZONES (MoF HARD_BLOCK all 3 + BoJ 06-16).
-No V1/V1b invalidations (intraday, D1 not closed); weekend gaps all NOTE/NOISE (<0.5%) → no re-forecast.
-Daily files: `forecasts/daily/*/2026-06-15.md` (all stamped with 03:14 re-validation). VIX 19.44 stale
-(06-11, 4d) → veto suspended but no order limit depends on it.
+**1 LIVE — AUDUSD.** `/validate all` re-ran 2026-06-15 **10:14 UTC** (hourly, fresh pulls 10:1x) →
+**0 NEW limits; AUDUSD limit from 07:16 still LIVE & intact.**
+- **AUDUSD SELL 0.70902** | 8.09 lots | SL 0.71149 | TP1 2.5R 0.70285 (manual) · TP2 3.0R 0.70161
+  (limit) · BE +1.5R 0.70532 | EC **6.5/10** (E0✅ E1✅ E5✅; E2/E3/E4 ❌) | anchor confirm-close
+  0.70729 | **expires 2026-06-15 21:00 UTC**. Spot 0.70689 still INSIDE SHORT 0.7065–0.7110;
+  **V1b ✅ intact** (H4 closes 0.70719/0.70689, thr 0.71140), ADX 28.9 (<30). 09:00 1H = LONG engulf
+  (wrong dir for short) → no new limit; resting order unchanged. ⚠ **Concentration**:
+  long-USD overlap w/ open USDCHF long (advisory, keep-USDCHF by EC). ⚠ **RBA 06-16** — if filled, carries into it.
+Other 7 USD/gold zones **NO TRADE** (price away / premature E0 below resistance / ADX-veto):
+xauusd 4329 below both shorts · eurusd 1.1605 & gbpusd 1.3440 SHORT reclaims fired *below* zone
+(not at-resistance; gbpusd+eurgbp TTM squeeze ON) · nzdusd 0.5845 below short, long away · usdcad
+1.3978 LONG ~100p above + SHORT ADX-vetoed 34.8 · usdchf 0.7933 SHORT 72p below (H4 oversold, opp).
+JPY trio NO ZONES (MoF HARD_BLOCK all 3 + BoJ 06-16). No V1/V1b invalidations; weekend gaps NOTE/NOISE
+→ no re-forecast. VIX 19.44 stale (06-11) → veto suspended (n/a here).
+Daily files: `forecasts/daily/*/2026-06-15.md` (re-stamped 10:14).
 
 ## Week Status
-- Week: 2026-W25 | Trades: 0 | Risk allocated: $0 | weekly_reforecast_count: 0
+- Week: 2026-W25 | Trades: 0 | Risk allocated: $2000 (1 live limit, audusd, unfilled) | weekly_reforecast_count: 0
 
 ## Pending Actions
-- **🔴 USDCHF open long 0.79477 — operator decision:** thesis flipped bearish + SNB Thu. Cut ~BE / move
-  stop to BE 0.79477 / hold to TP1 0.80085 (≈ new short zone). Disciplined read = exit-or-BE (don't hold a
-  long against your own flipped signal). Claude will not place/close orders — operator executes.
 - **✅ Gold re-forecast + validate done** (06-15). NEUTRAL/MED-LOW; SHORT 4360–4390 / 4450–4485 both
   **NO TRADE today** (EC 3.0, spot 4327 below zones, no E0, ATR expanding + DXY slope against). PENDING —
   wait for rally into 4360–4390 + bearish 1H confirm. Inval D1>4435.
@@ -83,29 +79,31 @@ Daily files: `forecasts/daily/*/2026-06-15.md` (all stamped with 03:14 re-valida
   ledger confirms on gated subset. Pull **ENTRY TRIGGERS** block computes them.
 
 ## Last Session
-2026-06-15 03:14 UTC (**/validate ALL — 11 instruments, hourly**): fresh pulls all 8 USD/gold (paced).
-Gates: CB (BoJ/RBA Tue, FOMC Wed, BoE/SNB Thu — all future, today clean), econ-cal (only FOMC 06-17
-high-impact in window), JPY intervention WATCH (all 3 clear-of-band but BoJ+jawboning = HARD_BLOCK).
-**0 order limits.** Closest still audusd SHORT (spot 0.70773 inside zone, no E0, ADX 28.9 fails E3, EC≈4.5).
-No invalidations, no re-forecast (gaps NOTE/NOISE). USDCHF open long 0.79477 ≈flat, unchanged. All 11
-daily files stamped. Telegram summary sent.
+2026-06-15 10:14 UTC (**/validate ALL — 11 instruments, hourly**): fresh pulls 10:11–10:15, all 11.
+Gates: CB (BoJ/RBA Tue 06-16, FOMC Wed 06-17, BoE/SNB Thu 06-18 — all future, today clean), econ-cal
+(FOMC cluster 06-17 in window, none today within 2h of opens), JPY intervention HARD_BLOCK all 3 (spots
+160.24/185.47/214.83 in/above bands, Mimura jawboning). **0 NEW order limits; AUDUSD SELL 0.70902 from
+07:16 still LIVE** (V1b ✅ H4 0.70719/0.70689 < thr 0.71140, spot 0.70689 inside zone, ADX 28.9; 09:00 1H
+= LONG engulf, wrong dir → no new short). All other zones NO TRADE (price away / premature E0 below
+resistance / usdcad ADX-veto 34.8). No invalidations, no re-forecast. USDCHF open long 0.79477 ~−0.6R
+(spot 0.79338), SL/BE intact. 11 daily files re-stamped 10:14. Also: added <45min freshness guard to the
+hourly scheduled task (skips runs too close together). Telegram sent.
+2026-06-15 09:50 & 08:16 UTC (**/validate ALL hourly**): 0 NEW limits both runs; AUDUSD SELL 0.70902
+LIVE & intact (V1b ✅, spot inside zone, ADX 28.9); all other zones NO TRADE; no inval/re-forecast.
+2026-06-15 07:16 UTC (**/validate ALL — 11 instruments, hourly**): fresh pulls 07:12, all 11 paced
+(JPY trio pulled for intervention spots). Gates: CB (BoJ/RBA Tue, FOMC Wed, BoE/SNB Thu — all future,
+today clean), econ-cal (only FOMC-cluster 06-17 in window), JPY intervention HARD_BLOCK all 3 (spots
+160.1/185.8/215.1 IN bands + Mimura jawboning). **1 ORDER LIMIT: AUDUSD SELL 0.70902** (EC 6.5) — London
+open fired the week's first E0 (06:00 1H bearish RSI-reclaim at resistance, spot inside SHORT zone).
+Ledger flags long-USD concentration w/ open USDCHF long (advisory); RBA-06-16 event-risk flagged. All
+other zones NO TRADE (price away / premature reclaim below resistance / usdcad ADX-veto). No
+invalidations, no re-forecast. USDCHF open long 0.79477 now ~−0.7R (spot 0.79304), SL/BE intact. 11 daily
+files stamped 07:16. Telegram summary sent.
 2026-06-15 (**/weekly xauusd re-forecast + corrections**): weekend-gap re-forecast (gap voided Sunday
 W25 gold) → NEUTRAL/MED-LOW, SHORT 4360–4390 (7.0) + 4450–4485 (6.0), no counter-long; ledger rows redrawn
 in place (no dup), yield_environment + belief log updated. Diagnosed Finnhub: key present, **plan lacks
 econ-calendar endpoint** (premium). Corrected USDCHF: operator **IS** long 0.79477 (real W24 fill, ≈flat) —
 thesis flipped bearish, SNB Thu; decision pending. Files: `forecasts/weekly/xauusd/2026-W25.md`.
-2026-06-15 02:00 UTC (**/validate ALL — 11 instruments, W25**): refreshed all pulls. CB gate (BoJ/RBA
-Tue, FOMC Wed, BoE/SNB Thu — today's limits expire 21:00 UTC tonight so no V3 block today). Econ-cal CSV
-still stale → web fallback, no tier-1 within 2h of opens. **0 order limits.** xauusd VOIDED (+1.882%
-weekend gap → re-forecast). gbpusd short: price gapped into 1.3440–1.3465 at reopen then fell out the
-bottom (no at-zone E0, V1b intact). Risk-pair shorts H4-overbought from the gap-up but below floor (no E0,
-D1 not extreme). JPY trio NO ZONES confirmed (intervention-watch HARD_BLOCK all 3). All 11 daily files
-written. No FX orders → exposure ledger n/a.
-2026-06-14 (**/weekly ALL — 11 instruments, W25**): refreshed all pulls (force, Fri close), CB calendar
-(heavy week: BoJ/RBA 06-16, FOMC 06-17, BoE/SNB 06-18), W24 outcomes resolved, JPY intervention gate (all 3
-in bands). Published **14 zones across 8 USD pairs**; JPY trio NO ZONES (BoJ+MoF). Key shifts: ECB hike
-2.25% → eurusd NEUTRAL + eurgbp long-favored; DXY slope rolled down → usdchf flips BEARISH (8.5 short);
-usdcad short ADX-vetoed (34.8); gold MEDIUM (Iran safe-haven vs rising real yields). Ledger + calibration +
-yield_environment + _INDEX updated. Files: `forecasts/weekly/*/2026-W25.md`.
-2026-06-12 07:30 UTC (`/validate all`): first order limit USDCHF BUY 0.79477 (W24); detail → `forecasts/daily/*/2026-06-12.md`.
-2026-06-13 (3 upgrades): calibration layer + /weekly Step 2b retrospective + econ-cal/intervention gates → `decisions.md`.
+2026-06-14 (**/weekly ALL — 11 instruments, W25**): published **14 zones across 8 USD pairs**; JPY trio
+NO ZONES (BoJ+MoF). ECB hike 2.25% → eurusd NEUTRAL + eurgbp long-favored; DXY slope down → usdchf flips
+BEARISH (8.5 short); usdcad short ADX-vetoed (34.8); gold MEDIUM. Files: `forecasts/weekly/*/2026-W25.md`.

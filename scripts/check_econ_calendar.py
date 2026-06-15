@@ -51,8 +51,8 @@ HIGH = {"high", "3", "h"}  # Finnhub impact values that count as high-impact
 
 def load_calendar() -> pd.DataFrame:
     if not ECON_CSV.exists():
-        print(f"❌ Missing {ECON_CSV} — run weekly_pull.py (needs FINNHUB_KEY) before trusting "
-              f"the no-trade calendar. Web-search fallback applies meanwhile.")
+        print(f"❌ Missing {ECON_CSV} — run weekly_pull.py (Forex Factory free JSON, no key) before "
+              f"trusting the no-trade calendar. Web-search fallback applies meanwhile.")
         sys.exit(1)
     df = pd.read_csv(ECON_CSV, dtype=str).fillna("")
     df["country"] = df["country"].str.upper().str.strip()

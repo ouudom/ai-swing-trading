@@ -12,21 +12,25 @@ table + `wiki/system/{inst}/`. Never apply gold intuition to FX. Onboarding/sizi
 ## Active Forecasts — 2026-W25 (Mon 06-15 → Fri 06-19)
 ⚠ **HEAVY CB WEEK** — Tue: BoJ + RBA · Wed: FOMC (blocks 8 USD pairs) · Thu: BoE + SNB.
 Most USD pairs tradeable **Mon + Fri only**; Wed fully blocked.
-- **XAUUSD** [W25](forecasts/weekly/xauusd/2026-W25.md) — ⚠ **VOIDED — RE-FORECAST PENDING**. Weekend Globex gap **+1.882%** (4215→4316, Iran safe-haven) >1.00% → Sunday forecast voided. Run `/weekly xauusd` before validating. Both short zones held VOIDED. Spot 4316 (still <4435 POC).
+- **XAUUSD** [W25](forecasts/weekly/xauusd/2026-W25.md) — **BEARISH/MEDIUM (re-forecast 06-15, ceasefire-updated)**. SHORT 4360–4390 (7.0) + SHORT 4450–4485 (6.0). Spot 4327, both NO TRADE today (below zones). US–Iran ceasefire removed safe-haven bid → rate-bear reasserts; DXY↓ caps at MEDIUM. Inval D1>4435→flips bullish. No counter-long. FOMC Wed block.
 - **EURUSD** [W25](forecasts/weekly/eurusd/2026-W25.md) — NEUTRAL/MEDIUM. LONG 1.1500–1.1520 (7.5) + SHORT 1.1618–1.1640 (7.0). Spot 1.1575. ECB hiked 2.25% (EUR+). FOMC Wed.
 - **GBPUSD** [W25](forecasts/weekly/gbpusd/2026-W25.md) — NEUTRAL/MEDIUM. SHORT 1.3440–1.3465 (6.5) + COUNTER LONG 1.3304–1.3330 (7.0). Spot 1.3407. Squeeze ON. FOMC Wed + BoE Thu block.
 - **EURGBP** [W25](forecasts/weekly/eurgbp/2026-W25.md) — NEUTRAL(long-tilt)/MEDIUM. LONG 0.8608–0.8625 (8.5, best) + SHORT 0.8660–0.8682 (6.0). Spot 0.8634. ECB favors long. BoE Thu block.
 - **AUDUSD** [W25](forecasts/weekly/audusd/2026-W25.md) — BEARISH/MEDIUM. SHORT 0.7065–0.7110 (6.5) + COUNTER LONG 0.6980–0.7000 (7.0). Spot 0.7045. ADX 28.9 (veto>30). RBA Tue + FOMC Wed block.
 - **NZDUSD** [W25](forecasts/weekly/nzdusd/2026-W25.md) — NEUTRAL/MEDIUM. SHORT 0.5855–0.5890 (6.5) + COUNTER LONG 0.5750–0.5790 (6.5, best, D1 OS). Spot 0.5831. Antipodean gate vs AUD. FOMC Wed.
 - **USDCAD** [W25](forecasts/weekly/usdcad/2026-W25.md) — BULLISH/MEDIUM. LONG 1.3830–1.3875 (6.0). Spot 1.3987, RSI 75 OB. SHORT **ADX-vetoed** (34.8>30). VIX abort if >20. FOMC Wed.
-- **USDCHF** [W25](forecasts/weekly/usdchf/2026-W25.md) — BEARISH/MEDIUM. SHORT 0.8005–0.8025 (8.5, SNB-cap). Spot 0.7972. DXY slope flipped down. FOMC Wed + SNB Thu block. ⚠ reconcile W24 long.
+- **USDCHF** [W25](forecasts/weekly/usdchf/2026-W25.md) — BEARISH/MEDIUM. SHORT 0.8005–0.8025 (8.5, SNB-cap). Spot 0.7946. DXY slope flipped down. FOMC Wed + SNB Thu block. ⚠ **operator IS long 0.79477 (W24) — thesis now flipped bearish; see Open Position.**
 - **USDJPY/EURJPY/GBPJPY** [usdjpy](forecasts/weekly/usdjpy/2026-W25.md)·[eurjpy](forecasts/weekly/eurjpy/2026-W25.md)·[gbpjpy](forecasts/weekly/gbpjpy/2026-W25.md) — **⛔ NO ZONES**: BoJ 06-16 + active MoF intervention regime (spots 160.2/185.5/214.8 in/above bands, Mimura 06-10). gbpjpy also BoE. Reassess W26 post-BoJ.
 - FX stack: USDCAD LONG + USDCHF SHORT + EUR/GBP fades + AUD/NZD shorts → run `fx_exposure.py` netting at /validate.
 
 ## Open Position / Carryover
-- **None — flat.** Operator confirmed no W24 orders were entered (2026-06-14). The USDCHF W24 long
-  "RUNNING +0.8R" is **shadow-ledger only** (paper sim for calibration), NOT a real fill. The W25
-  USDCHF SHORT 0.8005–0.8025 is therefore a clean fresh setup — nothing to reconcile.
+- **⚠ USDCHF LONG — REAL FILL (corrected 06-15).** Operator confirms entry **0.79477** (8.23 lots,
+  W24 order). SL **0.79234** · TP1 2.5R **0.80085** (manual) · TP2 3.0R **0.80206** (limit) · BE @+1.5R
+  **0.79842**. R = 0.00243. Spot **0.79461 ≈ flat** (−1.6p, ~−0.07R). SL/TP intact, BE not triggered.
+  **Thesis FLIPPED:** the long was justified by DXY 20d slope RISING; W25 that slope rolled DOWN and the
+  pair flipped BEARISH (W25 SHORT zone 0.8005–0.8025). D1 overbought (Stoch 82.9). **SNB Thu 06-18 = event
+  risk.** Operator decision pending: cut ~BE / move stop to BE / hold. Note: long's TP1 (0.80085) ≈ the new
+  short zone — the long's exit = where bias flips short. (Supersedes the 06-14 "no fill" note, which was wrong.)
 
 ## Live Order Limits
 **None.** `/validate all` ran 2026-06-15 02:00 UTC → **0 order limits** (all zones PENDING/below floor).
@@ -40,11 +44,19 @@ Daily files: `forecasts/daily/*/2026-06-15.md`.
 - Week: 2026-W25 | Trades: 0 | Risk allocated: $0 | weekly_reforecast_count: 0
 
 ## Pending Actions
-- **🔴 RE-FORECAST GOLD:** `/weekly xauusd` — W25 forecast VOIDED by +1.882% weekend gap. Do before next
-  /validate of gold. Spot 4316 < 4435 POC (thesis not yet broken, but Iran safe-haven bid is live).
+- **🔴 USDCHF open long 0.79477 — operator decision:** thesis flipped bearish + SNB Thu. Cut ~BE / move
+  stop to BE 0.79477 / hold to TP1 0.80085 (≈ new short zone). Disciplined read = exit-or-BE (don't hold a
+  long against your own flipped signal). Claude will not place/close orders — operator executes.
+- **✅ Gold re-forecast + validate done** (06-15). NEUTRAL/MED-LOW; SHORT 4360–4390 / 4450–4485 both
+  **NO TRADE today** (EC 3.0, spot 4327 below zones, no E0, ATR expanding + DXY slope against). PENDING —
+  wait for rally into 4360–4390 + bearish 1H confirm. Inval D1>4435.
+- **🌍 US–IRAN CEASEFIRE (Trump, Sun 06-14) + Hormuz reopening** — material new input, two-way:
+  • **gold** safe-haven premium should UNWIND if it holds → rate-bear reasserts → *strengthens* the short
+  zones (but data hasn't sold off yet, spot 4327; ceasefire fragile/on-off all year = headline-reversal tail).
+  • **oil DOWN** (Hormuz supply back) → CAD-bearish → *supports* usdcad LONG bias. • **risk-ON** mild
+  headwind to audusd/nzdusd shorts; JPY weak but MoF-capped. Watch for confirmation it holds before leaning.
 - **/validate done for 06-15** (02:00 UTC, 0 limits). Re-run later in session or Mon evening if risk-pair
   shorts (audusd/eurusd/nzdusd) tag their zones with an at-zone E0. Wed = FOMC full block. Clean: Mon + Fri.
-- **USDCHF:** flat (no W24 fill) — W25 SHORT 0.8005–0.8025 is a clean fresh setup.
 - **USDCAD:** VIX abort watch — VIX 19.44 <20 so LONG bias stands; a fresh close >20 flips to fade-USD
   SHORT and kills the 1.3830–1.3875 long. Also D1 RSI 75 OB → late-cycle, keep size honest.
 - **AUDUSD:** ADX 28.9 — if D1 closes >30, the COUNTER LONG 0.6980–0.7000 is vetoed.
@@ -55,12 +67,22 @@ Daily files: `forecasts/daily/*/2026-06-15.md`.
   1 LOSS (gbpusd SEC −1R). Calibration n=1 → all edges UNPROVEN (INSUFFICIENT n<10). No DEAD flags.
 - ⚠ **CB calendar:** SNB only verified through 06-18 in `cb_calendar_2026.json` — window extends past it;
   all W25 decisions ARE captured, but extend verification before next /weekly. Verify RBNZ H2 / SNB Sep-Dec.
-- **Econ-calendar (#1/#2) still inactive:** no `FINNHUB_KEY` in `.env` → econ-cal CSV missing, web-search
-  fallback used for data releases. Add key + `weekly_pull.py --force` to activate.
+- **✅ Econ-calendar (#1/#2) NOW ACTIVE — switched to Forex Factory free JSON (06-15).** Finnhub's
+  `/calendar/economic` was premium-gated ("no access"); replaced `fetch_econ_calendar()` with the FF
+  faireconomy feed (no key). `calendar.csv` populated: 103 events, 19 High-impact, coverage→06-19;
+  gate now surfaces FOMC 06-17 + GB CPI 06-17 + UK jobs 06-18 etc. (in-sandbox the lastweek/nextweek
+  feeds returned empty → `--retro` surprise + next-week coverage may need the operator's local run; thisweek
+  is solid). News feed (`check_news`, Finnhub `/news`) **verified WORKING** (06-15, 101 headlines, free
+  tier — only the calendar endpoint was gated). No change needed; FF is a calendar, not a news source.
 - **E0 RECLAIM (D027, PENDING-VALIDATION):** RSI-reclaim primary E0; pin/engulf fallback still counts until
   ledger confirms on gated subset. Pull **ENTRY TRIGGERS** block computes them.
 
 ## Last Session
+2026-06-15 (**/weekly xauusd re-forecast + corrections**): weekend-gap re-forecast (gap voided Sunday
+W25 gold) → NEUTRAL/MED-LOW, SHORT 4360–4390 (7.0) + 4450–4485 (6.0), no counter-long; ledger rows redrawn
+in place (no dup), yield_environment + belief log updated. Diagnosed Finnhub: key present, **plan lacks
+econ-calendar endpoint** (premium). Corrected USDCHF: operator **IS** long 0.79477 (real W24 fill, ≈flat) —
+thesis flipped bearish, SNB Thu; decision pending. Files: `forecasts/weekly/xauusd/2026-W25.md`.
 2026-06-15 02:00 UTC (**/validate ALL — 11 instruments, W25**): refreshed all pulls. CB gate (BoJ/RBA
 Tue, FOMC Wed, BoE/SNB Thu — today's limits expire 21:00 UTC tonight so no V3 block today). Econ-cal CSV
 still stale → web fallback, no tier-1 within 2h of opens. **0 order limits.** xauusd VOIDED (+1.882%

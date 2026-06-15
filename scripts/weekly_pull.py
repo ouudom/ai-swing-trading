@@ -700,46 +700,69 @@ def load_dxy_local():
 
 # ── ECONOMIC CALENDAR (#1/#2 — Finnhub) ───────────────────────────────────────
 
+# Forex Factory free calendar (faireconomy.media) — NO API KEY. Replaces the Finnhub
+# economic-calendar endpoint (premium-gated → "no access" on the free tier). Each feed is a
+# JSON array of {title, country (currency code), date (ISO+offset), impact, forecast, previous,
+# (sometimes) actual}. We map currency→ISO-2 so check_econ_calendar.py reads it unchanged.
+FF_CAL_URLS = {
+    "lastweek": "https://nfs.faireconomy.media/ff_calendar_lastweek.json",
+    "thisweek": "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
+    "nextweek": "https://nfs.faireconomy.media/ff_calendar_nextweek.json",
+}
+FF_CCY_TO_ISO = {"USD": "US", "EUR": "EU", "GBP": "GB", "JPY": "JP", "AUD": "AU",
+                 "NZD": "NZ", "CAD": "CA", "CHF": "CH", "CNY": "CN"}
+
+
 def fetch_econ_calendar(force=False, days_back=10, days_fwd=10):
-    """Finnhub economic calendar → data/econ_calendar/calendar.csv (all countries, deduped on
-    date+country+event). Re-pull merges so `actual` backfills onto a previously-estimate-only
-    row (this is what feeds #2 surprise). Network/credit failure is NON-FATAL — the /weekly
-    web-search fallback still covers the gap, same as before this feed existed."""
-    if not FINNHUB_KEY:
-        return {"error": "FINNHUB_KEY not set in .env"}
-    start = (datetime.now(timezone.utc) - timedelta(days=days_back)).strftime("%Y-%m-%d")
-    end   = (datetime.now(timezone.utc) + timedelta(days=days_fwd)).strftime("%Y-%m-%d")
-    try:
-        r = requests.get("https://finnhub.io/api/v1/calendar/economic",
-                         params={"from": start, "to": end, "token": FINNHUB_KEY}, timeout=20)
-        j = r.json()
-        rows = j.get("economicCalendar", j) if isinstance(j, dict) else j
-        if isinstance(rows, dict):
-            rows = rows.get("economicCalendar") or rows.get("result") or []
-        if not rows:
-            return {"error": f"no rows ({j if isinstance(j, dict) else 'empty'})"}
-        recs = []
+    """Forex Factory free JSON (faireconomy.media) → data/econ_calendar/calendar.csv.
+    NO API key. Pulls last/this/next week (~±10d), maps currency→ISO-2 country, converts each
+    event time to UTC, and merges/dedups on date+country+event so a re-pull backfills `actual`
+    where the feed provides it (feeds the #2 surprise). days_back/days_fwd kept for signature
+    compatibility (the FF feeds are fixed-week). Non-fatal — /weekly web-search fallback covers gaps."""
+    headers = {"User-Agent": "Mozilla/5.0 (trading-brain econ-calendar)"}
+    recs, errors = [], []
+    for tag, url in FF_CAL_URLS.items():
+        try:
+            r = requests.get(url, headers=headers, timeout=20)
+            rows = r.json()
+        except Exception as ex:
+            errors.append(f"{tag}:{ex}")
+            continue
+        if not isinstance(rows, list):
+            errors.append(f"{tag}:unexpected payload")
+            continue
         for e in rows:
-            t = str(e.get("time", "") or "")
+            raw_dt = str(e.get("date", "") or "")
+            date_s, time_s = "", ""
+            if raw_dt:
+                try:
+                    dt = datetime.fromisoformat(raw_dt).astimezone(timezone.utc)
+                    date_s, time_s = dt.strftime("%Y-%m-%d"), dt.strftime("%H:%M")
+                except ValueError:
+                    date_s = raw_dt[:10]
+            ccy = str(e.get("country", "") or "").upper().strip()
             recs.append({
-                "date": t[:10], "time_utc": t[11:16] if len(t) >= 16 else "",
-                "country": e.get("country", ""), "event": e.get("event", ""),
-                "impact": e.get("impact", ""), "estimate": e.get("estimate", ""),
-                "actual": e.get("actual", ""), "prev": e.get("prev", ""),
-                "unit": e.get("unit", ""),
+                "date": date_s, "time_utc": time_s,
+                "country": FF_CCY_TO_ISO.get(ccy, ccy), "event": e.get("title", ""),
+                "impact": e.get("impact", ""), "estimate": e.get("forecast", ""),
+                "actual": e.get("actual", ""), "prev": e.get("previous", ""),
+                "unit": "",
             })
-        new = pd.DataFrame(recs, columns=ECON_COLS)
-        ECON_DIR.mkdir(parents=True, exist_ok=True)
-        if ECON_CSV.exists() and not force:
-            old = pd.read_csv(ECON_CSV, dtype=str).fillna("")
-            new = (pd.concat([old, new.astype(str)], ignore_index=True)
-                   .drop_duplicates(["date", "country", "event"], keep="last")
-                   .sort_values(["date", "time_utc"]).reset_index(drop=True))
-        new.to_csv(ECON_CSV, index=False)
-        return {"rows": len(new), "this_pull": len(recs), "from": start, "to": end,
-                "last": new["date"].iloc[-1] if len(new) else "?"}
-    except Exception as ex:
-        return {"error": str(ex)}
+    if not recs:
+        return {"error": f"FF calendar fetch failed ({'; '.join(errors) or 'no rows'})"}
+    new = pd.DataFrame(recs, columns=ECON_COLS)
+    new = new[new["date"].astype(str).str.len() == 10]   # drop unparseable dates
+    ECON_DIR.mkdir(parents=True, exist_ok=True)
+    if ECON_CSV.exists() and not force:
+        old = pd.read_csv(ECON_CSV, dtype=str).fillna("")
+        new = pd.concat([old, new.astype(str)], ignore_index=True)
+    new = (new.astype(str)
+           .drop_duplicates(["date", "country", "event"], keep="last")
+           .sort_values(["date", "time_utc"]).reset_index(drop=True))
+    new.to_csv(ECON_CSV, index=False)
+    return {"rows": len(new), "this_pull": len(recs), "source": "faireconomy(FF)",
+            "last": new["date"].iloc[-1] if len(new) else "?",
+            "warn": ("partial: " + "; ".join(errors)) if errors else ""}
 
 # ── NEWS STORE (Finnhub feed, D025) ───────────────────────────────────────────
 
@@ -839,7 +862,7 @@ def fetch_and_update(force=False):
         print(f"  → DXY: {dxy_res['rows']} rows | last {dxy_res['last_date']} = {dxy_res['value']}")
 
     # Economic calendar (#1/#2) — shared across instruments, one CSV. Non-fatal on failure.
-    print("Updating economic calendar (Finnhub)...")
+    print("Updating economic calendar (Forex Factory free JSON)...")
     econ_res = fetch_econ_calendar(force=force)
     if "error" in econ_res:
         print(f"  → econ calendar SKIPPED: {econ_res['error']} (web-search fallback still applies)")

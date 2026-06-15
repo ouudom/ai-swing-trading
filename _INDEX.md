@@ -102,20 +102,25 @@
 - `wiki/research/source/_INDEX.md` — external paper index
 
 ## Forecasts — EURUSD / GBPUSD / EURGBP
+- `forecasts/weekly/eurusd/2026-W25.md` — NEUTRAL/MEDIUM; LONG 1.1500–1.1520 (7.5) + SHORT 1.1618–1.1640 (7.0). ECB hiked 2.25% → bias SHORT→NEUTRAL.
+- `forecasts/weekly/gbpusd/2026-W25.md` — NEUTRAL/MEDIUM; SHORT 1.3440–1.3465 (6.5) + COUNTER LONG 1.3304–1.3330 (7.0). TTM squeeze ON; FOMC Wed + BoE Thu block.
+- `forecasts/weekly/eurgbp/2026-W25.md` — NEUTRAL(long-tilt)/MEDIUM; LONG 0.8608–0.8625 (8.5, best) + SHORT 0.8660–0.8682 (6.0). ECB favors long; BoE Thu block.
 - `forecasts/weekly/eurusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT fade zones (1.1618–1.1640, 1.1574–1.1593), conviction MEDIUM.
 - `forecasts/weekly/gbpusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT fade zones (1.3400–1.3447, 1.3370–1.3390), conviction MEDIUM.
 - `forecasts/weekly/eurgbp/2026-W24.md` — NEUTRAL/range (ADX 13.8); LONG 0.8608–0.8624 (ZC 8.0) + SHORT 0.8664–0.8682 (ZC 7.5), conviction MEDIUM. First eurgbp forecast.
 
-## Forecasts — D024 pairs (first /weekly 2026-06-11, mid-week W24)
-- `forecasts/weekly/audusd/2026-W24.md` — BEARISH/MEDIUM; SHORT 0.7065–0.7110 (7.0) + counter LONG 0.6940–0.6996 (7.0); ADX 28.4 → floor 6.0.
-- `forecasts/weekly/nzdusd/2026-W24.md` — NEUTRAL range; SHORT 0.5855–0.5890 (6.5) + counter LONG 0.5750–0.5790 (7.5); bad tick 2026-04-29 repaired (ADX 79.6→18.5).
-- `forecasts/weekly/usdcad/2026-W24.md` — BULLISH/MEDIUM; LONG 1.3885–1.3905 (7.0); SHORT vetoed (ADX 32.3>30 uptrend).
-- `forecasts/weekly/usdchf/2026-W24.md` — BULLISH/MEDIUM-HIGH; LONG 0.7945–0.7960 (7.5) + counter SHORT 0.8005–0.8030 (5.5); SNB 06-18 W25.
-- `forecasts/weekly/usdjpy/2026-W24.md` — **NO ZONES: active MoF intervention regime** (Apr-30 ~160.7 + June jawboning; spot in trigger zone).
-- `forecasts/weekly/eurjpy/2026-W24.md` — NO ZONES (MoF block, crosses slam in sympathy); D1+H4 squeeze loading for W25 long.
-- `forecasts/weekly/gbpjpy/2026-W24.md` — NO ZONES (MoF block + no extreme to fade anyway).
+## Forecasts — D024 pairs
+- `forecasts/weekly/audusd/2026-W25.md` — BEARISH/MEDIUM; SHORT 0.7065–0.7110 (6.5) + COUNTER LONG 0.6980–0.7000 (7.0); ADX 28.9 (veto>30); RBA Tue + FOMC Wed block.
+- `forecasts/weekly/nzdusd/2026-W25.md` — NEUTRAL; SHORT 0.5855–0.5890 (6.5) + COUNTER LONG 0.5750–0.5790 (6.5, best, D1 OS); squeeze OFF; FOMC Wed.
+- `forecasts/weekly/usdcad/2026-W25.md` — BULLISH/MEDIUM; LONG 1.3830–1.3875 (6.0); SHORT ADX-vetoed (34.8>30); RSI 75 OB; FOMC Wed.
+- `forecasts/weekly/usdchf/2026-W25.md` — BEARISH/MEDIUM; SHORT 0.8005–0.8025 (8.5, SNB-cap); DXY slope flipped down; FOMC Wed + SNB Thu block; reconcile W24 long.
+- `forecasts/weekly/usdjpy/2026-W25.md` — **NO ZONES**: BoJ 06-16 + MoF zone (spot 160.2 >160 trigger) + FOMC.
+- `forecasts/weekly/eurjpy/2026-W25.md` — **NO ZONES**: BoJ + MoF zone (185.5) + ECB caution; H4 record-high OB short setup waiting for W26.
+- `forecasts/weekly/gbpjpy/2026-W25.md` — **NO ZONES**: BoJ + BoE + MoF zone (214.8, largest cross slams).
+- `forecasts/weekly/{audusd,nzdusd,usdcad,usdchf,usdjpy,eurjpy,gbpjpy}/2026-W24.md` — prior week (BEARISH/NEUTRAL/BULLISH per pair; JPY trio NO ZONES). See git/file history.
 
 ## Forecasts — XAUUSD
+- `forecasts/weekly/xauusd/2026-W25.md` — BEARISH/MEDIUM; SHORT 4360–4400 (7.5) + SHORT 4450–4485 (7.0). Spot 4215 (Iran bounce); conviction MEDIUM (real-yield vs safe-haven conflict).
 - `forecasts/weekly/xauusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH. (renamed W23→W24: files now named by trade week, not run week)
 
 ## Daily Validations

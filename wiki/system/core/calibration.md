@@ -1,6 +1,6 @@
 ---
 type: system
-updated: 2026-06-13
+updated: 2026-06-14
 confidence: low
 tags: [calibration, edge-validation, shadow-ledger]
 related: [zone_outcomes, zone_ledger, constitution]
@@ -8,7 +8,7 @@ related: [zone_outcomes, zone_ledger, constitution]
 
 # Calibration — Edge Performance
 
-> **AUTO-GENERATED** by `scripts/calibration.py` at 2026-06-13 06:34Z. Do not hand-edit — re-run the script. Source: `data/zone_outcomes.csv`.
+> **AUTO-GENERATED** by `scripts/calibration.py` at 2026-06-14 13:23Z. Do not hand-edit — re-run the script. Source: `data/zone_outcomes.csv`.
 
 Zones tracked: **15** · completed shadow trades: **1** · invalidated-before-fill (capital saved): **0** · min-n for verdicts: **10**.
 

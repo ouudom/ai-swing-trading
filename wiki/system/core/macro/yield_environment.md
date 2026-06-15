@@ -1,81 +1,58 @@
 ---
 type: macro
-updated: 2026-06-07
-confidence: medium-high
+updated: 2026-06-14
+confidence: medium
 tags: [macro, yields, fed, dxy]
 related: [xauusd_profile, constitution]
 ---
 
 # Yield Environment — Current State
-*Living page. Rewritten every Sunday via /macro command. Never duplicated.*
+*Living page. Rewritten every Sunday via /weekly. Never duplicated.*
 
 ## Current Snapshot
-*W23 — 2026-06-07*
+*W25 — 2026-06-14 (forecasts the trade week Mon 06-15 → Fri 06-19)*
 
 | Factor | Value | 1W Change | Direction | Gold Implication |
 |---|---|---|---|---|
-| Real Yield (DFII10 10Y) | 2.11% | +0.05% | ↑ RISING | BEARISH — rising opportunity cost |
-| Nominal Yield (DGS10) | 4.47% | — | → | Context — real yield rising faster |
-| 5Y Breakeven | 2.48% | stable | → Flat | Neutral — near-term inflation contained |
-| Fed Funds Rate | 3.62% | hold | Hold (hawkish) | BEARISH — no cuts; >60% chance Dec HIKE |
-| DXY (ICE DX-Y.NYB) | 100.070 | +1.17% | ↑ RISING (broke 100) | BEARISH — strong dollar, expensive gold |
-| VIX | 15.40 | — | Calm | Muted safe-haven demand |
+| Real Yield (DFII10 10Y) | 2.16% | +0.05% | ↑ RISING (slope +0.0056/day) | BEARISH — rising opportunity cost |
+| Nominal Yield (DGS10) | 4.45% | — | → | Context |
+| 5Y Breakeven | 2.39% | −0.09 | → softer | Inflation read easing slightly |
+| Fed Funds Rate | 3.62% | hold | Hold (hawkish) | BEARISH — FOMC 06-17 bias-shift risk |
+| US 2Y (DGS2) | 4.05% | flat | → (20d slope +0.0037 mild up) | USD-rate momentum mild |
+| DXY (ICE) | 99.75 | −0.32% | ↓ rolled back below 100 | Mildly bullish gold / soft USD |
+| VIX | 19.44 | — | neutral band | Muted |
 
 ## Combined Bias
-**BEARISH — MEDIUM-HIGH confidence**
+**GOLD: BEARISH — MEDIUM confidence (downgraded from MEDIUM-HIGH)**
 
-NFP shock (2026-06-05, strong jobs) repriced rate cuts out → gold −5.08% on the week to $4330. Real yields rising (+0.0081 %/day) + DXY broke above 100 (+1.17% wk) + Warsh hawkish Fed. Both legs of gold's bull thesis (falling real yield + weak dollar) reversed. Dec hike >60%. Main bear-thesis risk this week: CPI Wed 2026-06-10 — a cool print could squeeze shorts via real-yield/dollar pullback.
+Gold collapsed to $4049 then bounced +4.21% to $4215 on Iran safe-haven flows (T3 re-forecast fired 06-12). Real yields still grind higher (the dominant driver) and a hawkish-leaning FOMC (89% hold, possible easing→tightening bias-shift under new Chair Warsh, inflation 4.2%) keep the bear thesis intact — but the **Iran-Israel war (Brent >$100, Strait of Hormuz tail)** is a live two-way safe-haven bid. That macro-vs-geopolitics conflict caps conviction at MEDIUM.
 
-DFII10 20d slope: +0.0081 %/day (rising trend, decelerating vs prior +0.013). Breakeven stable 2.48%. Real yield trajectory higher.
+## This Week — Central-Bank Wall (W25, heavy)
+- **Tue 06-16:** BoJ MPM (JPY trio hard block) + RBA (audusd hard block, nzdusd caution)
+- **Wed 06-17:** FOMC + Warsh presser (hard-blocks xauusd, eurusd, gbpusd, audusd, nzdusd, usdcad, usdchf, usdjpy)
+- **Thu 06-18:** BoE (gbpusd, eurgbp, gbpjpy) + SNB (usdchf)
+- Net effect: only **Monday and Friday** are clean for most USD pairs; Wednesday is fully blocked.
+
+## FX Macro Snapshot — W25
+- **🆕 ECB HIKED 25bp → 2.25% on 06-11** (first since 2023, Iran-war inflation) — EUR-bullish cycle reversal. Flips eurusd to NEUTRAL (hawkish-ECB vs hawkish-FOMC standoff); favors eurgbp LONG side. `baseline_dgs2 4.05` · `baseline_policy_diff US−EZ +1.62 / US−UK −0.11`.
+- **DXY 99.75, 20d slope rolled to FALLING** → now **bearish USDCHF / USDJPY** (the live macro for both USD-base proxies). usdchf bias flips BULLISH→BEARISH (short-fade at 0.80). `baseline_dxy 99.75`.
+- **VIX 19.44 — neutral band** for every VIX-level pair: no AUD/NZD inverted-long tilt, no USDCAD fade-USD short bias. A close >20 flips AUD long-tilt ON and turns VIX against the USDCAD long.
+- **Oil:** Iran/Gulf headlines two-way — "sanctions-waiver draft" + "Gulf peace hopes" dragged WTI lower late last week (mild USDCAD-bullish), but any Hormuz flare re-spikes it. Copper +2.90% (AUD/NZD risk-on context).
+- audusd BEARISH/MEDIUM (ADX 28.9 down, fade-veto watch) · nzdusd NEUTRAL (macro dead, D1 oversold) · usdcad BULLISH/MEDIUM (US2Y+oil+COT, but D1 OB + short ADX-vetoed) · usdchf BEARISH/MEDIUM (DXY slope down, SNB-band cap).
+- **🚨 MoF intervention regime ACTIVE + reinforced:** spot pushed above the 160 trigger (usdjpy 160.24), eurjpy 185.5 / gbpjpy 214.8 both in their bands; Mimura jawboning 06-10. With BoJ 06-16 on top → **usdjpy/eurjpy/gbpjpy NO ZONES W25.** `baseline_ecb_rate 2.25` (eurjpy) · `baseline_sonia_rate 3.73` (gbpjpy).
 
 ## Fed Posture
-**HAWKISH (Warsh era, accelerating)**
-- Fed Funds: 3.62% (target range 3.50–3.75%)
-- Chair: Kevin Warsh — "sustain high rates, accelerate QT, not ruling out hikes"; Waller hawkish too
-- June FOMC 2026-06-16/17: ~97% probability hold (NEXT week, W24)
-- December FOMC: >60% probability of 25bp hike
-- Balance sheet reduction accelerating
-- This week (W23) calendar: CPI Wed 06-10, PPI Thu 06-11, UMich Fri 06-12
+**HAWKISH (Warsh era)** — Fed Funds 3.62% (3.50–3.75%). FOMC 06-16/17 = Warsh's first meeting as Chair; 89% hold priced, with a possible bias-shift from easing toward neutral/tightening. Inflation 4.2%, strong labor, May meeting saw an 8-4 dissent (most since 1992).
 
 ## Key Levels to Watch
-- Real yield above 2.25% = further gold headwinds (currently 2.11%, rising)
+- Real yield above 2.25% = further gold headwinds (currently 2.16%, rising)
 - Real yield below 2.00% = bias softens toward NEUTRAL
-- DXY (ICE) above 100 = additional bearish pressure (CONFIRMED — 100.07)
-- DXY (ICE) below 98 = pressure relieves
-- EMA200 daily ($4,389.94) overhead — price below; doubles as PRIMARY zone resistance cluster
-
-## FX Macro Snapshot — EURUSD / GBPUSD (2026-W24, added 2026-06-09)
-FX driver set differs from gold (D021): scored = **US 2Y (DGS2) slope + DXY 1d jump + VIX spike**;
-carry-diff / 2s10s are DEAD (context only).
-- **US 2Y (DGS2) 4.17%**, +0.19% wk, 20d slope **+0.0213/day RISING** → USD-rate momentum up = **bearish EUR & GBP**. `baseline_dgs2` = 4.17.
-- **DXY 99.96, +0.75% wk** (>100 intraday). No fresh 1d jump today (Δ −0.09).
-- **VIX 21.51, spiked +6.1 today** → risk-off USD bid = bearish both pairs + **blocks all LONG zones**.
-- Policy diff US−EZ +1.62% / US−UK −0.11% — context only.
-- Both pairs BEARISH / MEDIUM-HIGH → sell bounces into resistance (mean-reversion fade).
-
-### EURGBP cross (2026-W24, added 2026-06-09 — first forecast)
-Macro thin/DEAD for the cross (EG2): no DXY, no US rates. EUR−GBP rate diff (ECBDFR 2.00 − SONIA 3.73)
-= **−1.73, flat** → non-directional. VIX 21.51 spiked → weak EURGBP-**up** tilt (risk-off favors EUR
-over GBP, INVERTED vs majors; no VIX-veto). Price action: **NEUTRAL/range** (ADX 13.8, 0.8614–0.8682),
-spot 0.86352. Fade both edges. `baseline_rate_diff` = −1.73.
-
-## D024 Pairs Macro Snapshot (2026-06-11, first /weekly for all 7)
-- **US 2Y (DGS2) 4.13%** (+0.08% wk), 20d slope +0.0053 %/day rising. **VIX 19.87 — between
-  regimes for every VIX-level pair** (no AUD/NZD inverted-long tilt, no CAD fade-USD short bias);
-  a close >20 flips AUD long-tilt ON and turns VIX against the USDCAD long.
-- **DXY 99.93–99.94, 20d slope RISING** → live bullish leg for usdchf + usdjpy.
-- audusd BEARISH/MEDIUM (US2Y rising) · nzdusd NEUTRAL (macro dead) · usdcad BULLISH/MEDIUM
-  (US2Y flipped + COT) · usdchf BULLISH/MEDIUM-HIGH (DXY+US2Y both long).
-- **🚨 MoF intervention regime ACTIVE:** Japan bought yen ~USDJPY 160.7 on 2026-04-30; FinMin
-  Katayama verbal intervention late April; Mimura jawboning into June ("speculative shorts built
-  up… ready to act"). Spot 160.5 = trigger zone → **usdjpy/eurjpy/gbpjpy hard-blocked W24**;
-  reassess after BoJ 06-15/16. JPY COT: spec short yen −136,611 = the positions MoF is targeting.
-- `baseline_dgs2 4.13` (audusd/nzdusd/usdcad/usdchf/usdjpy) · `baseline_ecb_rate 2.00` (eurjpy)
-  · `baseline_sonia_rate 3.73` (gbpjpy) · `baseline_dxy ≈99.94`.
+- DXY (ICE) reclaim above 100 = USDCHF/USDJPY slope flips back bullish
+- Gold: $4435 POC reclaim (D1 close) = bounce becomes reversal, invalidates shorts
 
 ## Belief Log
 | Date | Bias | Real Yield | DXY | Trigger |
 |---|---|---|---|---|
-| 2026-05-21 | BEARISH/MEDIUM | 2.18% (+0.18%) | ~99.2 ICE (was logged 119.282 FRED-broad, pre-migration) | W21 pull; real yields near 1Y high, Fed hawkish flip, FOMC minutes hawkish, gold demand destruction confirmed |
-| 2026-05-25 | BEARISH/MEDIUM-HIGH | 2.18% (20d slope +0.013%/day) | 99.239 ICE | W22: Warsh confirmed as Fed Chair with stronger hawkish posture. Dec hike probability >60%. Real yield trend intact. DXY migrated FRED→ICE (DX-Y.NYB). Upgrading confidence to MEDIUM-HIGH. |
-| 2026-06-07 | BEARISH/MEDIUM-HIGH | 2.11% (20d slope +0.0081%/day) | 100.070 ICE | W23: NFP shock 06-05 (strong jobs) → gold −5.08% to $4330. DXY broke 100. Both bull legs reversed. Slope rising but decelerating. CPI Wed 06-10 = key bear-thesis risk. Bias/confidence held. |
+| 2026-05-25 | BEARISH/MED-HIGH | 2.18% (slope +0.013) | 99.239 ICE | W22: Warsh confirmed Chair, hawkish; Dec hike >60%. |
+| 2026-06-07 | BEARISH/MED-HIGH | 2.11% (slope +0.0081) | 100.070 ICE | W23: NFP shock 06-05 → gold −5.08% to $4330. DXY broke 100. |
+| 2026-06-14 | BEARISH/MEDIUM | 2.16% (slope +0.0056) | 99.75 ICE | W25: gold $4049→$4215 Iran bounce (T3 fired). ECB hiked 2.25% (EUR+). DXY slope rolled down (USDCHF/JPY bearish). VIX 19.44 neutral. Heavy CB week (BoJ/RBA/FOMC/BoE/SNB). MoF regime reinforced (spot >160). Conviction → MEDIUM (macro vs Iran safe-haven conflict). |

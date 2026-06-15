@@ -342,3 +342,25 @@ bash scripts/pyrun.sh scripts/fx_exposure.py --live "<other live FX orders>" \
   `_HOT.md`. The operator chooses whether to drop the weaker one.
 Crosses (eurgbp/eurjpy/gbpjpy) can stack on an implied cross from held majors — always run the
 ledger for them. Antipodean note: audusd + nzdusd same direction ≈ one bet (corr ~0.85).
+
+## Telegram Summary Format (for scheduled/automated runs)
+After a run completes, emit a concise plain-text summary and send it via
+`printf '%s' "$MSG" | bash scripts/pyrun.sh scripts/notify_telegram.py` (helper reads
+`TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` from `.env`; fails safe if absent). This section is the
+single source of truth for the message layout — automation references it, not its own copy.
+
+Layout:
+```
+<YYYY-MM-DD> <HH:MM> UTC validate — N order limit(s)
+<PAIR> <LONG|SHORT> @<limit> | <lots> lots | SL <sl> | TP1 <tp1> | EC <score>/10
+<PAIR> ...                                  ← one line per ORDER LIMIT
+⚠ <flags>                                   ← re-forecast / INVALIDATION / concentration, if any
+```
+Rules:
+- First line always present; `N` = count of ORDER LIMITs this run.
+- One line per ORDER LIMIT only (skip PENDING / NO-TRADE zones to keep it short).
+- `N = 0` → single line: `<date> <time> UTC validate — 0 order limits (<reason>)`,
+  reason = e.g. `all PENDING`, `hard-block day (FOMC)`, `all below EC floor`.
+- Append a final `⚠` line for any re-forecast trigger, V1/V1b/V3 INVALIDATION, or CONCENTRATED
+  netting advisory. Omit the line entirely if none.
+- Keep under ~20 lines / 4096 chars (Telegram cap; the helper truncates).

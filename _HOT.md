@@ -33,12 +33,17 @@ Most USD pairs tradeable **Mon + Fri only**; Wed fully blocked.
   short zone — the long's exit = where bias flips short. (Supersedes the 06-14 "no fill" note, which was wrong.)
 
 ## Live Order Limits
-**None.** `/validate all` ran 2026-06-15 02:00 UTC → **0 order limits** (all zones PENDING/below floor).
-Per-zone EC (floor in parens): audusd SHORT 5.0(6.0) ← closest · eurusd SHORT 4.5(6.5) · nzdusd SHORT
-4.5(6.0) · usdchf SHORT 3.5(6.5) · gbpusd SHORT 3.0(6.0, gapped into zone then fell out) · eurgbp/
-usdcad/counter-longs all ≤3.0. No E0 fired in zone direction on any pair; risk-pair shorts (H4-OB from
-the weekend gap-up) are the watch list — may ripen later in session or Fri. JPY trio NO ZONES (MoF+BoJ).
-Daily files: `forecasts/daily/*/2026-06-15.md`.
+**None.** `/validate all` re-ran 2026-06-15 **03:14 UTC** (hourly, fresh pulls) → **0 order limits**
+(all zones PENDING/below floor; confirms the 02:00 + 02:48 runs). Spots barely moved (Asian session).
+Gates clear: BoJ/RBA Tue, FOMC Wed, BoE/SNB Thu all future-dated, today's opens clean (limits expire
+21:00 UTC tonight). Per-zone read: **audusd SHORT ≈4.5** (spot 0.70773 INSIDE zone, H4 Stoch 85.2 OB,
+**no E0**, ADX 28.9 fails E3) ← still closest · gbpusd SHORT (spot 1.34395 just BELOW zone, TTM squeeze
+ON = not at-resistance, no SHORT E0) · nzdusd SHORT (spot 0.585 below zone, D1 Stoch 19.5 OVERSOLD = wrong
+side, no SHORT E0) · eurgbp LONG (spot 0.86314 ~6p above zone, short-pin = wrong dir) · eurusd between
+zones · usdcad/usdchf/xauusd price away from zones. JPY trio NO ZONES (MoF HARD_BLOCK all 3 + BoJ 06-16).
+No V1/V1b invalidations (intraday, D1 not closed); weekend gaps all NOTE/NOISE (<0.5%) → no re-forecast.
+Daily files: `forecasts/daily/*/2026-06-15.md` (all stamped with 03:14 re-validation). VIX 19.44 stale
+(06-11, 4d) → veto suspended but no order limit depends on it.
 
 ## Week Status
 - Week: 2026-W25 | Trades: 0 | Risk allocated: $0 | weekly_reforecast_count: 0
@@ -78,6 +83,12 @@ Daily files: `forecasts/daily/*/2026-06-15.md`.
   ledger confirms on gated subset. Pull **ENTRY TRIGGERS** block computes them.
 
 ## Last Session
+2026-06-15 03:14 UTC (**/validate ALL — 11 instruments, hourly**): fresh pulls all 8 USD/gold (paced).
+Gates: CB (BoJ/RBA Tue, FOMC Wed, BoE/SNB Thu — all future, today clean), econ-cal (only FOMC 06-17
+high-impact in window), JPY intervention WATCH (all 3 clear-of-band but BoJ+jawboning = HARD_BLOCK).
+**0 order limits.** Closest still audusd SHORT (spot 0.70773 inside zone, no E0, ADX 28.9 fails E3, EC≈4.5).
+No invalidations, no re-forecast (gaps NOTE/NOISE). USDCHF open long 0.79477 ≈flat, unchanged. All 11
+daily files stamped. Telegram summary sent.
 2026-06-15 (**/weekly xauusd re-forecast + corrections**): weekend-gap re-forecast (gap voided Sunday
 W25 gold) → NEUTRAL/MED-LOW, SHORT 4360–4390 (7.0) + 4450–4485 (6.0), no counter-long; ledger rows redrawn
 in place (no dup), yield_environment + belief log updated. Diagnosed Finnhub: key present, **plan lacks

@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
+/* Trading cockpit is dark-only — colors assume a near-black canvas. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,15 +13,75 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* Rendered forecast markdown (react-markdown) inside the zone-board modal. */
+.prose-trading h1 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0.8rem 0 0.4rem;
+}
+.prose-trading h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #a3a3a3;
+  margin: 1rem 0 0.4rem;
+  border-bottom: 1px solid #262626;
+  padding-bottom: 0.2rem;
+}
+.prose-trading h3 {
+  font-weight: 600;
+  margin: 0.7rem 0 0.3rem;
+}
+.prose-trading p {
+  margin: 0.5rem 0;
+}
+.prose-trading ul,
+.prose-trading ol {
+  margin: 0.4rem 0;
+  padding-left: 1.3rem;
+  list-style: disc;
+}
+.prose-trading ol {
+  list-style: decimal;
+}
+.prose-trading a {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+.prose-trading code {
+  background: #1f1f1f;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+.prose-trading blockquote {
+  border-left: 3px solid #3f3f46;
+  padding-left: 0.8rem;
+  margin: 0.6rem 0;
+  color: #a3a3a3;
+}
+.prose-trading table {
+  border-collapse: collapse;
+  margin: 0.6rem 0;
+  font-size: 0.8rem;
+  width: 100%;
+}
+.prose-trading th,
+.prose-trading td {
+  border: 1px solid #303030;
+  padding: 0.25rem 0.5rem;
+  text-align: left;
+}
+.prose-trading th {
+  background: #1a1a1a;
+}
+.prose-trading hr {
+  border: 0;
+  border-top: 1px solid #262626;
+  margin: 0.8rem 0;
 }

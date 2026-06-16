@@ -202,6 +202,11 @@
 - `forecasts/{weekly,daily}/{all 11 instruments}/` — forecast/validation output markdown
 
 ## Frontend (Phase 0 done — 2026-06-16; plan: `wiki/system/core/frontend_plan.md`)
-- `api/main.py` — read-only FastAPI over index.db; reuses `scripts/db.py` + `scripts/live_r.live_metrics`; endpoints `/health`, `/positions`. Run `bash api/run.sh` (127.0.0.1:8000).
+- `api/main.py` — read-only FastAPI over index.db; reuses `scripts/db.py` + `scripts/live_r.live_metrics`; endpoints `/health`, `/positions`, `/gates`, `/zones`, `/forecast`. Run `bash api/run.sh` (127.0.0.1:8000).
+- `api/gates.py` — `/gates` gate computation (Phase 1, 2026-06-16); reuses the 3 gate scripts read-only (CB/econ/intervention) → per-instrument blocks + summary + warnings; does NOT modify scripts/.
+- `api/zones.py` — `/zones` (zone_ledger⋈zone_outcome → per-instrument zones + derived board_status) + `/forecast` (raw forecast markdown, path-validated under forecasts/) (Phase 2, 2026-06-16).
+- `api/charts.py` — `/chart/{inst}?tf=D1|H4|1H|15M` (ohlc candles + overlays: zone bands, trade lines, BOS/CHoCH markers via structure.py, structure state) (Phase 3, 2026-06-16).
+- `api/edge.py` — `/edge?min_n=&week=` (reuses calibration.build → sliceable shadow-edge stats + confluence→R scatter + shadow-vs-real divergence) (Phase 4, 2026-06-16).
+- `api/macro.py` — `/macro` (9 FRED series latest+Δ1+Δ5 from macro_series) + `/news/{inst}` (pair-filtered headlines reusing check_news keywords) (Phase 5, 2026-06-16).
 - `api/requirements.txt` — fastapi+uvicorn (installed into `.venv`, NOT pipeline requirements.txt / sandbox `.pydeps`)
-- `frontend/` — Next.js 16 (app router, TS, Tailwind v4) cockpit polling /positions 60s. `cd frontend && npm run dev` → :3000. `app/page.tsx`, `lib/{api,instruments,usePoll}.ts`. ⚠ read `frontend/node_modules/next/dist/docs/` before edits (breaking changes vs training data).
+- `frontend/` — Next.js 16 (app router, TS, Tailwind v4, dark-only) cockpit polling /positions+/gates+/zones 60s. `cd frontend && npm run dev` → :3000. `app/page.tsx` (cockpit+gate banner+instrument grid), `components/ZoneBoard.tsx` (zone board + forecast-markdown modal, react-markdown+remark-gfm), `components/PriceChart.tsx` (lightweight-charts v5 candles+zone/trade overlays+BOS/CHoCH markers), `components/EdgePanel.tsx` (calibration stat tables + SVG confluence→R scatter + shadow-vs-real), `components/MacroPanel.tsx` (macro snapshot table + pair-filtered news), `lib/{api,instruments,usePoll}.ts`. **All 5 frontend phases done 2026-06-16.** ⚠ read `frontend/node_modules/next/dist/docs/` before edits (breaking changes vs training data).

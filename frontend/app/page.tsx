@@ -1,7 +1,28 @@
 "use client";
-import { getPositions } from "@/lib/api";
+import {
+  getGates,
+  getPositions,
+  worstSeverity,
+  type GateSeverity,
+} from "@/lib/api";
 import { INSTRUMENTS } from "@/lib/instruments";
 import { usePoll } from "@/lib/usePoll";
+import ZoneBoard from "@/components/ZoneBoard";
+import PriceChart from "@/components/PriceChart";
+import EdgePanel from "@/components/EdgePanel";
+import MacroPanel from "@/components/MacroPanel";
+
+const SEV_STYLE: Record<GateSeverity, string> = {
+  HARD_BLOCK: "border-red-700/60 bg-red-950/40 text-red-300",
+  CAUTION: "border-amber-700/50 bg-amber-950/30 text-amber-300",
+  CLEAR: "border-emerald-800/50 bg-emerald-950/20 text-emerald-300",
+};
+
+const SOURCE_TAG: Record<string, string> = {
+  cb: "CB",
+  econ: "ECON",
+  intervention: "MoF",
+};
 
 function rColor(r: number | null): string {
   if (r === null) return "text-neutral-400";
@@ -20,6 +41,7 @@ function fmtR(n: number | null): string {
 
 export default function Cockpit() {
   const { data, error, updatedAt } = usePoll(getPositions, 60_000);
+  const { data: gates, error: gatesError } = usePoll(getGates, 60_000);
 
   const totalR =
     data?.r_curve && data.r_curve.length
@@ -43,9 +65,30 @@ export default function Cockpit() {
         </span>
       </header>
 
-      {/* Gate banner placeholder — Phase 1 wires /gates */}
-      <div className="mb-6 rounded border border-amber-700/50 bg-amber-950/30 px-4 py-2 text-xs text-amber-300">
-        ⚠ Gate banner — wired in Phase 1 (/gates). Shows blocked pairs / no-trade reason.
+      {/* Gate banner — live /gates */}
+      <div
+        className={`mb-6 rounded border px-4 py-2 text-xs ${
+          gates ? SEV_STYLE[gates.severity] : "border-neutral-800 text-neutral-500"
+        }`}
+      >
+        {gatesError ? (
+          <span className="text-red-400">gates: {gatesError}</span>
+        ) : gates ? (
+          <>
+            <div className="font-semibold">
+              {gates.severity} · {gates.summary}
+            </div>
+            {gates.warnings.length > 0 && (
+              <ul className="mt-1 list-disc pl-4 text-[10px] text-neutral-400">
+                {gates.warnings.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
+            )}
+          </>
+        ) : (
+          "loading gates…"
+        )}
       </div>
 
       {/* Open positions */}
@@ -185,31 +228,71 @@ export default function Cockpit() {
           {INSTRUMENTS.map((inst) => {
             const hasOpen = data?.open.some((p) => p.instrument === inst);
             const hasPending = data?.pending.some((p) => p.instrument === inst);
+            const blocks = gates?.instruments[inst];
+            const sev = worstSeverity(blocks);
+            const dot =
+              sev === "HARD_BLOCK"
+                ? "text-red-500"
+                : sev === "CAUTION"
+                  ? "text-amber-400"
+                  : "text-emerald-600";
+            const sources = blocks
+              ? [...new Set(blocks.map((b) => SOURCE_TAG[b.source] ?? b.source))]
+              : [];
             return (
               <div
                 key={inst}
                 className="rounded border border-neutral-800 bg-neutral-950/50 px-3 py-2"
               >
                 <div className="flex items-center justify-between">
-                  <span className="uppercase">{inst}</span>
+                  <span className="uppercase">
+                    <span className={`mr-1 ${dot}`}>●</span>
+                    {inst}
+                  </span>
                   <span className="text-xs">
                     {hasOpen ? (
-                      <span className="text-emerald-400">●open</span>
+                      <span className="text-emerald-400">open</span>
                     ) : hasPending ? (
-                      <span className="text-amber-400">●pending</span>
+                      <span className="text-amber-400">pending</span>
                     ) : (
                       <span className="text-neutral-700">flat</span>
                     )}
                   </span>
                 </div>
                 <div className="mt-1 text-[10px] text-neutral-600">
-                  zones → Phase 2
+                  {sources.length ? (
+                    <span title={blocks?.map((b) => b.detail).join("\n")}>
+                      {sev} · {sources.join(" ")}
+                    </span>
+                  ) : (
+                    "clear"
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
       </section>
+
+      {/* Chart — Phase 3 */}
+      <div className="mt-8">
+        <PriceChart />
+      </div>
+
+      {/* Zone board — Phase 2 */}
+      <div className="mt-8">
+        <ZoneBoard />
+      </div>
+
+      {/* Calibration / edge — Phase 4 */}
+      <div className="mt-8">
+        <EdgePanel />
+      </div>
+
+      {/* Macro / news — Phase 5 */}
+      <div className="mt-8">
+        <MacroPanel />
+      </div>
     </main>
   );
 }

@@ -36,8 +36,8 @@ MoF intervention regime (Mimura jawboning 06-10).
 - **MoF/JPY:** flat through BoJ 06-16; W26 setups = post-BoJ washouts.
 
 ## Last session
-2026-06-16 13:58 UTC — /validate ALL (hourly). **0 order limits** — hard-block week (unchanged).
+2026-06-16 16:06 UTC — /validate ALL (hourly). **0 order limits** — hard-block week (unchanged).
 Gates re-confirmed: BoJ+RBA today HARD, FOMC 06-17 → all 8 USD pairs pre-event carry block, BoE+SNB 06-18,
 eurgbp pre-UK-CPI 06-17; JPY trio MoF HARD_BLOCK + NO ZONES. BoJ HIKED today, yen steady (no MoF slam);
-no fresh T4-X shock; no new D1 close (next 00:00 UTC 06-17); zones intact, trade table clean (no open positions).
-Earlier 06-16 hourly re-runs (05:09→11:44 UTC) all **0 order limits** — same gates, verdicts unchanged.
+no fresh T4-X shock; no new D1 close (last D1 bar 06-16 00:00, next 00:00 UTC 06-17); zones intact, trade table clean (no open positions).
+Earlier 06-16 hourly re-runs (05:09→13:58 UTC) all **0 order limits** — same gates, verdicts unchanged. Telegram summary sent.

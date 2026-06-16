@@ -22,8 +22,13 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import db  # noqa: E402  (scripts/db.py)
 import live_r  # noqa: E402  (scripts/live_r.py — live_metrics)
-from fastapi import FastAPI  # noqa: E402
+from fastapi import FastAPI, Query  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from api.gates import gates_for  # noqa: E402
+from api.zones import forecast_markdown, zones_for  # noqa: E402
+from api.charts import chart_for  # noqa: E402
+from api.edge import edge_for  # noqa: E402
+from api.macro import macro_snapshot, news_for  # noqa: E402
 
 app = FastAPI(title="Trading Brain API", version="0.0")
 
@@ -55,6 +60,60 @@ def _last_close(instrument: str, tf: str = "1h"):
     b = bars.sort_values("datetime")
     last = b.iloc[-1]
     return _f(last["close"]), str(last["datetime"])
+
+
+@app.get("/gates")
+def gates(date: str | None = Query(default=None, description="YYYY-MM-DD (default: today UTC)")):
+    """Gate status for all 10 instruments — CB decisions, high-impact econ releases, JPY intervention."""
+    return gates_for(date)
+
+
+@app.get("/zones")
+def zones(week: str | None = Query(default=None, description="ISO week e.g. 2026-W25 (default: current)")):
+    """Published Trading Zones per instrument for a week, joined to replayed outcomes."""
+    return zones_for(week)
+
+
+@app.get("/forecast")
+def forecast(source_file: str = Query(description="zone_ledger source_file path under forecasts/")):
+    """Raw forecast markdown for a zone's source file (path-validated under forecasts/)."""
+    return forecast_markdown(source_file)
+
+
+@app.get("/chart/{instrument}")
+def chart(
+    instrument: str,
+    tf: str = Query(default="D1", description="D1 | H4 | 1H | 15M"),
+    week: str | None = Query(default=None, description="ISO week for zone overlay (default current)"),
+):
+    """OHLC candles + overlays (zone bands, trade lines, BOS/CHoCH markers) for one instrument."""
+    return chart_for(instrument, tf, week)
+
+
+@app.get("/edge")
+def edge(
+    min_n: int | None = Query(default=None, description="min completed trades before a verdict"),
+    week: str | None = Query(default=None, description="restrict to one ISO week"),
+):
+    """Calibration / edge performance: sliceable shadow-trade stats + confluence→R scatter + shadow-vs-real."""
+    return edge_for(min_n, week)
+
+
+@app.get("/macro")
+def macro():
+    """Macro snapshot — key FRED yields/rates/vol/oil with 1- and 5-obs change."""
+    return macro_snapshot()
+
+
+@app.get("/news/{instrument}")
+def news(
+    instrument: str,
+    days: int = Query(default=7, description="lookback window in days"),
+    limit: int = Query(default=15, description="max headlines"),
+    query: str | None = Query(default=None, description="extra substring filter"),
+):
+    """Pair-filtered news headlines (reuses check_news keyword sets)."""
+    return news_for(instrument, days, limit, query)
 
 
 @app.get("/health")

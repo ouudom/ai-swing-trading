@@ -104,7 +104,6 @@ load_dotenv()
 
 TWELVE_KEY = os.getenv("TWELVE_DATA_KEY")
 FRED_KEY   = os.getenv("FRED_KEY")
-FINNHUB_KEY = os.getenv("FINNHUB_KEY")   # economic calendar (#1/#2); optional — web-search fallback
 
 # All time math in UTC. YEAR must be the ISO year (not calendar year) so the
 # weekly_pull filename stays consistent with WEEK_NUM across the Dec/Jan boundary
@@ -127,11 +126,11 @@ FRED_SERIES = ["DFII10", "DGS10", "T5YIE", "DFF", "VIXCLS"]
 DXY_CSV       = Path("data/yahoo/DXY.csv")
 GLD_HOLD_CSV  = Path("data/gld_holdings.csv")
 COT_CACHE_DIR = Path("data/cftc")
-ECON_DIR      = Path("data/econ_calendar")        # economic calendar (#1/#2, Finnhub)
+ECON_DIR      = Path("data/econ_calendar")        # economic calendar (#1/#2, Forex Factory free JSON)
 ECON_CSV      = ECON_DIR / "calendar.csv"
 ECON_COLS     = ["date", "time_utc", "country", "event", "impact", "estimate", "actual", "prev", "unit"]
 COMMODITIES_DIR = Path("data/commodities")        # intermarket (#3, yfinance)
-NEWS_DIR      = Path("data/news")                  # news store (Finnhub, D025)
+NEWS_DIR      = Path("data/news")                  # news store (free RSS feeds, D025)
 NEWS_CSV      = NEWS_DIR / "headlines.csv"
 NEWS_COLS     = ["datetime_utc", "category", "headline", "source", "url", "summary", "related"]
 # Per-pair headline keywords for the pull's NEWS FEED filter (US/Fed terms appended globally).
@@ -698,10 +697,10 @@ def load_dxy_local():
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
     return df.dropna()
 
-# ── ECONOMIC CALENDAR (#1/#2 — Finnhub) ───────────────────────────────────────
+# ── ECONOMIC CALENDAR (#1/#2 — Forex Factory free JSON) ───────────────────────
 
-# Forex Factory free calendar (faireconomy.media) — NO API KEY. Replaces the Finnhub
-# economic-calendar endpoint (premium-gated → "no access" on the free tier). Each feed is a
+# Forex Factory free calendar (faireconomy.media) — NO API KEY. (Prior provider was premium-gated
+# → "no access" on its free tier, so we moved to this key-free feed.) Each feed is a
 # JSON array of {title, country (currency code), date (ISO+offset), impact, forecast, previous,
 # (sometimes) actual}. We map currency→ISO-2 so check_econ_calendar.py reads it unchanged.
 FF_CAL_URLS = {
@@ -764,39 +763,97 @@ def fetch_econ_calendar(force=False, days_back=10, days_fwd=10):
             "last": new["date"].iloc[-1] if len(new) else "?",
             "warn": ("partial: " + "; ".join(errors)) if errors else ""}
 
-# ── NEWS STORE (Finnhub feed, D025) ───────────────────────────────────────────
+# ── NEWS STORE (free RSS feeds — no API key, D025; key-free feed since 2026-06-15) ──
 
-def fetch_news(force=False, categories=("forex", "general")):
-    """Finnhub market news → data/news/headlines.csv (deduped on url). Accumulates a
-    cross-week corpus for Section 2 + the Step 2b retrospective. Non-fatal on failure."""
-    if not FINNHUB_KEY:
-        return {"error": "FINNHUB_KEY not set in .env"}
-    recs = []
+# Key-free forex/markets RSS, matching the key-free Forex Factory calendar feed. Standard RSS 2.0 <item>{title,link,pubDate,description?}. Reachable
+# from the scheduled-task sandbox (DailyFX 403s, ForexLive 301s → excluded). check_news.py
+# filters on headline text, so the item titles drive relevance.
+NEWS_RSS_SOURCES = [
+    ("FXStreet",      "forex", "https://www.fxstreet.com/rss/news"),
+    ("Investing.com", "forex", "https://www.investing.com/rss/news_1.rss"),
+]
+# currency tags for the `related` column (schema parity; relevance filtering uses headline text)
+_NEWS_REL_KW = {
+    "XAU": ["gold", "bullion", "xau"],
+    "USD": ["dollar", "fed", "fomc", "powell", "treasury"],
+    "EUR": ["euro", "ecb", "eurozone", "lagarde"],
+    "GBP": ["pound", "sterling", "boe", "gilt"],
+    "JPY": ["yen", "boj", "mof", "ueda", "intervention"],
+    "AUD": ["aussie", "australian dollar", "rba", "iron ore"],
+    "NZD": ["kiwi", "new zealand", "rbnz", "dairy"],
+    "CAD": ["loonie", "canadian dollar", "boc", "crude", "wti", " oil"],
+    "CHF": ["franc", "swiss", "snb"],
+}
+
+
+def _parse_rss_date(s):
+    """RSS pubDate → 'YYYY-MM-DDTHH:MM:SSZ' (UTC). Handles RFC822 (FXStreet, incl. bare 'Z')
+    and ISO-ish 'YYYY-MM-DD HH:MM:SS' (Investing.com). Naive timestamps assumed UTC."""
+    from email.utils import parsedate_to_datetime
+    s = (s or "").strip()
+    for f in ("%a, %d %b %Y %H:%M:%S %z", "%a, %d %b %Y %H:%M:%S Z",
+              "%a, %d %b %Y %H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
+        try:
+            dt = datetime.strptime(s, f)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            pass
     try:
-        for cat in categories:
-            r = requests.get("https://finnhub.io/api/v1/news",
-                             params={"category": cat, "token": FINNHUB_KEY}, timeout=20)
-            for e in (r.json() or []):
-                ts = e.get("datetime")
-                dt = (datetime.fromtimestamp(ts, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-                      if ts else "")
-                recs.append({"datetime_utc": dt, "category": cat,
-                             "headline": e.get("headline", ""), "source": e.get("source", ""),
-                             "url": e.get("url", ""), "summary": (e.get("summary", "") or "")[:400],
-                             "related": e.get("related", "")})
-        if not recs:
-            return {"error": "no rows"}
-        new = pd.DataFrame(recs, columns=NEWS_COLS)
-        NEWS_DIR.mkdir(parents=True, exist_ok=True)
-        if NEWS_CSV.exists() and not force:
-            old = pd.read_csv(NEWS_CSV, dtype=str).fillna("")
-            new = (pd.concat([old, new.astype(str)], ignore_index=True)
-                   .drop_duplicates("url", keep="last")
-                   .sort_values("datetime_utc").reset_index(drop=True))
-        new.to_csv(NEWS_CSV, index=False)
-        return {"rows": len(new), "this_pull": len(recs), "last": new["datetime_utc"].iloc[-1] if len(new) else "?"}
-    except Exception as ex:
-        return {"error": str(ex)}
+        dt = parsedate_to_datetime(s)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    except Exception:
+        return ""
+
+
+def _derive_related(text):
+    t = (text or "").lower()
+    return ",".join(c for c, kws in _NEWS_REL_KW.items() if any(k in t for k in kws))
+
+
+def fetch_news(force=False, categories=None):
+    """Free RSS forex/markets feeds → data/news/headlines.csv (deduped on url). Accumulates a
+    cross-week corpus for Section 2 + the Step 2b retrospective. Key-free since 2026-06-15
+    (matches the FF calendar feed). `categories` kept for signature compatibility
+    (unused). Non-fatal on failure — /weekly web-search fallback covers gaps."""
+    import xml.etree.ElementTree as ET
+    headers = {"User-Agent": "Mozilla/5.0 (trading-brain news)"}
+    recs, errors = [], []
+    for source, cat, url in NEWS_RSS_SOURCES:
+        try:
+            r = requests.get(url, headers=headers, timeout=20)
+            root = ET.fromstring(r.content)
+        except Exception as ex:
+            errors.append(f"{source}:{ex}")
+            continue
+        for it in root.iter("item"):
+            def g(tag):
+                el = it.find(tag)
+                return (el.text or "").strip() if el is not None and el.text else ""
+            title, link = g("title"), g("link")
+            if not title or not link:
+                continue
+            summary = g("description")[:400]
+            recs.append({"datetime_utc": _parse_rss_date(g("pubDate")), "category": cat,
+                         "headline": title, "source": source, "url": link,
+                         "summary": summary, "related": _derive_related(title + " " + summary)})
+    if not recs:
+        return {"error": f"RSS news fetch failed ({'; '.join(errors) or 'no rows'})"}
+    new = pd.DataFrame(recs, columns=NEWS_COLS)
+    NEWS_DIR.mkdir(parents=True, exist_ok=True)
+    if NEWS_CSV.exists() and not force:
+        old = pd.read_csv(NEWS_CSV, dtype=str).fillna("")
+        new = (pd.concat([old, new.astype(str)], ignore_index=True)
+               .drop_duplicates("url", keep="last")
+               .sort_values("datetime_utc").reset_index(drop=True))
+    new.to_csv(NEWS_CSV, index=False)
+    return {"rows": len(new), "this_pull": len(recs),
+            "source": "rss(" + "+".join(s for s, _, _ in NEWS_RSS_SOURCES) + ")",
+            "last": new["datetime_utc"].max() if len(new) else "?",
+            "warn": ("partial: " + "; ".join(errors)) if errors else ""}
 
 # ── INTERMARKET COMMODITIES (#3 — yfinance, AUD/NZD only) ─────────────────────
 
@@ -869,8 +926,8 @@ def fetch_and_update(force=False):
     else:
         print(f"  → econ calendar: {econ_res['rows']} rows ({econ_res['this_pull']} this pull), last {econ_res['last']}")
 
-    # News store (Finnhub feed) — shared across instruments, one CSV. Non-fatal.
-    print("Updating news store (Finnhub)...")
+    # News store (free RSS feeds) — shared across instruments, one CSV. Non-fatal.
+    print("Updating news store (RSS)...")
     news_res = fetch_news(force=force)
     if "error" in news_res:
         print(f"  → news SKIPPED: {news_res['error']} (web-search fallback still applies)")

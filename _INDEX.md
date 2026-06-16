@@ -154,7 +154,7 @@
 - `scripts/check_cb_calendar.py` — central-bank decision-date gate (MANDATORY at /weekly + /validate; reads static JSON; exit 1 = calendar unverified for window)
 - `scripts/check_econ_calendar.py` — scheduled data-release gate (#1/#2, MANDATORY; reads `data/econ_calendar/calendar.csv`; HIGH-impact releases for the pair's legs; `--retro <week>` = actual-vs-est surprise for Step 2b; exit 1 = CSV stale)
 - `scripts/check_intervention_watch.py` — JPY MoF intervention/jawboning gate (#4, MANDATORY for JPY; spot vs `config/intervention_watch.json` level → HARD_BLOCK/CAUTION; exit 1 = watch stale)
-- `scripts/check_news.py` — pair-filtered headline readout from `data/news/headlines.csv` (Finnhub; context for Section 2 + Step 2b; NOT a gate; D025)
+- `scripts/check_news.py` — pair-filtered headline readout from `data/news/headlines.csv` (free RSS feeds; context for Section 2 + Step 2b; NOT a gate; D025)
 - `scripts/check_structured_news_event.py` — T4-X structured news event check
 - `scripts/structure.py` — shared fractal pivots, MTF structure helpers + `structure_events` (BOS/CHoCH labeling) + `time_at_price` (USD-base VP substitute) (D025)
 
@@ -181,9 +181,9 @@
 - `data/zone_ledger.csv` — shadow-ledger zone registry (script-managed: `zone_ledger.py`; W24 seeded 15 zones 2026-06-11)
 - `data/zone_outcomes.csv` — would-be R outcomes per zone (script-managed: `zone_outcomes.py`)
 - `data/calibration/summary.json` — optional JSON edge summary (script-managed: `calibration.py --json`)
-- `data/econ_calendar/calendar.csv` — Finnhub economic calendar (#1/#2; date/country/event/impact/estimate/actual/prev; script-managed: `weekly_pull.fetch_econ_calendar`)
+- `data/econ_calendar/calendar.csv` — Forex Factory free-JSON economic calendar (#1/#2; date/country/event/impact/estimate/actual/prev; script-managed: `weekly_pull.fetch_econ_calendar`)
 - `data/commodities/*.csv` — intermarket commodity daily closes (#3; copper HG=F etc.; script-managed: `weekly_pull.fetch_commodities_yf`)
-- `data/news/headlines.csv` — Finnhub news store (D025; datetime/category/headline/source/url/summary; script-managed: `weekly_pull.fetch_news`; query via `check_news.py`)
+- `data/news/headlines.csv` — free-RSS news store (D025; datetime/category/headline/source/url/summary/related; FXStreet+Investing.com; script-managed: `weekly_pull.fetch_news`; query via `check_news.py`)
 - `data/gld_holdings.csv` — daily GLD ETF tonnage (auto-appended by weekly_pull)
 - `data/weekly_pull/xauusd/` — IMMUTABLE weekly pull text files (also eurusd/, gbpusd/)
 - `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/, nzdusd/, usdcad/, usdchf/, usdjpy/, eurjpy/, gbpjpy/ (D1 2010→now, intraday 2020→now; usdchf/usdjpy/eurjpy/gbpjpy 15min 2024→)

@@ -1,7 +1,7 @@
 """
 News-store query — pair-filtered headline readout for /weekly Section 2 + Step 2b (D025).
 
-Reads data/news/headlines.csv (Finnhub feed, written by weekly_pull.fetch_news) and prints
+Reads data/news/headlines.csv (free RSS feeds, written by weekly_pull.fetch_news) and prints
 recent headlines relevant to an instrument's currency legs / drivers. This is CONTEXT for the
 News-Analysis section and the retrospective — not a gate (no exit-1 on empty; news is
 supplementary, web search still allowed).
@@ -52,7 +52,7 @@ def main() -> int:
     args = ap.parse_args()
 
     if not NEWS_CSV.exists():
-        print(f"(no news store at {NEWS_CSV} — run weekly_pull.py with FINNHUB_KEY; "
+        print(f"(no news store at {NEWS_CSV} — run weekly_pull.py to populate from RSS; "
               f"web-search fallback applies)")
         return 0
     df = pd.read_csv(NEWS_CSV, dtype=str).fillna("")

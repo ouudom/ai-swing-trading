@@ -18,7 +18,11 @@ TP: TP1 2.5R (manual close), TP2 3.0R (limit close), BE at +1.5R. Structural TP 
 ## Memory Protocol — Read Every Session
 Context resets each session. Load state in order:
 ```
-1. _HOT.md                                       — system status, open trades, pending actions
+1. _HOT.md                                       — thin boot state: current week, open HUMAN decisions,
+                                                   watch notes, source-of-truth pointers (NO live
+                                                   positions/numbers — those come from trades_log.csv)
+1b. data/trades_log.csv                          — open positions, live order limits (PENDING rows),
+                                                   closed trades + realized R (the position truth)
 2. _INDEX.md                                     — file locations and current state
 3. wiki/system/core/constitution.md              — risk, SL/TP/offset, zone + re-forecast rules,
                                                    multi-instrument table (TICK/V1b/macro per pair)
@@ -30,11 +34,14 @@ Context resets each session. Load state in order:
 ```
 
 ## Session Start Protocol
-1. Read `_HOT.md` — status, active zones, pending actions
-2. Read `_INDEX.md` — orient to file state
-3. Read `yield_environment.md` — macro baseline
-4. Never create duplicate pages — update existing in place
-5. End of session: update `_HOT.md` with what changed + what is pending
+1. Read `_HOT.md` — current week, open human decisions, watch notes, pointers (thin; no positions)
+2. Read `data/trades_log.csv` — open positions / live limits / closed R (position truth, not _HOT)
+3. Read `_INDEX.md` — orient to file state
+4. Read `yield_environment.md` — macro baseline
+5. Never create duplicate pages — update existing in place
+6. End of session: update `_HOT.md` (week/decisions/watch/pointers only) + log trade changes to
+   `trades_log.csv`. Never write a derived number (R, SL status, spot, EC, ATR, ADX, zone price)
+   into `_HOT.md` — recompute it from source each time instead.
 
 ## Commands
 
@@ -81,8 +88,8 @@ Linux scheduled-task sandbox**, which silently breaks unattended `/validate` and
 `pyrun.sh` auto-selects: macOS `.venv` locally → system `python3` + persistent `.pydeps` in the
 sandbox. If `.pydeps` is missing (fresh sandbox), rebuild once with `bash scripts/pyrun.sh --setup`
 (installs from `requirements.txt` — single source of truth for deps).
-Keys live in `.env` (`TWELVE_DATA_KEY`, `FRED_KEY`, `FINNHUB_KEY` — econ calendar #1/#2;
-optional, missing → web-search fallback).
+Keys live in `.env` (`TWELVE_DATA_KEY`, `FRED_KEY`). Econ calendar (#1/#2, Forex Factory free
+JSON) and the news store (free RSS feeds) are **key-free**; if either feed is down → web-search fallback.
 
 ## Architecture (markdown-only)
 No database. Claude reads markdown for context and writes forecast/validation markdown directly.
@@ -91,12 +98,12 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
 - `scripts/structure.py`, `scripts/lib/ohlc_store.py` — shared structure/OHLC helpers
 - `scripts/check_v1b.py` — V1b intraday invalidation (CLI zone args)
 - `scripts/check_cb_calendar.py` — central-bank decision dates (static JSON, mandatory gate)
-- `scripts/check_econ_calendar.py` — scheduled data-release gate (#1/#2, Finnhub CSV) + `--retro`
-  surprise readout for the Step 2b retrospective; mandatory at /weekly + /validate
+- `scripts/check_econ_calendar.py` — scheduled data-release gate (#1/#2, Forex Factory free JSON
+  CSV) + `--retro` surprise readout for the Step 2b retrospective; mandatory at /weekly + /validate
 - `scripts/check_intervention_watch.py` — JPY MoF intervention/jawboning gate (#4, static JSON
   `config/intervention_watch.json`); spot-vs-level; mandatory for JPY pairs at /weekly + /validate
 - `scripts/check_news.py` — pair-filtered headline readout from `data/news/headlines.csv`
-  (Finnhub feed, `weekly_pull.fetch_news`); context for Section 2 + Step 2b (NOT a gate)
+  (free RSS feeds, `weekly_pull.fetch_news`); context for Section 2 + Step 2b (NOT a gate)
 - `scripts/check_structured_news_event.py` — T4-X validation
 - Pull now COMPUTES the confluence oscillators (Stoch/W%R/CCI/Keltner/Donchian/TTM-squeeze/PSAR/
   Supertrend, D1+H4) + BOS/CHoCH market structure (`structure.py`) + time-at-price VP substitute
@@ -121,8 +128,13 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
   resolve via `zone_outcomes.py` only (no hand edits).
 - `wiki/` — update in place. One concept per page. Never create a parallel page. Cross-link `[[filename]]`.
 - After creating/updating any file: update `_INDEX.md`. End of every session: update `_HOT.md`.
-- `_HOT.md` — **hard cap 120 lines.** Current state + last session only; prune every session.
-  History belongs in `forecasts/daily|weekly/*`, `decisions.md`, `_INDEX.md` — link, don't repeat.
+- `_HOT.md` — **THIN boot file, hard cap 40 lines.** Contains ONLY: current week, open HUMAN
+  decisions, watch/judgment notes, and source-of-truth pointers. **NEVER store a value computable
+  from source** — no live R, SL-hit status, spot, EC, ATR, ADX, V1b status, zone prices, lots, order
+  details. Those live in `trades_log.csv` / `forecasts/*` / the pull and are recomputed every run; a
+  cached number here will go stale and lie (cf. the 06-15 USDCHF "−0.6R/SL intact" error — R was read
+  off `_HOT`/spot, not the bar low that had already hit SL). Positions/limits → `trades_log.csv`.
+  History → `forecasts/daily|weekly/*`, `decisions.md`, `_INDEX.md` — link, don't repeat.
 
 ## Frontmatter Schemas
 See `wiki/system/templates/weekly_forecast.md` and `wiki/system/templates/daily_validation.md`

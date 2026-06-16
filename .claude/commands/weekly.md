@@ -65,7 +65,7 @@ bash scripts/pyrun.sh scripts/check_econ_calendar.py --instrument <INSTRUMENT> -
 ```
 Lists HIGH-impact scheduled releases for the pair's currency legs in the trade week + 2d, with
 no-trade windows (release ±30min) → feed into Section 2. Exit 1 = calendar CSV stale → it's
-refetched by Step 1's `weekly_pull.py` (needs `FINNHUB_KEY` in `.env`); if the feed is down, the
+refetched by Step 1's `weekly_pull.py` (Forex Factory free JSON, no API key); if the feed is down, the
 web search below is the fallback (never the sole source for CB *decisions* — those are Step 1b).
 
 ### Step 1d — JPY intervention watch (JPY pairs only, MANDATORY — #4)
@@ -153,8 +153,8 @@ Bias: BULLISH/BEARISH/NEUTRAL + confidence. Flag regime shift vs baseline.
 
 **2. News Analysis** — scheduled high-impact calendar next week (UTC, mark hard blocks),
 central-bank commentary, geopolitical drivers. No-trade windows. Read the pull's **NEWS FEED
-block** + `bash scripts/pyrun.sh scripts/check_news.py --instrument <INST> --days 7` (Finnhub
-store, D025) for recent pair-relevant headlines; web search supplements, never sole-source.
+block** + `bash scripts/pyrun.sh scripts/check_news.py --instrument <INST> --days 7` (free RSS
+feeds, D025) for recent pair-relevant headlines; web search supplements, never sole-source.
 
 **3. Technical Analysis** — key S/R zones as boxes (swing points + Volume Profile / time-at-price
 for USD-base), EMA 20/50/200, RSI state, D1 ATR regime, weekly pivots, ADX regime.

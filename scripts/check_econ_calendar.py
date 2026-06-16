@@ -1,18 +1,18 @@
 """
 Economic-calendar check — scheduled data-release gate for /weekly + /validate (#1/#2).
 
-Reads data/econ_calendar/calendar.csv (Finnhub, fetched by weekly_pull.py) and reports
-HIGH-impact scheduled releases for an instrument's two currency legs inside the lookahead
-window, with no-trade windows. This is the data-release analogue of check_cb_calendar.py
+Reads data/econ_calendar/calendar.csv (Forex Factory free JSON, fetched by weekly_pull.py)
+and reports HIGH-impact scheduled releases for an instrument's two currency legs inside the
+lookahead window, with no-trade windows. This is the data-release analogue of check_cb_calendar.py
 (which covers central-bank DECISIONS): together they remove the manual-web-search blind
 spot that caused the W24 ECB miss.
 
   --retro <ISO-week> mode: prints last week's releases with actual vs estimate → SURPRISE
   (#2), consumed by the /weekly Step 2b retrospective.
 
-Country codes follow Finnhub's calendar `country` field (2-letter). The pair→country map
-below may need a one-line tweak after the first real pull if Finnhub uses different codes
-for the euro area (EU vs DE/FR) — verify against data/econ_calendar/calendar.csv.
+Country codes are ISO-2 (weekly_pull maps the Forex Factory currency field → ISO-2). The
+pair→country map below may need a one-line tweak if the euro area shows as EU vs DE/FR —
+verify against data/econ_calendar/calendar.csv.
 
 Usage:
     bash scripts/pyrun.sh scripts/check_econ_calendar.py --instrument eurusd --days 10
@@ -46,7 +46,7 @@ PAIR_COUNTRIES = {
     "gbpjpy": ["GB", "JP"],
 }
 
-HIGH = {"high", "3", "h"}  # Finnhub impact values that count as high-impact
+HIGH = {"high", "3", "h"}  # Forex Factory impact "High" (lowercased) = high-impact
 
 
 def load_calendar() -> pd.DataFrame:

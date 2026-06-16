@@ -1,0 +1,3 @@
+fastapi
+uvicorn[standard]
+# pandas/numpy come from the pipeline .venv; the API reuses scripts/ for recompute.

@@ -12,6 +12,7 @@
 - `wiki/system/core/setup_library.md` — recurring zone patterns (grows with experience)
 - `wiki/system/core/macro/yield_environment.md` — current Fed posture, real-yield trend, DXY structure
 - `wiki/system/core/calibration.md` — AUTO-GEN edge performance (win%/R by instrument/direction/R1/conviction/session, min-n gated); ← `scripts/calibration.py`
+- `wiki/system/core/frontend_plan.md` — frontend roadmap (FastAPI read-only over index.db → Next.js + lightweight-charts; localhost, poll 60s; phased Phase 0→5)
 
 ## System — XAUUSD
 - `wiki/system/xauusd/xauusd_profile.md` — gold drivers, sessions, ATR ranges, sizing
@@ -199,3 +200,8 @@
 - `data/cftc/deahistfo{year}.zip` — COT yearly archives (24h refresh)
 - `data/news_events/` — T4-X structured event JSONs
 - `forecasts/{weekly,daily}/{all 11 instruments}/` — forecast/validation output markdown
+
+## Frontend (Phase 0 done — 2026-06-16; plan: `wiki/system/core/frontend_plan.md`)
+- `api/main.py` — read-only FastAPI over index.db; reuses `scripts/db.py` + `scripts/live_r.live_metrics`; endpoints `/health`, `/positions`. Run `bash api/run.sh` (127.0.0.1:8000).
+- `api/requirements.txt` — fastapi+uvicorn (installed into `.venv`, NOT pipeline requirements.txt / sandbox `.pydeps`)
+- `frontend/` — Next.js 16 (app router, TS, Tailwind v4) cockpit polling /positions 60s. `cd frontend && npm run dev` → :3000. `app/page.tsx`, `lib/{api,instruments,usePoll}.ts`. ⚠ read `frontend/node_modules/next/dist/docs/` before edits (breaking changes vs training data).

@@ -55,48 +55,60 @@ Then read the pull file + CSVs and compute live values (set `INSTRUMENT`, `MIN_B
 `TICK_MULTIPLIER`, `PRICE_DP` from Step 0):
 
 ```python
-import pandas as pd
+import pandas as pd, sys
+sys.path.insert(0, "scripts"); import db        # data/index.db is the canonical store (STORAGE.md)
 INSTRUMENT = "xauusd"          # ← set per Step 0
 MIN_BAR_RANGE = 1.0            # ← gold 1.0 | FX 0.0003
 TICK_MULTIPLIER = 100          # ← gold 100 | FX 100000
 DP = 2                         # ← gold 2  | FX 5
-h4 = pd.read_csv(f"data/twelvedata/{INSTRUMENT}/4h.csv", parse_dates=["datetime"]).sort_values("datetime")
-d1 = pd.read_csv(f"data/twelvedata/{INSTRUMENT}/1day.csv", parse_dates=["datetime"]).sort_values("datetime")
-h1 = pd.read_csv(f"data/twelvedata/{INSTRUMENT}/1h.csv", parse_dates=["datetime"]).sort_values("datetime")
-m15= pd.read_csv(f"data/twelvedata/{INSTRUMENT}/15min.csv", parse_dates=["datetime"]).sort_values("datetime")
+
+def _ohlc(tf):                 # bars from the `ohlc` table (no more CSVs)
+    df = db.read_ohlc(INSTRUMENT, tf)
+    df["datetime"] = pd.to_datetime(df["datetime"])
+    for c in ("open", "high", "low", "close", "volume"):
+        df[c] = pd.to_numeric(df[c], errors="coerce")
+    return df.sort_values("datetime")
+def _fred(sid):                # macro_series slice → frame with numeric `value`
+    s = db.read_slice("macro_series", {"series_id": sid}, ["date", "value"])
+    s["value"] = pd.to_numeric(s["value"], errors="coerce"); return s.dropna()
+def _mkt(src, sym):            # market_series slice (yahoo DXY / commodities)
+    s = db.read_slice("market_series", {"source": src, "symbol": sym}, ["date", "value"])
+    s["value"] = pd.to_numeric(s["value"], errors="coerce"); return s.dropna()
+
+h4, d1, h1, m15 = _ohlc("4h"), _ohlc("1day"), _ohlc("1h"), _ohlc("15min")
 
 # Macro — branch on instrument
 if INSTRUMENT == "xauusd":
-    s = pd.read_csv("data/fred/DFII10.csv").dropna()   # real yield = primary driver
+    s = _fred("DFII10")   # real yield = primary driver
     macro_now = round(float(s.value.iloc[-1]),3); macro_prev = round(float(s.value.iloc[-2]),3)
     macro_slope = round(float(s.value.iloc[-1]) - float(s.value.iloc[-20]),3)
 elif INSTRUMENT == "eurgbp":
     # CROSS macro = EUR−GBP rate diff (ECBDFR−SONIA). EG2: thin/DEAD → LOW-weight TILT, not a gate.
-    eu = pd.read_csv("data/fred/ECBDFR.csv").dropna(); gb = pd.read_csv("data/fred/IUDSOIA.csv").dropna()
+    eu = _fred("ECBDFR"); gb = _fred("IUDSOIA")
     macro_now  = round(float(eu.value.iloc[-1]) - float(gb.value.iloc[-1]), 3)          # EUR−GBP diff now
     macro_prev = round(float(eu.value.iloc[-2]) - float(gb.value.iloc[-2]), 3)
     macro_slope= round(macro_now - (float(eu.value.iloc[-20]) - float(gb.value.iloc[-20])), 3)  # 20d diff change
 elif INSTRUMENT == "eurjpy":
     # CROSS-JPY: macro fully DEAD (ECB leg anti, no daily BoJ series). ECBDFR = context only.
-    eu = pd.read_csv("data/fred/ECBDFR.csv").dropna()
+    eu = _fred("ECBDFR")
     macro_now = round(float(eu.value.iloc[-1]),3); macro_prev = round(float(eu.value.iloc[-2]),3)
     macro_slope = round(float(eu.value.iloc[-1]) - float(eu.value.iloc[-20]),3)   # context, never gates
 elif INSTRUMENT == "gbpjpy":
     # CROSS-JPY #2: macro fully DEAD (SONIA leg ns, no daily BoJ series). IUDSOIA = context only.
-    gb = pd.read_csv("data/fred/IUDSOIA.csv").dropna()
+    gb = _fred("IUDSOIA")
     macro_now = round(float(gb.value.iloc[-1]),3); macro_prev = round(float(gb.value.iloc[-2]),3)
     macro_slope = round(float(gb.value.iloc[-1]) - float(gb.value.iloc[-20]),3)   # context, never gates
 else:  # USD pairs (eurusd / gbpusd / audusd): US 2Y = rate-momentum leg
-    s = pd.read_csv("data/fred/DGS2.csv").dropna()
+    s = _fred("DGS2")
     macro_now = round(float(s.value.iloc[-1]),3); macro_prev = round(float(s.value.iloc[-2]),3)
     macro_slope = round(float(s.value.iloc[-1]) - float(s.value.iloc[-20]),3)
 # DXY jump: scored/blocked for eurusd+gbpusd ONLY. eurgbp = no USD leg; audusd = measured DEAD
 # (t=−0.85) → compute for context, never block.
 if INSTRUMENT not in ("eurgbp", "eurjpy", "gbpjpy"):     # crosses: no USD leg → no DXY
-    dxy = pd.read_csv("data/yahoo/DXY.csv").dropna(); dxy_jump = round(float(dxy.value.iloc[-1]) - float(dxy.value.iloc[-2]), 3)
+    dxy = _mkt("yahoo", "DXY"); dxy_jump = round(float(dxy.value.iloc[-1]) - float(dxy.value.iloc[-2]), 3)
 else:
     dxy_jump = None
-vix = pd.read_csv("data/fred/VIXCLS.csv").dropna(); vix_now = float(vix.value.iloc[-1]); vix_spike = vix_now - float(vix.value.iloc[-2])
+vix = _fred("VIXCLS"); vix_now = float(vix.value.iloc[-1]); vix_spike = vix_now - float(vix.value.iloc[-2])
 
 def atr(df, p=14):
     tr = pd.concat([(df.high-df.low),(df.high-df.close.shift()).abs(),(df.low-df.close.shift()).abs()],axis=1).max(axis=1)

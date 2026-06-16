@@ -1,6 +1,6 @@
-Log a real order limit, fill, or exit to `data/trades_log.csv` — the REAL-trade registry
-that feeds Entry-Confluence (R2) calibration. Distinct from the shadow zone ledger
-(`zone_ledger.py`, every published zone). Link the two via `zone_id`.
+Log a real order limit, fill, or exit to the `trade` table in `data/index.db` (via `trade_log.py`,
+canonical store — no CSV) — the REAL-trade registry that feeds Entry-Confluence (R2) calibration.
+Distinct from the shadow zone ledger (`zone_ledger.py`, every published zone). Link via `zone_id`.
 
 Argument: `[action] [instrument]` where action ∈ {order, fill, close, cancel, list} (default: list).
 

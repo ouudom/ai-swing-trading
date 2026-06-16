@@ -1,0 +1,180 @@
+
+╔══════════════════════════════════════════════════════╗
+  XAUUSD WEEKLY DATA — 2026-06-14 (W24)
+╚══════════════════════════════════════════════════════╝
+
+━━━ MACRO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fed Funds:        3.62%
+10Y Nominal:      4.45%
+10Y Real (TIPS):  2.16% (was 2.11% ~1w ago, Δ +0.05%)
+  → RISING ⚠  (bearish gold)
+  20d slope: +0.0056 %/day  (rising trend)
+  1d drift:  -0.050%
+5Y Breakeven:     2.39%
+VIX:              19.44
+
+━━━ PRICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+XAUUSD:          $4215.38 (was $4330.14, -2.65% ~1w chg)
+DXY (ICE 6-cur):  99.750  (was 100.070,  -0.32% ~1w chg)
+
+━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ATR(14) Daily:    $113.25
+ATR(14) H4:       $53.1  (trading days only)
+SL (constitution v2): $54.86 = avg(0.5×D1 56.62, H4 53.1)
+D1 ATR now:       $113.25 | 20d median: $100.94 → EXPANDING ⚠
+
+Lot sizing ($2000 risk, SL above):
+  Raw lots:  0.365
+  Use lots:  0.36  (floored to 0.01-lot step, min 0.01)
+
+ADX(14) D1:       43.7 → TRENDING (favor continuation/trend setups; floor 6.0)
+EMA 50 D1:        $4560.25 | Price BELOW
+EMA 200 D1:       $4368.04 | Price BELOW
+RSI(14) D1:       36.1 (was 41.9 10 bars ago, falling)
+Bollinger(20,2):  upper $4801.61 | mid $4456.78 | lower $4111.95 | %B 0.15 → inside bands
+
+RSI D1 (last 10 bars):
+  2026-05-26: 41.9
+  2026-05-27: 37.8
+  2026-05-28: 42.0
+  2026-05-29: 42.7
+  2026-06-05: 33.5
+  2026-06-08: 32.9
+  2026-06-09: 28.9
+  2026-06-10: 23.6
+  2026-06-11: 36.3
+  2026-06-12: 36.1
+
+MACD(12,26,9) D1 — last 5 bars:
+  Date             MACD   Signal     Hist
+  2026-06-08     -78.52   -58.31    -20.2
+  2026-06-09     -93.38   -65.33   -28.06
+  2026-06-10    -117.41   -75.74   -41.67
+  2026-06-11    -121.29   -84.85   -36.44
+  2026-06-12     -123.3   -92.54   -30.76
+  Histogram NEGATIVE (bearish momentum)
+  Cross: MACD below signal (bearish)
+
+━━━ OSCILLATORS (D1 / H4 — Z2 engine inputs, were eyeballed pre-D025) ━━
+  D1:  Stoch %K 24.5/%D 14.5 (mid) | W%R -65.6 (mid) | CCI -116.8 (OVERSOLD (<-100))
+        Keltner u4668.87/m4411.99/l4155.11 → inside
+        Donchian u4773.5/l4023.5 → mid-channel | TTM squeeze OFF
+        PSAR 4287.4 (short) | Supertrend 4465.9 (down)
+  H4:  Stoch %K 85.4/%D 83.2 (OVERBOUGHT) | W%R -13.5 (OVERBOUGHT) | CCI 33.4 (mid)
+        Keltner u4301.87/m4199.73/l4097.6 → inside
+        Donchian u4281.01/l4023.5 → mid-channel | TTM squeeze OFF
+        PSAR 4074.71 (long) | Supertrend 4220.98 (down)
+  EXTREMES: D1 CCI -116.8 OVERSOLD (<-100) · H4 Stoch 85.4 OVERBOUGHT · H4 W%R -13.5 OVERBOUGHT
+
+━━━ MARKET STRUCTURE (BOS/CHoCH, fractal N=2) ━━━━━━━━━━━
+  D1: state DOWN | last BOS DOWN @ 4454.14458 (2026-05-27 00:00, 8 bars ago)
+  H4: state MIXED | last BOS DOWN @ 4313.69166 (2026-06-09 12:00, 20 bars ago)
+
+━━━ ENTRY TRIGGERS (E0, latest closed 1H — reclaim > pin/engulf, D027) ━━
+  latest closed 1H bar: 2026-06-12 21:00:00  (RSI 58, Stoch %K 66)
+  LONG-confirm fired:  none
+  SHORT-confirm fired: none
+  ✦ = RSI-reclaim is the highest-R E0 gate (backtest); per-pair primary in confluence_criteria. Toward zone dir only.
+
+━━━ VOLUME PROFILE (GC=F, 3mo daily) ━━━━━━━━━━━━
+VAH: $4879.48
+POC: $4435.51  ← highest volume node
+VAL: $4228.32
+VP check: zone within ~8 units of POC/VAH/VAL = confluent
+
+
+━━━ COT — CFTC GOLD FUTURES (non-commercial, as of 2026-06-09) ━━━━━━
+Spec Long:      200,910
+Spec Short:     35,006
+Net Position:   +165,904  (BULLISH (spec long))
+W/W Change:     -5,513  (DECREASING)
+Note: net-position extremes vs 1y range = crowded = reversal risk (per-instrument threshold)
+
+━━━ ETF FLOWS — SPDR GLD (tonnes held, as of 2026-06-14) ━━━
+Tonnes:         1109.5
+1w Δ tonnes:    +27.88  (INFLOW (bullish))
+4w Δ tonnes:    N/A
+Note: persistent outflows during macro BEARISH = confirmation. Inflows against bias = warning.
+
+━━━ WEEKEND GLOBEX GAP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+No Sunday reopen bar found
+
+━━━ NEWS FEED (recent, pair-filtered — context for Section 2) ━━
+  2026-06-12 [CNBC] FedEx's yearslong turnaround is facing a big test after executing on a major catalyst
+  2026-06-12 [CNBC] Goldman nets a big payday for SpaceX IPO. Plus, what drove our winners and losers this week
+
+━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
+baseline_dfii10: 2.16
+baseline_dxy:    99.750
+weekend_gap_pct: N/A
+
+━━━ WEEKLY PIVOTS (prior week OHLC) ━━━━━━━━━━━━━━━━━━
+R3:4597.81  R2:4537.11  R1:4433.62
+PP:4372.91
+S1:4269.43  S2:4208.72  S3:4105.24
+
+━━━ SWING POINTS (Daily, N=5) ━━━━━━━━━━━━━━━━━━━━━━━━
+Highs: $5451.71(2026-01-30) | $5115.81(2026-02-11) | $5417.76(2026-03-02) | $4887.93(2026-04-17) | $4773.5(2026-05-12)
+Lows:  $4654.92(2026-02-06) | $4853.26(2026-02-17) | $4986.15(2026-03-03) | $4104.82(2026-03-23) | $4503.72(2026-05-04)
+
+━━━ SWING POINTS (H4, N=5, trading days) ━━━━━━━━━━━━━
+Highs: $4571.01(2026-05-21) | $4580.94(2026-05-25) | $4519.86(2026-05-29) | $4359.96(2026-06-09) | $4245.2(2026-06-11)
+Lows:  $4490.75(2026-05-21) | $4491.97(2026-05-22) | $4367.19(2026-05-28) | $4268.19(2026-06-08) | $4023.5(2026-06-10)
+
+━━━ FIBONACCI (anchored to last D1 swing high/low) ━━━
+Swing: $4503.72 → $4773.5
+  78.6%:      $4561.45
+  61.8%:      $4606.78  ← golden pocket
+  50.0%:      $4638.61
+  38.2%:      $4670.44
+  Ext 127.2%: $4846.88
+  Ext 161.8%: $4940.22  ← TP extension zone
+
+━━━ DAILY OHLCV — last 15 bars ━━━━━━━━━━━━━━━━━━━━━━━
+               open     high      low    close
+datetime                                      
+2026-05-19  4580.47  4593.46  4466.88  4489.49
+2026-05-20  4490.37  4550.83  4454.14  4543.88
+2026-05-21  4544.70  4571.01  4490.75  4535.18
+2026-05-22  4534.45  4540.91  4491.97  4505.67
+2026-05-25  4571.57  4580.94  4551.04  4561.87
+2026-05-26  4561.36  4561.36  4482.70  4518.94
+2026-05-27  4519.17  4525.30  4402.38  4447.62
+2026-05-28  4448.16  4516.51  4367.19  4495.90
+2026-05-29  4495.36  4519.86  4492.57  4504.81
+2026-06-05  4440.04  4476.40  4312.20  4330.14
+2026-06-08  4343.91  4352.94  4268.19  4316.93
+2026-06-09  4317.15  4359.96  4210.82  4217.73
+2026-06-10  4218.81  4227.97  4023.50  4049.16
+2026-06-11  4048.47  4245.20  4039.10  4219.76
+2026-06-12  4220.13  4237.39  4168.77  4215.38
+
+━━━ H4 OHLCV — last 24 bars (trading days) ━━━━━━━━━━━
+                        open     high      low    close
+datetime                                               
+2026-06-09 00:00:00  4317.15  4341.60  4315.37  4336.00
+2026-06-09 04:00:00  4336.85  4350.28  4322.08  4327.28
+2026-06-09 08:00:00  4327.17  4343.29  4320.96  4342.59
+2026-06-09 12:00:00  4342.25  4359.96  4264.94  4274.74
+2026-06-09 16:00:00  4274.98  4281.01  4236.57  4258.32
+2026-06-09 20:00:00  4258.05  4266.05  4210.82  4217.73
+2026-06-10 00:00:00  4218.81  4227.97  4172.57  4184.53
+2026-06-10 04:00:00  4184.10  4223.94  4173.27  4181.66
+2026-06-10 08:00:00  4183.06  4187.96  4147.35  4148.73
+2026-06-10 12:00:00  4150.57  4184.80  4107.11  4125.33
+2026-06-10 16:00:00  4124.16  4134.79  4081.30  4081.70
+2026-06-10 20:00:00  4082.16  4084.78  4023.50  4049.16
+2026-06-11 00:00:00  4048.47  4116.97  4039.10  4074.71
+2026-06-11 04:00:00  4074.93  4110.87  4070.84  4105.27
+2026-06-11 08:00:00  4104.55  4112.52  4078.30  4081.33
+2026-06-11 12:00:00  4082.60  4094.17  4053.79  4089.00
+2026-06-11 16:00:00  4088.37  4217.99  4072.32  4208.47
+2026-06-11 20:00:00  4209.46  4245.20  4205.99  4219.76
+2026-06-12 00:00:00  4220.13  4229.87  4172.06  4198.19
+2026-06-12 04:00:00  4198.96  4200.97  4170.14  4181.90
+2026-06-12 08:00:00  4181.17  4229.56  4181.17  4208.00
+2026-06-12 12:00:00  4209.16  4237.39  4168.77  4213.07
+2026-06-12 16:00:00  4213.31  4235.29  4202.21  4209.86
+2026-06-12 20:00:00  4208.66  4221.12  4208.66  4215.38
+
+Generated: 2026-06-14 13:07 UTC (13:07 UTC local)

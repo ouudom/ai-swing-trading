@@ -118,6 +118,41 @@ def read_ohlc(symbol: str, tf: str, source: str = "twelvedata") -> pd.DataFrame:
     return df
 
 
+def last_ohlc_dt(symbol: str, tf: str, source: str = "twelvedata"):
+    """MAX(datetime) for one ohlc slice as a string, or None. Replaces the _manifest.json bookmark."""
+    symbol = clean_symbol(symbol)
+    if not DB.exists():
+        return None
+    con = _con()
+    try:
+        if not table_exists(con, "ohlc"):
+            return None
+        row = con.execute(
+            "SELECT MAX(datetime) FROM ohlc WHERE source=? AND symbol=? AND tf=?",
+            (source, symbol, tf),
+        ).fetchone()
+    finally:
+        con.close()
+    return row[0] if row and row[0] else None
+
+
+def last_series_date(table: str, where: dict):
+    """MAX(date) for a macro_series/market_series slice as a string, or None."""
+    if not DB.exists():
+        return None
+    con = _con()
+    try:
+        if not table_exists(con, table):
+            return None
+        clause = " AND ".join(f"{k}=?" for k in where)
+        row = con.execute(
+            f'SELECT MAX(date) FROM "{table}" WHERE {clause}', tuple(where.values())
+        ).fetchone()
+    finally:
+        con.close()
+    return row[0] if row and row[0] else None
+
+
 def read_slice(table: str, where: dict, cols: list[str]) -> pd.DataFrame:
     """Generic slice read: SELECT cols FROM table WHERE <where> ORDER BY cols[0]."""
     blank = _empty(cols)

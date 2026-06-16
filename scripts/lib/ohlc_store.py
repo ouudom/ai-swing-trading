@@ -210,8 +210,16 @@ def _save_manifest(source: str, symbol: str, manifest: dict):
 
 
 def last_dt(source: str, symbol: str, tf: str):
-    """Return last stored datetime (pd.Timestamp) for this source/symbol/tf, or None."""
-    m = load_manifest(source, symbol).get(tf, {})
+    """Last stored datetime (pd.Timestamp) for this source/symbol/tf, or None.
+    Reads MAX(datetime) from the DB `ohlc` table (no more _manifest.json bookmark)."""
+    try:
+        import db
+        s = db.last_ohlc_dt(symbol, tf, source)
+        if s:
+            return pd.Timestamp(s)
+    except Exception:
+        pass
+    m = load_manifest(source, symbol).get(tf, {})   # legacy fallback (manifests removed)
     s = m.get("last_dt")
     return pd.Timestamp(s) if s else None
 
@@ -269,12 +277,11 @@ def upsert(source: str, symbol: str, tf: str, df: pd.DataFrame) -> dict:
         merged.to_csv(tmp, index=False)
         os.replace(tmp, p["csv"])
 
-    manifest = load_manifest(source, symbol)
-    manifest[tf] = {
+    # Coverage stats returned for the caller's print only — no longer persisted to _manifest.json
+    # (last_dt is now read straight from the DB via db.last_ohlc_dt).
+    return {
         "first_dt": merged["datetime"].iloc[0].isoformat(),
         "last_dt": merged["datetime"].iloc[-1].isoformat(),
         "rows": int(len(merged)),
         "last_pull_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
-    _save_manifest(source, symbol, manifest)
-    return manifest[tf]

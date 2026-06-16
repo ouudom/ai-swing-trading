@@ -1,21 +1,20 @@
 """
-Backfill full FRED series history. One file per series.
-
-Storage: data/fred/{series_id}.csv  +  data/fred/_manifest.json
+Backfill full FRED series history into the `macro_series` table (data/index.db).
 
 Usage:
   bash scripts/pyrun.sh scripts/backfill_fred.py                       # default series
   bash scripts/pyrun.sh scripts/backfill_fred.py --series DFII10 DGS10
-  bash scripts/pyrun.sh scripts/backfill_fred.py --force               # refetch even if file exists
+  bash scripts/pyrun.sh scripts/backfill_fred.py --force               # refetch even if present
 """
 import os
 import sys
-import json
 import argparse
 import requests
 import pandas as pd
-from datetime import datetime, timezone
 from dotenv import load_dotenv
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import db
 
 load_dotenv()
 KEY = os.getenv("FRED_KEY")
@@ -28,10 +27,6 @@ DEFAULT_SERIES = [
     "DFF",        # Fed Funds effective
     "VIXCLS",     # VIX
 ]
-
-OUT_DIR = "data/fred"
-MANIFEST = os.path.join(OUT_DIR, "_manifest.json")
-
 
 def fetch(series_id: str) -> pd.DataFrame:
     r = requests.get(
@@ -49,42 +44,19 @@ def fetch(series_id: str) -> pd.DataFrame:
     return df.dropna().sort_values("date").reset_index(drop=True)
 
 
-def load_manifest() -> dict:
-    if not os.path.exists(MANIFEST):
-        return {}
-    with open(MANIFEST) as f:
-        return json.load(f)
-
-
-def save_manifest(m: dict):
-    tmp = MANIFEST + ".tmp"
-    with open(tmp, "w") as f:
-        json.dump(m, f, indent=2, sort_keys=True)
-    os.replace(tmp, MANIFEST)
-
-
 def run(series_list, force: bool):
-    os.makedirs(OUT_DIR, exist_ok=True)
-    manifest = load_manifest()
     for s in series_list:
-        path = os.path.join(OUT_DIR, f"{s}.csv")
-        if os.path.exists(path) and not force:
-            print(f"[{s}] cache hit ({path}) — skip. Use --force to refetch.")
+        if not force and db.last_series_date("macro_series", {"series_id": s}):
+            print(f"[{s}] already in macro_series — skip. Use --force to refetch.")
             continue
         print(f"[{s}] fetching...")
         df = fetch(s)
-        tmp = path + ".tmp"
-        df.to_csv(tmp, index=False)
-        os.replace(tmp, path)
-        manifest[s] = {
-            "first_dt": df["date"].iloc[0].strftime("%Y-%m-%d"),
-            "last_dt": df["date"].iloc[-1].strftime("%Y-%m-%d"),
-            "rows": int(len(df)),
-            "last_pull_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        }
-        print(f"  rows={len(df)}  range={manifest[s]['first_dt']} → {manifest[s]['last_dt']}")
-    save_manifest(manifest)
-    print(f"manifest: {MANIFEST}")
+        out = df.copy()
+        out["date"] = out["date"].dt.strftime("%Y-%m-%d")
+        out["series_id"] = s
+        db.sync_slice("macro_series", {"series_id": s},
+                      out[["series_id", "date", "value"]], index_cols=["series_id", "date"])
+        print(f"  rows={len(df)}  range={out['date'].iloc[0]} → {out['date'].iloc[-1]} → macro_series")
 
 
 if __name__ == "__main__":

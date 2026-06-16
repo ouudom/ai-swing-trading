@@ -196,19 +196,45 @@ def nr7(df):
 
 # ── data loading ──────────────────────────────────────────────────────────────
 
+def _db():
+    try:
+        import db
+        return db
+    except Exception:
+        return None
+
 def load_ohlc(path):
-    df = pd.read_csv(path, parse_dates=["datetime"]).set_index("datetime").sort_index()
+    p = Path(path)
+    d = _db()
+    df = d.read_ohlc(p.parent.name, p.stem, source=p.parent.parent.name) if d else None
+    if df is None or df.empty:
+        df = pd.read_csv(path)
+    df["datetime"] = pd.to_datetime(df["datetime"])
+    for c in ("open", "high", "low", "close", "volume"):
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+    df = df.set_index("datetime").sort_index()
     return df[~df.index.duplicated(keep="last")]
 
 def load_fred(sid):
-    p = ROOT / "data" / "fred" / f"{sid}.csv"
-    if not p.exists(): return None
-    return pd.read_csv(p, parse_dates=["date"]).set_index("date")["value"].sort_index()
+    d = _db()
+    s = d.read_slice("macro_series", {"series_id": sid}, ["date", "value"]) if d else None
+    if s is None or s.empty:
+        p = ROOT / "data" / "fred" / f"{sid}.csv"
+        if not p.exists(): return None
+        s = pd.read_csv(p)[["date", "value"]]
+    s["date"] = pd.to_datetime(s["date"]); s["value"] = pd.to_numeric(s["value"], errors="coerce")
+    return s.set_index("date")["value"].sort_index()
 
 def load_dxy():
-    p = ROOT / "data" / "yahoo" / "DXY.csv"
-    if not p.exists(): return None
-    return pd.read_csv(p, parse_dates=["date"]).set_index("date")["value"].sort_index()
+    d = _db()
+    s = d.read_slice("market_series", {"source": "yahoo", "symbol": "DXY"}, ["date", "value"]) if d else None
+    if s is None or s.empty:
+        p = ROOT / "data" / "yahoo" / "DXY.csv"
+        if not p.exists(): return None
+        s = pd.read_csv(p)[["date", "value"]]
+    s["date"] = pd.to_datetime(s["date"]); s["value"] = pd.to_numeric(s["value"], errors="coerce")
+    return s.set_index("date")["value"].sort_index()
 
 def align_daily(series, idx):
     """Forward-fill a daily macro series onto an OHLC index (date-matched)."""

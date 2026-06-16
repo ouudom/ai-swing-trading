@@ -8,7 +8,7 @@ related: [zone_outcomes, zone_ledger, constitution]
 
 # Calibration — Edge Performance
 
-> **AUTO-GENERATED** by `scripts/calibration.py` at 2026-06-16 10:22Z. Do not hand-edit — re-run the script. Source: `data/zone_outcomes.csv`.
+> **AUTO-GENERATED** by `scripts/calibration.py` at 2026-06-16 11:18Z. Do not hand-edit — re-run the script. Source: `data/zone_outcomes.csv`.
 
 Zones tracked: **29** · completed shadow trades: **4** · invalidated-before-fill (capital saved): **0** · min-n for verdicts: **10**.
 

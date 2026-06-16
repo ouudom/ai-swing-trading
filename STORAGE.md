@@ -52,11 +52,28 @@ Idempotent — each table fully reloaded from its CSV(s) (`if_exists="replace"`)
   market series (run after a cold rebuild).
 - ⏳ **Still CSV-canonical:** only `ohlc_quarantine` (plain log written by
   `ohlc_store.quarantine_bad_ticks`; synced on `--refresh`).
-- 🔜 **Deletion (step 5) — gated on one live `/weekly`.** Code reads/writes DB-canonical with CSV
-  fallback, but the fetch→DB path can't be verified offline (no network/keys here). After one real
-  pull confirms the DB updates correctly, the migrated CSVs (`twelvedata/*`, `fred/*`, `yahoo/*`,
-  `commodities/*`, `news/`, `econ_calendar/`, `gld_holdings.csv`) are safe to delete. `data/` is
-  gitignored → deletion is unrecoverable, hence the gate.
+- ✅ **DB-only cutover + deletion DONE (step 5).** All CSV writes removed (fetches sync DB only;
+  `ohlc_store.upsert` writes the `ohlc` table, CSV only as an emergency fallback on DB error;
+  state registries no longer mirror CSV). All migrated CSVs deleted — verified by a live `xauusd`
+  pull (DB fresh through 2026-06-16, CSV stayed stale then removed) + post-deletion reader smoke
+  (load_ohlc/fred/dxy/commodity, check_v1b, check_econ_calendar, calibration all return DB data).
+  Symbol-casing bug fixed (`db.clean_symbol` — upsert was passing `XAU/USD` vs table `xauusd`).
+  **Remaining files under `data/`:** `index.db`, `twelvedata/*/_manifest.json` + `_quarantine.csv`,
+  `weekly_pull/*.txt`, `cftc/*.zip`, `calibration/summary.json`, `news_events/*.json`.
+- ✅ **Legacy utils converted (DB-only):** `resample_twelvedata.py` (reads 15min from `ohlc`,
+  writes via `upsert`), `backfill_twelvedata.py` (forward-gap from `db.last_ohlc_dt`),
+  `backfill_fred.py` (→ `macro_series` via `db.sync_slice`). No CSV.
+- ✅ **`_manifest.json` removed.** The incremental-fetch bookmark (`last_dt`) is now derived from
+  the DB — `db.last_ohlc_dt` (MAX datetime) + `db.last_series_date` (MAX date). `ohlc_store.upsert`
+  no longer writes a manifest; `update_fred` reads its bookmark from `macro_series`.
+- ✅ **Backup:** `scripts/backup_db.py` — pg_dump-style gzipped SQL dump → `data/backups/
+  index_<ts>.sql.gz`, prunes to `--keep` (default 14). Restore: `gunzip -c <dump> | sqlite3 data/index.db`.
+  Run after each /weekly (or schedule). `data/backups/` is gitignored — copy off-machine for true DR.
+
+## .gitignore (post-migration)
+`data/` is no longer blanket-ignored. Ignored: `data/index.db`(+`-wal`/`-shm`), `data/backups/`.
+Tracked: `weekly_pull/*.txt`, `twelvedata/*/_quarantine.csv`, `cftc/*.zip`, `calibration/summary.json`,
+`news_events/*.json`. The DB itself is NOT in git — back it up via `backup_db.py` + off-machine copy.
 
 ## DB-canonical vs CSV-canonical (`csv_to_sqlite.py`)
 - `DB_CANONICAL = {trade, zone_ledger, zone_outcome, ohlc, macro_series, market_series, news,

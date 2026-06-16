@@ -1,8 +1,8 @@
 """
 Resample stored Twelve Data OHLC to higher timeframes.
 
-Input:  data/twelvedata/{symbol}/{src_tf}.csv
-Output: data/twelvedata/{symbol}/{dst_tf}.csv  (+ manifest entry)
+Input:  `ohlc` table in data/index.db (source=twelvedata, src_tf)
+Output: `ohlc` table (dst_tf) via ohlc_store.upsert (DB-canonical)
 
 Usage:
   bash scripts/pyrun.sh scripts/resample_twelvedata.py --src 15min --dst 1h
@@ -15,6 +15,7 @@ import argparse
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import db
 from lib.ohlc_store import upsert
 
 SOURCE = "twelvedata"
@@ -29,14 +30,16 @@ TF_RULE = {
 
 def resample(symbol: str, src_tf: str, dst_tf: str):
     sym_clean = symbol.replace("/", "").lower()
-    src_path = os.path.join("data", SOURCE, sym_clean, f"{src_tf}.csv")
-    if not os.path.exists(src_path):
-        sys.exit(f"missing source: {src_path}")
     if dst_tf not in TF_RULE:
         sys.exit(f"unsupported dst_tf: {dst_tf} (allowed: {list(TF_RULE)})")
 
-    df = pd.read_csv(src_path, parse_dates=["datetime"]).sort_values("datetime")
-    df = df.set_index("datetime")
+    df = db.read_ohlc(sym_clean, src_tf, source=SOURCE)
+    if df is None or df.empty:
+        sys.exit(f"missing source in DB: {SOURCE}/{sym_clean}/{src_tf}")
+    df["datetime"] = pd.to_datetime(df["datetime"])
+    for c in ("open", "high", "low", "close", "volume"):
+        df[c] = pd.to_numeric(df[c], errors="coerce")
+    df = df.sort_values("datetime").set_index("datetime")
     agg = df.resample(TF_RULE[dst_tf], label="left", closed="left").agg({
         "open":  "first",
         "high":  "max",
@@ -47,7 +50,7 @@ def resample(symbol: str, src_tf: str, dst_tf: str):
     agg = agg.reset_index()
     print(f"  src rows: {len(df):,}   dst rows: {len(agg):,}")
     info = upsert(SOURCE, symbol, dst_tf, agg)
-    print(f"  written: data/{SOURCE}/{sym_clean}/{dst_tf}.csv  range={info['first_dt']} → {info['last_dt']}")
+    print(f"  written: ohlc[{SOURCE}/{sym_clean}/{dst_tf}]  range={info['first_dt']} → {info['last_dt']}")
 
 
 if __name__ == "__main__":

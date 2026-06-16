@@ -21,9 +21,10 @@ Context resets each session. Load state in order:
 ```
 1. _HOT.md                                       — thin boot state: current week, open HUMAN decisions,
                                                    watch notes, source-of-truth pointers (NO live
-                                                   positions/numbers — those come from trades_log.csv)
-1b. data/trades_log.csv                          — open positions, live order limits (PENDING rows),
-                                                   closed trades + realized R (the position truth)
+                                                   positions/numbers — those come from the `trade` table)
+1b. data/index.db `trade` table                  — open positions, live order limits (PENDING rows),
+   (`scripts/trade_log.py list`)                   closed trades + realized R (the position truth).
+                                                   DB is canonical now — NO trades_log.csv (see STORAGE.md)
 2. _INDEX.md                                     — file locations and current state
 3. wiki/system/core/constitution.md              — risk, SL/TP/offset, zone + re-forecast rules,
                                                    multi-instrument table (TICK/V1b/macro per pair)
@@ -36,13 +37,14 @@ Context resets each session. Load state in order:
 
 ## Session Start Protocol
 1. Read `_HOT.md` — current week, open human decisions, watch notes, pointers (thin; no positions)
-2. Read `data/trades_log.csv` — open positions / live limits / closed R (position truth, not _HOT)
+2. Read the `trade` table — `bash scripts/pyrun.sh scripts/trade_log.py list` (open positions /
+   live limits / closed R; position truth, not _HOT). Canonical store = `data/index.db`.
 3. Read `_INDEX.md` — orient to file state
 4. Read `yield_environment.md` — macro baseline
 5. Never create duplicate pages — update existing in place
-6. End of session: update `_HOT.md` (week/decisions/watch/pointers only) + log trade changes to
-   `trades_log.csv`. Never write a derived number (R, SL status, spot, EC, ATR, ADX, zone price)
-   into `_HOT.md` — recompute it from source each time instead.
+6. End of session: update `_HOT.md` (week/decisions/watch/pointers only) + log trade changes via
+   `trade_log.py` (writes the `trade` table). Never write a derived number (R, SL status, spot, EC,
+   ATR, ADX, zone price) into `_HOT.md` — recompute it from source each time instead.
 
 ## Commands
 
@@ -108,18 +110,18 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
   CSV) + `--retro` surprise readout for the Step 2b retrospective; mandatory at /weekly + /validate
 - `scripts/check_intervention_watch.py` — JPY MoF intervention/jawboning gate (#4, static JSON
   `config/intervention_watch.json`); spot-vs-level; mandatory for JPY pairs at /weekly + /validate
-- `scripts/check_news.py` — pair-filtered headline readout from `data/news/headlines.csv`
+- `scripts/check_news.py` — pair-filtered headline readout from the `news` table in `data/index.db`
   (free RSS feeds, `weekly_pull.fetch_news`); context for Section 2 + Step 2b (NOT a gate)
 - `scripts/check_structured_news_event.py` — T4-X validation
 - Pull now COMPUTES the confluence oscillators (Stoch/W%R/CCI/Keltner/Donchian/TTM-squeeze/PSAR/
   Supertrend, D1+H4) + BOS/CHoCH market structure (`structure.py`) + time-at-price VP substitute
   for USD-base pairs — previously eyeballed (D025)
 - `scripts/fx_exposure.py` — FX currency-leg netting ledger (advisory)
-- `scripts/zone_ledger.py` — shadow-trade registry: every published zone → `data/zone_ledger.csv`
+- `scripts/zone_ledger.py` — shadow-trade registry: every published zone → `zone_ledger` table
   (MANDATORY at /weekly publish, one `add` per zone)
 - `scripts/zone_outcomes.py` — replays OHLC vs ledger → would-be R outcomes + confluence
-  calibration → `data/zone_outcomes.csv` (run at /weekly for prior week)
-- `scripts/calibration.py` — aggregates `zone_outcomes.csv` into sliceable edge-performance
+  calibration → `zone_outcome` table (run at /weekly for prior week)
+- `scripts/calibration.py` — aggregates the `zone_outcome` table into sliceable edge-performance
   report `wiki/system/core/calibration.md` (by instrument/direction/R1/conviction/session,
   min-n gated); run after `zone_outcomes.py` at /weekly
 - Bad-tick guard: `ohlc_store.upsert()` auto-quarantines provider spikes (wick-clamp or bar-drop,
@@ -129,17 +131,18 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
 - `forecasts/weekly/{instrument}/` — immutable after Monday open. Claude writes markdown.
 - `forecasts/daily/{instrument}/` — append-style. Claude writes markdown.
 - `data/weekly_pull/{instrument}/` — IMMUTABLE. Never edit `weekly_pull_*.txt`.
-- `data/trades_log.csv` — plain manual trade log.
-- `data/zone_ledger.csv` / `data/zone_outcomes.csv` — shadow ledger; append via `zone_ledger.py`,
-  resolve via `zone_outcomes.py` only (no hand edits).
+- `data/index.db` — canonical store (gitignored, rebuildable via `csv_to_sqlite.py`). Tables:
+  `trade` (write via `trade_log.py`), `zone_ledger`/`zone_outcome` (via `zone_ledger.py` add /
+  `zone_outcomes.py` resolve — no hand edits), `ohlc`, `macro_series`, `market_series`, `news`,
+  `econ_calendar`, `gld_holdings`. No source CSVs anymore — see `STORAGE.md`.
 - `wiki/` — update in place. One concept per page. Never create a parallel page. Cross-link `[[filename]]`.
 - After creating/updating any file: update `_INDEX.md`. End of every session: update `_HOT.md`.
 - `_HOT.md` — **THIN boot file, hard cap 40 lines.** Contains ONLY: current week, open HUMAN
   decisions, watch/judgment notes, and source-of-truth pointers. **NEVER store a value computable
   from source** — no live R, SL-hit status, spot, EC, ATR, ADX, V1b status, zone prices, lots, order
-  details. Those live in `trades_log.csv` / `forecasts/*` / the pull and are recomputed every run; a
+  details. Those live in the `trade` table / `forecasts/*` / the pull and are recomputed every run; a
   cached number here will go stale and lie (cf. the 06-15 USDCHF "−0.6R/SL intact" error — R was read
-  off `_HOT`/spot, not the bar low that had already hit SL). Positions/limits → `trades_log.csv`.
+  off `_HOT`/spot, not the bar low that had already hit SL). Positions/limits → `trade` table (`trade_log.py list`).
   History → `forecasts/daily|weekly/*`, `decisions.md`, `_INDEX.md` — link, don't repeat.
 
 ## Frontmatter Schemas

@@ -1,0 +1,178 @@
+
+╔══════════════════════════════════════════════════════╗
+  USDJPY WEEKLY DATA — 2026-06-15 (W25)
+╚══════════════════════════════════════════════════════╝
+
+━━━ MACRO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+US 2Y (DGS2):     4.05% (was 4.05% ~1w ago, Δ +0.0%)
+  → FALLING ⚠  (USD softness, bearish USDJPY)
+  20d slope: +0.0037 %/day  (rising trend)
+  1d drift:  -0.080%
+Fed Funds:        3.62%
+Foreign policy (JP): no daily FRED series — carry leg skipped (dead signal, D021/D024)
+VIX:              19.44
+
+━━━ PRICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+USDJPY:          $160.148 (was $160.181, -0.02% ~1w chg)
+DXY (ICE 6-cur):  99.499  (was 99.910,  -0.41% ~1w chg)
+
+━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ATR(14) Daily:    $0.473
+ATR(14) H4:       $0.233  (trading days only)
+SL (constitution v2): $0.235 = avg(0.5×D1 0.236, H4 0.233)
+D1 ATR now:       $0.473 | 20d median: $0.478 → COMPRESSED ✅
+
+Lot sizing ($2000 risk, SL above):
+  Raw lots:  13.093
+  Use lots:  13.09  (floored to 0.01-lot step, min 0.01)
+
+ADX(14) D1:       12.4 → RANGING (favor reversal/counter at zone edges; floor 6.0)
+EMA 50 D1:        $159.007 | Price ABOVE
+EMA 200 D1:       $156.002 | Price ABOVE
+RSI(14) D1:       61.2 (was 59.9 10 bars ago, rising)
+Bollinger(20,2):  upper $160.735 | mid $159.638 | lower $158.54 | %B 0.78 → inside bands
+
+RSI D1 (last 10 bars):
+  2026-06-01: 59.9
+  2026-06-02: 62.7
+  2026-06-03: 62.3
+  2026-06-04: 62.8
+  2026-06-05: 65.3
+  2026-06-08: 63.6
+  2026-06-09: 65.6
+  2026-06-10: 66.9
+  2026-06-11: 60.1
+  2026-06-12: 61.2
+
+MACD(12,26,9) D1 — last 5 bars:
+  Date             MACD   Signal     Hist
+  2026-06-08      0.462    0.336    0.126
+  2026-06-09      0.487    0.366    0.121
+  2026-06-10      0.512    0.396    0.117
+  2026-06-11      0.495    0.416     0.08
+  2026-06-12      0.483    0.429    0.054
+  Histogram POSITIVE (bullish momentum)
+  Cross: MACD above signal (bullish)
+
+━━━ OSCILLATORS (D1 / H4 — Z2 engine inputs, were eyeballed pre-D025) ━━
+  D1:  Stoch %K 84.0/%D 89.4 (OVERBOUGHT) | W%R -21.1 (mid) | CCI 40.4 (mid)
+        Keltner u160.66/m159.669/l158.677 → inside
+        Donchian u160.6/l158.585 → mid-channel | TTM squeeze OFF
+        PSAR 160.565 (short) | Supertrend 159.114 (up)
+  H4:  Stoch %K 53.2/%D 57.6 (mid) | W%R -49.5 (mid) | CCI -89.1 (mid)
+        Keltner u160.842/m160.268/l159.694 → inside
+        Donchian u160.6/l159.616 → mid-channel | TTM squeeze OFF
+        PSAR 160.436 (short) | Supertrend 160.573 (down)
+  EXTREMES: D1 Stoch 84.0 OVERBOUGHT
+
+━━━ MARKET STRUCTURE (BOS/CHoCH, fractal N=2) ━━━━━━━━━━━
+  D1: state UP | last BOS UP @ 159.3454 (2026-05-27 00:00, 12 bars ago)
+  H4: state MIXED | last BOS DOWN @ 160.43443 (2026-06-11 16:00, 9 bars ago)
+
+━━━ ENTRY TRIGGERS (E0, latest closed 1H — reclaim > pin/engulf, D027) ━━
+  latest closed 1H bar: 2026-06-15 10:00:00  (RSI 48, Stoch %K 77)
+  LONG-confirm fired:  none
+  SHORT-confirm fired: none
+  ✦ = RSI-reclaim is the highest-R E0 gate (backtest); per-pair primary in confluence_criteria. Toward zone dir only.
+
+━━━ VOLUME PROFILE (disabled, 3mo daily) ━━━━━━━━━━━━
+VP disabled for usdjpy (no usable futures proxy)
+VP check: zone within ~8 units of POC/VAH/VAL = confluent
+
+━━━ TIME-AT-PRICE (H1 acceptance — VP substitute, NOT volume) ━━
+HTN (most-accepted): 158.928
+Value area: 158.787 – 160.035 (70% of time)
+Use as S/R confluence like a POC/VA — acceptance, not traded volume.
+
+
+━━━ COT — CFTC JAPANESE YEN FUTURES (non-commercial, as of 2026-06-09) ━━━━━━
+Spec Long:      119,188
+Spec Short:     271,029
+Net Position:   -151,841  (spec short JAPANESE YEN = BULLISH USDJPY)  ⚠ INVERTED READ (USD-base pair)
+W/W Change:     -15,230  (DECREASING)
+Note: net-position extremes vs 1y range = crowded = reversal risk (per-instrument threshold)
+
+━━━ ETF FLOWS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fetch failed: ETF flows disabled for usdjpy (no equivalent ETF)
+
+━━━ WEEKEND GLOBEX GAP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fri close:   $160.244  (2026-06-12 20:00:00)
+Sun reopen:  $159.975  (2026-06-15 00:00:00)
+Gap:         $-0.268  (-0.167%)  → NOISE
+Thresholds: <0.20% NOISE | 0.20–0.50% NOTE | 0.50–1.00% WARNING | >1.00% RE-FORECAST
+
+━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
+baseline_dgs2: 4.05
+baseline_dxy:    99.499
+weekend_gap_pct: -0.167
+
+━━━ WEEKLY PIVOTS (prior week OHLC) ━━━━━━━━━━━━━━━━━━
+R3:161.621  R2:160.984  R1:160.637
+PP:160.0
+S1:159.653  S2:159.016  S3:158.67
+
+━━━ SWING POINTS (Daily, N=5) ━━━━━━━━━━━━━━━━━━━━━━━━
+Highs: $157.346(2026-02-05) | $159.908(2026-03-18) | $160.399(2026-03-27) | $160.036(2026-04-07) | $160.716(2026-04-30)
+Lows:  $152.298(2026-02-12) | $157.534(2026-03-19) | $157.875(2026-04-08) | $157.628(2026-04-17) | $155.08(2026-05-06)
+
+━━━ SWING POINTS (H4, N=5, trading days) ━━━━━━━━━━━━━
+Highs: $160.27(2026-06-08) | $160.27(2026-06-09) | $160.452(2026-06-09) | $160.452(2026-06-09) | $160.6(2026-06-11)
+Lows:  $159.915(2026-06-08) | $159.915(2026-06-08) | $160.041(2026-06-09) | $160.041(2026-06-09) | $159.616(2026-06-11)
+
+━━━ FIBONACCI (anchored to last D1 swing high/low) ━━━
+Swing: $155.08 → $160.716
+  78.6%:      $156.286
+  61.8%:      $157.233  ← golden pocket
+  50.0%:      $157.898
+  38.2%:      $158.563
+  Ext 127.2%: $162.249
+  Ext 161.8%: $164.199  ← TP extension zone
+
+━━━ DAILY OHLCV — last 15 bars ━━━━━━━━━━━━━━━━━━━━━━━
+               open     high      low    close
+datetime                                      
+2026-05-26  158.954  159.382  158.915  159.244
+2026-05-27  159.251  159.585  159.179  159.578
+2026-05-28  159.572  159.656  159.145  159.268
+2026-05-29  159.270  159.384  159.102  159.295
+2026-06-01  159.363  159.759  159.363  159.647
+2026-06-02  159.648  160.002  159.643  159.977
+2026-06-03  159.979  160.097  159.396  159.949
+2026-06-04  159.940  160.062  159.756  160.001
+2026-06-05  159.997  160.346  159.833  160.290
+2026-06-08  160.337  160.398  159.915  160.181
+2026-06-09  160.184  160.452  160.041  160.398
+2026-06-10  160.394  160.585  160.257  160.543
+2026-06-11  160.539  160.600  159.616  160.148
+2026-06-12  160.144  160.390  159.980  160.244
+2026-06-15  159.975  160.231  159.895  160.148
+
+━━━ H4 OHLCV — last 24 bars (trading days) ━━━━━━━━━━━
+                        open     high      low    close
+datetime                                               
+2026-06-10 05:00:00  160.370  160.427  160.330  160.425
+2026-06-10 08:00:00  160.396  160.529  160.387  160.499
+2026-06-10 09:00:00  160.419  160.529  160.351  160.429
+2026-06-10 12:00:00  160.496  160.528  160.336  160.482
+2026-06-10 13:00:00  160.421  160.528  160.336  160.489
+2026-06-10 16:00:00  160.485  160.544  160.455  160.542
+2026-06-10 17:00:00  160.487  160.585  160.458  160.569
+2026-06-10 20:00:00  160.538  160.585  160.485  160.543
+2026-06-10 21:00:00  160.572  160.572  160.485  160.553
+2026-06-11 00:00:00  160.539  160.553  160.434  160.524
+2026-06-11 04:00:00  160.526  160.590  160.495  160.513
+2026-06-11 08:00:00  160.511  160.557  160.505  160.534
+2026-06-11 12:00:00  160.529  160.600  160.468  160.516
+2026-06-11 16:00:00  160.513  160.552  159.616  159.759
+2026-06-11 20:00:00  159.768  160.151  159.758  160.148
+2026-06-12 00:00:00  160.144  160.304  160.127  160.240
+2026-06-12 04:00:00  160.239  160.390  160.231  160.296
+2026-06-12 08:00:00  160.322  160.322  159.980  160.186
+2026-06-12 12:00:00  160.183  160.340  160.173  160.247
+2026-06-12 16:00:00  160.239  160.280  160.181  160.218
+2026-06-12 20:00:00  160.215  160.250  160.180  160.244
+2026-06-15 00:00:00  159.975  160.231  159.895  160.060
+2026-06-15 04:00:00  160.059  160.169  159.991  160.113
+2026-06-15 08:00:00  160.117  160.154  160.070  160.148
+
+Generated: 2026-06-15 11:21 UTC (11:21 UTC local)

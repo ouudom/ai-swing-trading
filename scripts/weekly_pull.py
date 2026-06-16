@@ -226,22 +226,15 @@ def resample_all():
 
 # ── STEP 2: FRED UPDATE ───────────────────────────────────────────────────────
 
-def _fred_manifest():
-    p = FRED_DIR / "_manifest.json"
-    return json.loads(p.read_text()) if p.exists() else {}
-
-def _save_fred_manifest(data):
-    (FRED_DIR / "_manifest.json").write_text(json.dumps(data, indent=2))
-
 def update_fred(force=False, series=None):
-    """Fetch/append FRED series CSVs. `series` defaults to the instrument's FRED_SERIES;
-    pass an explicit list (e.g. commodity ids) to reuse the same fetch+manifest path."""
+    """Fetch/append FRED series into the `macro_series` table. `series` defaults to the
+    instrument's FRED_SERIES; pass an explicit list (e.g. commodity ids) to reuse the path.
+    Incremental bookmark = MAX(date) from the DB (no _manifest.json)."""
     series = series if series is not None else FRED_SERIES
-    manifest = _fred_manifest()
     results  = []
     for sid in series:
         csv_path  = FRED_DIR / f"{sid}.csv"
-        last_date = manifest.get(sid, {}).get("last_dt")
+        last_date = db.last_series_date("macro_series", {"series_id": sid}) if db else None
         obs_start = ((datetime.now(timezone.utc) - timedelta(days=90)).strftime("%Y-%m-%d")
                      if (force or not last_date) else last_date)
         try:
@@ -268,11 +261,7 @@ def update_fred(force=False, series=None):
                     "macro_series", {"series_id": s},
                     c.assign(series_id=s)[["series_id", "date", "value"]],
                     index_cols=["series_id", "date"]))
-                manifest[sid] = {"last_dt": str(combined["date"].iloc[-1]),
-                                 "rows": len(combined),
-                                 "last_pull_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
-                _save_fred_manifest(manifest)
-            results.append((sid, len(new), manifest.get(sid, {}).get("last_dt", "?")))
+            results.append((sid, len(new), db.last_series_date("macro_series", {"series_id": sid}) if db else "?"))
         except Exception as e:
             results.append((sid, f"ERROR: {e}", last_date or "?"))
     return results

@@ -1,0 +1,178 @@
+
+╔══════════════════════════════════════════════════════╗
+  USDCHF WEEKLY DATA — 2026-06-14 (W24)
+╚══════════════════════════════════════════════════════╝
+
+━━━ MACRO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+US 2Y (DGS2):     4.05% (was 4.05% ~1w ago, Δ +0.0%)
+  → FALLING ⚠  (USD softness, bearish USDCHF)
+  20d slope: +0.0037 %/day  (rising trend)
+  1d drift:  -0.080%
+Fed Funds:        3.62%
+Foreign policy (CH): no daily FRED series — carry leg skipped (dead signal, D021/D024)
+VIX:              19.44
+
+━━━ PRICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+USDCHF:          $0.79718 (was $0.79641, +0.10% ~1w chg)
+DXY (ICE 6-cur):  99.750  (was 100.070,  -0.32% ~1w chg)
+
+━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ATR(14) Daily:    $0.00523
+ATR(14) H4:       $0.00198  (trading days only)
+SL (constitution v2): $0.0023 = avg(0.5×D1 0.00262, H4 0.00198)
+D1 ATR now:       $0.00523 | 20d median: $0.00455 → EXPANDING ⚠
+
+Lot sizing ($2000 risk, SL above):
+  Raw lots:  8.696
+  Use lots:  8.69  (floored to 0.01-lot step, min 0.01)
+
+ADX(14) D1:       23.3 → TRANSITIONAL (chop risk → /validate floor raised to 6.5)
+EMA 50 D1:        $0.78801 | Price ABOVE
+EMA 200 D1:       $0.7947 | Price ABOVE
+RSI(14) D1:       60.4 (was 52.6 10 bars ago, rising)
+Bollinger(20,2):  upper $0.80122 | mid $0.78973 | lower $0.77824 | %B 0.82 → inside bands
+
+RSI D1 (last 10 bars):
+  2026-06-01: 52.6
+  2026-06-02: 55.1
+  2026-06-03: 58.4
+  2026-06-04: 55.5
+  2026-06-05: 63.4
+  2026-06-08: 65.0
+  2026-06-09: 66.1
+  2026-06-10: 66.8
+  2026-06-11: 58.2
+  2026-06-12: 60.4
+
+MACD(12,26,9) D1 — last 5 bars:
+  Date             MACD   Signal     Hist
+  2026-06-08    0.00238  0.00097  0.00141
+  2026-06-09    0.00298  0.00137  0.00161
+  2026-06-10    0.00347  0.00179  0.00168
+  2026-06-11    0.00342  0.00212  0.00131
+  2026-06-12    0.00351   0.0024  0.00111
+  Histogram POSITIVE (bullish momentum)
+  Cross: MACD above signal (bullish)
+
+━━━ OSCILLATORS (D1 / H4 — Z2 engine inputs, were eyeballed pre-D025) ━━
+  D1:  Stoch %K 82.9/%D 90.2 (OVERBOUGHT) | W%R -19.8 (OVERBOUGHT) | CCI 96.8 (mid)
+        Keltner u0.80205/m0.79119/l0.78033 → inside
+        Donchian u0.80152/l0.77955 → mid-channel | TTM squeeze OFF
+        PSAR 0.78695 (long) | Supertrend 0.78181 (up)
+  H4:  Stoch %K 35.2/%D 32.3 (mid) | W%R -59.4 (mid) | CCI -39.8 (mid)
+        Keltner u0.80141/m0.79738/l0.79334 → inside
+        Donchian u0.80152/l0.79421 → mid-channel | TTM squeeze OFF
+        PSAR 0.79935 (short) | Supertrend 0.79427 (up)
+  EXTREMES: D1 Stoch 82.9 OVERBOUGHT · D1 W%R -19.8 OVERBOUGHT
+
+━━━ MARKET STRUCTURE (BOS/CHoCH, fractal N=2) ━━━━━━━━━━━
+  D1: state DOWN | last BOS UP @ 0.78994 (2026-06-03 00:00, 7 bars ago)
+  H4: state MIXED | last BOS UP @ 0.80063 (2026-06-11 12:00, 8 bars ago)
+
+━━━ ENTRY TRIGGERS (E0, latest closed 1H — reclaim > pin/engulf, D027) ━━
+  latest closed 1H bar: 2026-06-12 21:00:00  (RSI 54, Stoch %K 76)
+  LONG-confirm fired:  none
+  SHORT-confirm fired: none
+  ✦ = RSI-reclaim is the highest-R E0 gate (backtest); per-pair primary in confluence_criteria. Toward zone dir only.
+
+━━━ VOLUME PROFILE (disabled, 3mo daily) ━━━━━━━━━━━━
+VP disabled for usdchf (no usable futures proxy)
+VP check: zone within ~8 units of POC/VAH/VAL = confluent
+
+━━━ TIME-AT-PRICE (H1 acceptance — VP substitute, NOT volume) ━━
+HTN (most-accepted): 0.7868
+Value area: 0.78087 – 0.79229 (70% of time)
+Use as S/R confluence like a POC/VA — acceptance, not traded volume.
+
+
+━━━ COT — CFTC SWISS FRANC FUTURES (non-commercial, as of 2026-06-09) ━━━━━━
+Spec Long:      6,636
+Spec Short:     44,298
+Net Position:   -37,662  (spec short SWISS FRANC = BULLISH USDCHF)  ⚠ INVERTED READ (USD-base pair)
+W/W Change:     -4,589  (DECREASING)
+Note: net-position extremes vs 1y range = crowded = reversal risk (per-instrument threshold)
+
+━━━ ETF FLOWS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fetch failed: ETF flows disabled for usdchf (no equivalent ETF)
+
+━━━ WEEKEND GLOBEX GAP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+No Sunday reopen bar found
+
+━━━ NEWS FEED (recent, pair-filtered — context for Section 2) ━━
+  2026-06-12 [CNBC] FedEx's yearslong turnaround is facing a big test after executing on a major catalyst
+
+━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
+baseline_dgs2: 4.05
+baseline_dxy:    99.750
+weekend_gap_pct: N/A
+
+━━━ WEEKLY PIVOTS (prior week OHLC) ━━━━━━━━━━━━━━━━━━
+R3:0.81644  R2:0.80662  R1:0.80151
+PP:0.79169
+S1:0.78658  S2:0.77676  S3:0.77165
+
+━━━ SWING POINTS (Daily, N=5) ━━━━━━━━━━━━━━━━━━━━━━━━
+Highs: $0.77729(2026-02-20) | $0.78786(2026-03-03) | $0.80416(2026-03-31) | $0.79251(2026-04-29) | $0.79078(2026-05-20)
+Lows:  $0.77488(2026-03-10) | $0.78362(2026-03-23) | $0.77763(2026-04-17) | $0.7762(2026-05-08) | $0.77955(2026-05-29)
+
+━━━ SWING POINTS (H4, N=5, trading days) ━━━━━━━━━━━━━
+Highs: $0.79872(2026-06-08) | $0.79872(2026-06-08) | $0.79851(2026-06-08) | $0.79851(2026-06-09) | $0.80152(2026-06-11)
+Lows:  $0.79493(2026-06-09) | $0.79493(2026-06-09) | $0.7965(2026-06-10) | $0.7965(2026-06-10) | $0.79421(2026-06-11)
+
+━━━ FIBONACCI (anchored to last D1 swing high/low) ━━━
+Swing: $0.77955 → $0.79078
+  78.6%:      $0.78195
+  61.8%:      $0.78384  ← golden pocket
+  50.0%:      $0.78517
+  38.2%:      $0.78649
+  Ext 127.2%: $0.79383
+  Ext 161.8%: $0.79772  ← TP extension zone
+
+━━━ DAILY OHLCV — last 15 bars ━━━━━━━━━━━━━━━━━━━━━━━
+               open     high      low    close
+datetime                                      
+2026-05-25  0.78226  0.78346  0.78085  0.78319
+2026-05-26  0.78319  0.78646  0.78294  0.78520
+2026-05-27  0.78519  0.78800  0.78443  0.78791
+2026-05-28  0.78788  0.78994  0.78331  0.78386
+2026-05-29  0.78386  0.78476  0.77955  0.78119
+2026-06-01  0.78186  0.78836  0.78186  0.78640
+2026-06-02  0.78639  0.78846  0.78445  0.78835
+2026-06-03  0.78834  0.79273  0.78739  0.79106
+2026-06-04  0.79105  0.79232  0.78683  0.78923
+2026-06-05  0.78921  0.79679  0.78726  0.79641
+2026-06-08  0.79651  0.79872  0.79482  0.79820
+2026-06-09  0.79817  0.79938  0.79493  0.79937
+2026-06-10  0.79935  0.80063  0.79650  0.80009
+2026-06-11  0.80007  0.80152  0.79421  0.79516
+2026-06-12  0.79513  0.79776  0.79480  0.79718
+
+━━━ H4 OHLCV — last 24 bars (trading days) ━━━━━━━━━━━
+                        open     high      low    close
+datetime                                               
+2026-06-09 20:00:00  0.79856  0.79938  0.79773  0.79937
+2026-06-09 21:00:00  0.79833  0.79945  0.79773  0.79885
+2026-06-10 00:00:00  0.79935  0.79948  0.79865  0.79883
+2026-06-10 01:00:00  0.79891  0.79948  0.79865  0.79916
+2026-06-10 04:00:00  0.79881  0.79938  0.79755  0.79856
+2026-06-10 05:00:00  0.79918  0.79926  0.79755  0.79905
+2026-06-10 08:00:00  0.79858  0.79950  0.79817  0.79924
+2026-06-10 09:00:00  0.79902  0.79950  0.79700  0.79809
+2026-06-10 12:00:00  0.79926  0.79933  0.79650  0.79848
+2026-06-10 13:00:00  0.79799  0.79831  0.79650  0.79720
+2026-06-10 16:00:00  0.79853  0.79993  0.79791  0.79988
+2026-06-10 20:00:00  0.79989  0.80063  0.79889  0.80009
+2026-06-11 00:00:00  0.80007  0.80007  0.79803  0.79871
+2026-06-11 04:00:00  0.79869  0.79923  0.79820  0.79918
+2026-06-11 08:00:00  0.79918  0.80029  0.79882  0.79888
+2026-06-11 12:00:00  0.79889  0.80090  0.79883  0.80074
+2026-06-11 16:00:00  0.80075  0.80152  0.79448  0.79498
+2026-06-11 20:00:00  0.79499  0.79543  0.79421  0.79516
+2026-06-12 00:00:00  0.79513  0.79630  0.79513  0.79579
+2026-06-12 04:00:00  0.79578  0.79754  0.79564  0.79670
+2026-06-12 08:00:00  0.79685  0.79685  0.79480  0.79630
+2026-06-12 12:00:00  0.79628  0.79776  0.79590  0.79630
+2026-06-12 16:00:00  0.79634  0.79699  0.79615  0.79687
+2026-06-12 20:00:00  0.79685  0.79728  0.79672  0.79718
+
+Generated: 2026-06-14 13:08 UTC (13:08 UTC local)

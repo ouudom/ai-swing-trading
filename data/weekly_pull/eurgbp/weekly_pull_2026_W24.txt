@@ -1,0 +1,174 @@
+
+╔══════════════════════════════════════════════════════╗
+  EURGBP WEEKLY DATA — 2026-06-14 (W24)
+╚══════════════════════════════════════════════════════╝
+
+━━━ MACRO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠ EUR/GBP CROSS — macro = LOW-weight NON-SCORING tilt (EG2: cross macro thin/dead).
+  ECB Deposit (ECBDFR): 2.00%
+  GBP SONIA (IUDSOIA):  3.73%
+  Rate diff (EUR−GBP):  -1.73%  (was -1.73% 20d ago, Δ -0.00%)
+  → NARROWING (EUR carry down, bearish EURGBP)
+VIX:              19.44  (EG4: risk-off polarity INVERTED vs USD-majors)
+
+━━━ PRICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EURGBP:          $0.86337 (was $0.86383, -0.05% ~1w chg)
+
+
+━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ATR(14) Daily:    $0.00231
+ATR(14) H4:       $0.00111  (trading days only)
+SL (constitution v2): $0.00113 = avg(0.5×D1 0.00115, H4 0.00111)
+D1 ATR now:       $0.00231 | 20d median: $0.00329 → COMPRESSED ✅
+
+Lot sizing ($2000 risk, SL above):
+  Raw lots:  17.699
+  Use lots:  17.69  (floored to 0.01-lot step, min 0.01)
+
+ADX(14) D1:       15.0 → RANGING (favor reversal/counter at zone edges; floor 6.0)
+EMA 50 D1:        $0.86598 | Price BELOW
+EMA 200 D1:       $0.86642 | Price BELOW
+RSI(14) D1:       44.5 (was 45.3 10 bars ago, falling)
+Bollinger(20,2):  upper $0.86759 | mid $0.86466 | lower $0.86174 | %B 0.28 → inside bands
+
+RSI D1 (last 10 bars):
+  2026-06-01: 45.3
+  2026-06-02: 43.8
+  2026-06-03: 46.4
+  2026-06-04: 47.7
+  2026-06-05: 44.1
+  2026-06-08: 46.6
+  2026-06-09: 41.4
+  2026-06-10: 43.6
+  2026-06-11: 42.6
+  2026-06-12: 44.5
+
+MACD(12,26,9) D1 — last 5 bars:
+  Date             MACD   Signal     Hist
+  2026-06-08   -0.00065  -0.0006   -5e-05
+  2026-06-09    -0.0008 -0.00064 -0.00015
+  2026-06-10   -0.00085 -0.00068 -0.00016
+  2026-06-11   -0.00091 -0.00073 -0.00018
+  2026-06-12    -0.0009 -0.00076 -0.00014
+  Histogram NEGATIVE (bearish momentum)
+  Cross: MACD below signal (bearish)
+
+━━━ OSCILLATORS (D1 / H4 — Z2 engine inputs, were eyeballed pre-D025) ━━
+  D1:  Stoch %K 24.4/%D 25.8 (mid) | W%R -75.6 (mid) | CCI -64.8 (mid)
+        Keltner u0.86882/m0.86459/l0.86036 → inside
+        Donchian u0.87308/l0.86139 → mid-channel | TTM squeeze ON (1 bars)
+        PSAR 0.86468 (short) | Supertrend 0.86954 (down)
+  H4:  Stoch %K 41.2/%D 42.9 (mid) | W%R -51.4 (mid) | CCI 16.4 (mid)
+        Keltner u0.86558/m0.86313/l0.86069 → inside
+        Donchian u0.86449/l0.86182 → mid-channel | TTM squeeze ON (10 bars)
+        PSAR 0.86434 (short) | Supertrend 0.86547 (down)
+  EXTREMES: D1 TTM squeeze ON 1b · H4 TTM squeeze ON 10b
+
+━━━ MARKET STRUCTURE (BOS/CHoCH, fractal N=2) ━━━━━━━━━━━
+  D1: state DOWN | last BOS DOWN @ 0.86312 (2026-06-09 00:00, 3 bars ago)
+  H4: state MIXED | last BOS DOWN @ 0.8624 (2026-06-10 08:00, 15 bars ago)
+
+━━━ ENTRY TRIGGERS (E0, latest closed 1H — reclaim > pin/engulf, D027) ━━
+  latest closed 1H bar: 2026-06-12 21:00:00  (RSI 57, Stoch %K 37)
+  LONG-confirm fired:  none
+  SHORT-confirm fired: none
+  ✦ = RSI-reclaim is the highest-R E0 gate (backtest); per-pair primary in confluence_criteria. Toward zone dir only.
+
+━━━ VOLUME PROFILE (disabled, 3mo daily) ━━━━━━━━━━━━
+VP disabled for eurgbp (no usable futures proxy)
+VP check: zone within ~8 units of POC/VAH/VAL = confluent
+
+━━━ TIME-AT-PRICE (H1 acceptance — VP substitute, NOT volume) ━━
+HTN (most-accepted): 0.86461
+Value area: 0.86247 – 0.86608 (70% of time)
+Use as S/R confluence like a POC/VA — acceptance, not traded volume.
+
+
+━━━ COT — CFTC FUTURES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fetch failed: COT disabled for eurgbp (system TBD)
+
+━━━ ETF FLOWS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fetch failed: ETF flows disabled for eurgbp (no equivalent ETF)
+
+━━━ WEEKEND GLOBEX GAP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+No Sunday reopen bar found
+
+━━━ NEWS FEED (recent, pair-filtered — context for Section 2) ━━
+  2026-06-12 [Reuters] European shares rally as Middle East peace hopes drag oil prices lower - Reuters
+  2026-06-12 [CNBC] FedEx's yearslong turnaround is facing a big test after executing on a major catalyst
+
+━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
+baseline_rate_diff: -1.73
+baseline_dxy:    99.750
+weekend_gap_pct: N/A
+
+━━━ WEEKLY PIVOTS (prior week OHLC) ━━━━━━━━━━━━━━━━━━
+R3:0.86904  R2:0.86756  R1:0.8657
+PP:0.86422
+S1:0.86236  S2:0.86088  S3:0.85902
+
+━━━ SWING POINTS (Daily, N=5) ━━━━━━━━━━━━━━━━━━━━━━━━
+Highs: $0.87068(2026-03-23) | $0.87453(2026-03-31) | $0.87232(2026-04-17) | $0.87308(2026-05-18) | $0.86816(2026-05-29)
+Lows:  $0.8613(2026-02-04) | $0.86084(2026-03-23) | $0.86843(2026-04-14) | $0.86198(2026-05-01) | $0.86139(2026-05-25)
+
+━━━ SWING POINTS (H4, N=5, trading days) ━━━━━━━━━━━━━
+Highs: $0.86516(2026-06-08) | $0.86516(2026-06-08) | $0.86516(2026-06-08) | $0.86516(2026-06-08) | $0.86449(2026-06-11)
+Lows:  $0.86275(2026-06-05) | $0.86159(2026-06-05) | $0.86316(2026-06-08) | $0.86182(2026-06-10) | $0.86231(2026-06-11)
+
+━━━ FIBONACCI (anchored to last D1 swing high/low) ━━━
+Swing: $0.86139 → $0.86816
+  78.6%:      $0.86284
+  61.8%:      $0.86398  ← golden pocket
+  50.0%:      $0.86478
+  38.2%:      $0.86557
+  Ext 127.2%: $0.87
+  Ext 161.8%: $0.87234  ← TP extension zone
+
+━━━ DAILY OHLCV — last 15 bars ━━━━━━━━━━━━━━━━━━━━━━━
+               open     high      low    close
+datetime                                      
+2026-05-25  0.86455  0.86543  0.86139  0.86201
+2026-05-26  0.86203  0.86509  0.86182  0.86497
+2026-05-27  0.86501  0.86727  0.86462  0.86585
+2026-05-28  0.86583  0.86815  0.86551  0.86659
+2026-05-29  0.86658  0.86816  0.86555  0.86662
+2026-06-01  0.86549  0.86609  0.86364  0.86448
+2026-06-02  0.86447  0.86501  0.86312  0.86387
+2026-06-03  0.86386  0.86512  0.86316  0.86472
+2026-06-04  0.86469  0.86567  0.86422  0.86514
+2026-06-05  0.86513  0.86553  0.86275  0.86383
+2026-06-08  0.86406  0.86516  0.86316  0.86460
+2026-06-09  0.86459  0.86476  0.86240  0.86258
+2026-06-10  0.86264  0.86372  0.86182  0.86324
+2026-06-11  0.86327  0.86449  0.86231  0.86285
+2026-06-12  0.86288  0.86406  0.86240  0.86337
+
+━━━ H4 OHLCV — last 24 bars (trading days) ━━━━━━━━━━━
+                        open     high      low    close
+datetime                                               
+2026-06-09 05:00:00  0.86423  0.86423  0.86271  0.86331
+2026-06-09 08:00:00  0.86332  0.86372  0.86271  0.86339
+2026-06-09 09:00:00  0.86328  0.86372  0.86301  0.86355
+2026-06-09 12:00:00  0.86339  0.86378  0.86274  0.86313
+2026-06-09 16:00:00  0.86316  0.86341  0.86240  0.86258
+2026-06-09 20:00:00  0.86255  0.86350  0.86251  0.86258
+2026-06-10 00:00:00  0.86264  0.86299  0.86247  0.86271
+2026-06-10 04:00:00  0.86269  0.86318  0.86248  0.86280
+2026-06-10 08:00:00  0.86282  0.86332  0.86190  0.86225
+2026-06-10 12:00:00  0.86229  0.86304  0.86182  0.86251
+2026-06-10 16:00:00  0.86256  0.86329  0.86249  0.86308
+2026-06-10 20:00:00  0.86304  0.86372  0.86246  0.86324
+2026-06-11 00:00:00  0.86327  0.86351  0.86279  0.86302
+2026-06-11 04:00:00  0.86299  0.86308  0.86262  0.86268
+2026-06-11 08:00:00  0.86272  0.86358  0.86243  0.86335
+2026-06-11 12:00:00  0.86332  0.86441  0.86293  0.86357
+2026-06-11 16:00:00  0.86354  0.86449  0.86231  0.86302
+2026-06-11 20:00:00  0.86299  0.86341  0.86251  0.86285
+2026-06-12 00:00:00  0.86288  0.86298  0.86246  0.86270
+2026-06-12 04:00:00  0.86266  0.86379  0.86249  0.86361
+2026-06-12 08:00:00  0.86353  0.86383  0.86259  0.86294
+2026-06-12 12:00:00  0.86290  0.86406  0.86260  0.86281
+2026-06-12 16:00:00  0.86286  0.86333  0.86246  0.86283
+2026-06-12 20:00:00  0.86281  0.86354  0.86240  0.86337
+
+Generated: 2026-06-14 13:08 UTC (13:08 UTC local)

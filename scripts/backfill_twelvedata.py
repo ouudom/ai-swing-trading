@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib.ohlc_store import upsert, load_manifest
+from lib.ohlc_store import upsert, last_dt as _last_dt
 
 load_dotenv()
 KEY    = os.getenv("TWELVE_DATA_KEY")
@@ -60,16 +60,16 @@ def fetch_page(symbol: str, interval: str, start: str, end: str) -> pd.DataFrame
 
 def backfill(symbol: str, tf: str, since: str, forward_only: bool, max_calls: int):
     sym_clean = symbol.replace("/", "").lower()
-    mf  = load_manifest(SOURCE, symbol).get(tf, {})
+    cur_last = _last_dt(SOURCE, symbol, tf)   # MAX(datetime) from the DB ohlc table
     now = pd.Timestamp(datetime.now(timezone.utc).replace(tzinfo=None))
     since_ts = pd.Timestamp(since)
     calls = 0
 
     # ── FORWARD-ONLY: fill gap from last_dt → now ─────────────────────────────
     if forward_only:
-        if not mf.get("last_dt"):
-            print(f"[{tf}] no manifest, run full backfill first"); return
-        start = pd.Timestamp(mf["last_dt"]) - pd.Timedelta(minutes=1)
+        if cur_last is None:
+            print(f"[{tf}] no bars in DB, run full backfill first"); return
+        start = pd.Timestamp(cur_last) - pd.Timedelta(minutes=1)
         end   = now
         print(f"[{tf}] forward-only {start} → {end}")
         while start < end and calls < max_calls:
@@ -140,10 +140,10 @@ def backfill(symbol: str, tf: str, since: str, forward_only: bool, max_calls: in
     else:
         print(f"[{tf}] done. calls={calls}  added={total_added}")
 
-    # Fill forward gap: manifest first_dt → now (close any gap if resuming)
-    mf2 = load_manifest(SOURCE, symbol).get(tf, {})
-    if mf2.get("last_dt"):
-        gap_start = pd.Timestamp(mf2["last_dt"])
+    # Fill forward gap: last DB bar → now (close any gap if resuming)
+    last2 = _last_dt(SOURCE, symbol, tf)
+    if last2 is not None:
+        gap_start = pd.Timestamp(last2)
         if (now - gap_start).total_seconds() > 900:
             print(f"[{tf}] closing forward gap {gap_start} → {now}")
             backfill(symbol, tf, since, forward_only=True, max_calls=10)

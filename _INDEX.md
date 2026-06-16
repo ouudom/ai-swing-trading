@@ -142,22 +142,24 @@
 - `scripts/backfill_twelvedata.py` — one-off util (not in weekly pipeline): pull/update OHLC backward from TD
 - `scripts/resample_twelvedata.py` — one-off util (not in weekly pipeline): M15 → H1/H4/D1
 - `scripts/backfill_fred.py` — one-off util (not in weekly pipeline): pull/update FRED macro series
-- `scripts/csv_to_sqlite.py` — importer: all tabular CSV under `data/` → `data/index.db` (10 tables, idempotent rebuild); NOT imported: weekly_pull/*.txt, cftc/*.zip, *_manifest.json, calibration/summary.json
+- `scripts/csv_to_sqlite.py` — legacy importer / cold rebuild of `data/index.db` from CSV (now only usable if CSVs exist; source CSVs deleted — kept for one-time rebuilds + `--refresh` quarantine sync)
+- `scripts/backup_db.py` — pg_dump-style gzipped SQL dump of index.db → `data/backups/`; `--keep N`; restore `gunzip -c <dump> | sqlite3 data/index.db`
+- `scripts/db.py` — SQLite helpers: `read_table`/`write_table`/`read_ohlc`/`read_slice`/`sync_slice`/`sync_table`/`last_ohlc_dt`/`last_series_date`/`replace_ohlc_slice` (canonical store access)
 
 ## Scripts — Risk / Portfolio
 - `scripts/fx_exposure.py` — FX currency-leg ledger, ADVISORY (D024): all 10 FX instruments / 8 currency legs; flags shared-leg concentration + suggests cleaner trade (highest EC); no caps, no auto-skip. `--selftest` / `--orders` / `--candidate`.
 
 ## Scripts — Shadow Ledger (zone outcome tracking, 2026-06-11)
-- `scripts/zone_ledger.py` — registry of every published Trading Zone → `data/zone_ledger.csv` (`add` MANDATORY per zone at /weekly publish; `list` to inspect)
-- `scripts/zone_outcomes.py` — replays 1H/4H/D1 OHLC vs ledger: fill at zone midpoint from publish time, constitution SL, TP1 2.5R / BE 1.5R / SL −1R → `data/zone_outcomes.csv` + confluence-bucket calibration summary (run for prior week at each /weekly)
-- `scripts/calibration.py` — aggregates `zone_outcomes.csv` → `wiki/system/core/calibration.md` (sliceable edge report: instrument/direction/R1/conviction/session, INSUFFICIENT below `--min-n`, default 10); `--json` side-output; run after `zone_outcomes.py` at /weekly
+- `scripts/zone_ledger.py` — registry of every published Trading Zone → `zone_ledger` table in `data/index.db` (`add` MANDATORY per zone at /weekly publish; `list` to inspect)
+- `scripts/zone_outcomes.py` — replays 1H/4H/D1 OHLC vs ledger: fill at zone midpoint from publish time, constitution SL, TP1 2.5R / BE 1.5R / SL −1R → `zone_outcome` table + confluence-bucket calibration summary (run for prior week at each /weekly)
+- `scripts/calibration.py` — aggregates the `zone_outcome` table → `wiki/system/core/calibration.md` (sliceable edge report: instrument/direction/R1/conviction/session, INSUFFICIENT below `--min-n`, default 10); `--json` side-output; run after `zone_outcomes.py` at /weekly
 
 ## Scripts — Validation
-- `scripts/check_v1b.py` — V1b intraday H4 invalidation checker (CLI zone args, no DB)
+- `scripts/check_v1b.py` — V1b intraday H4 invalidation checker (CLI zone args; reads H4 from the `ohlc` table)
 - `scripts/check_cb_calendar.py` — central-bank decision-date gate (MANDATORY at /weekly + /validate; reads static JSON; exit 1 = calendar unverified for window)
-- `scripts/check_econ_calendar.py` — scheduled data-release gate (#1/#2, MANDATORY; reads `data/econ_calendar/calendar.csv`; HIGH-impact releases for the pair's legs; `--retro <week>` = actual-vs-est surprise for Step 2b; exit 1 = CSV stale)
+- `scripts/check_econ_calendar.py` — scheduled data-release gate (#1/#2, MANDATORY; reads the `econ_calendar` table; HIGH-impact releases for the pair's legs; `--retro <week>` = actual-vs-est surprise for Step 2b; exit 1 = no rows/stale)
 - `scripts/check_intervention_watch.py` — JPY MoF intervention/jawboning gate (#4, MANDATORY for JPY; spot vs `config/intervention_watch.json` level → HARD_BLOCK/CAUTION; exit 1 = watch stale)
-- `scripts/check_news.py` — pair-filtered headline readout from `data/news/headlines.csv` (free RSS feeds; context for Section 2 + Step 2b; NOT a gate; D025)
+- `scripts/check_news.py` — pair-filtered headline readout from the `news` table (free RSS feeds; context for Section 2 + Step 2b; NOT a gate; D025)
 - `scripts/check_structured_news_event.py` — T4-X structured news event check
 - `scripts/structure.py` — shared fractal pivots, MTF structure helpers + `structure_events` (BOS/CHoCH labeling) + `time_at_price` (USD-base VP substitute) (D025)
 
@@ -181,19 +183,21 @@
 - `scripts/db.py` — shared SQLite access for `data/index.db`: `read_table`/`write_table` (state registries, DB-canonical + CSV mirror) + `replace_ohlc_slice` (OHLC live sync). All-string round-trip, auto-indexes
 
 ## Data
-- `data/index.db` — **SQLite mirror** of all tabular CSV below (gitignored, rebuildable via `scripts/csv_to_sqlite.py`); 10 tables; query + frontend layer. CSVs remain source of truth. See `STORAGE.md`
-- `data/trades_log.csv` — manual trade log (plain CSV)
-- `data/zone_ledger.csv` — shadow-ledger zone registry (script-managed: `zone_ledger.py`; W24 seeded 15 zones 2026-06-11)
-- `data/zone_outcomes.csv` — would-be R outcomes per zone (script-managed: `zone_outcomes.py`)
-- `data/calibration/summary.json` — optional JSON edge summary (script-managed: `calibration.py --json`)
-- `data/econ_calendar/calendar.csv` — Forex Factory free-JSON economic calendar (#1/#2; date/country/event/impact/estimate/actual/prev; script-managed: `weekly_pull.fetch_econ_calendar`)
-- `data/commodities/*.csv` — intermarket commodity daily closes (#3; copper HG=F etc.; script-managed: `weekly_pull.fetch_commodities_yf`)
-- `data/news/headlines.csv` — free-RSS news store (D025; datetime/category/headline/source/url/summary/related; FXStreet+Investing.com; script-managed: `weekly_pull.fetch_news`; query via `check_news.py`)
-- `data/gld_holdings.csv` — daily GLD ETF tonnage (auto-appended by weekly_pull)
-- `data/weekly_pull/xauusd/` — IMMUTABLE weekly pull text files (also eurusd/, gbpusd/)
-- `data/twelvedata/xauusd/` — OHLC CSVs (M15 master, resampled H1/H4/D1); also eurusd/, gbpusd/, eurgbp/, audusd/, nzdusd/, usdcad/, usdchf/, usdjpy/, eurjpy/, gbpjpy/ (D1 2010→now, intraday 2020→now; usdchf/usdjpy/eurjpy/gbpjpy 15min 2024→)
-- `forecasts/{weekly,daily}/{eurusd,gbpusd,eurgbp,audusd,nzdusd,usdcad,usdchf,usdjpy,eurjpy,gbpjpy}/` — FX forecast output dirs
-- `data/fred/` — macro series CSVs (DFII10, VIXCLS, DGS10, T5YIE, FEDFUNDS, DCOILWTICO 1986→, etc.)
-- `data/yahoo/` — ICE DXY daily
+- `data/index.db` — **CANONICAL store** (gitignored, rebuildable via `scripts/csv_to_sqlite.py`). All
+  tabular data now lives here — the source CSVs were migrated + deleted (see `STORAGE.md`). Tables:
+  - `trade` — real-trade registry (write via `trade_log.py`; replaces old `trades_log.csv`)
+  - `zone_ledger` — published-zone shadow registry (`zone_ledger.py`)
+  - `zone_outcome` — would-be R outcomes per zone (`zone_outcomes.py`)
+  - `ohlc` — all OHLC bars, cols source/symbol/tf/datetime/o/h/l/c/v (15min master + resampled
+    1h/4h/1day, 11 instruments); written live by `ohlc_store.upsert`; read via `db.read_ohlc`
+  - `macro_series` — FRED series (series_id/date/value: DFII10, VIXCLS, DGS2/10, ECBDFR, etc.)
+  - `market_series` — yahoo DXY + commodities (source/symbol/date/value)
+  - `news` — free-RSS headlines (`check_news.py`); `econ_calendar` — Forex Factory releases
+    (`check_econ_calendar.py`); `gld_holdings` — daily GLD tonnage
+- `data/twelvedata/{inst}/` — only `_quarantine.csv` (bad-tick log) remains (manifests removed — last_dt now from DB MAX)
+- `data/backups/` — `backup_db.py` gzipped SQL dumps of index.db (gitignored; off-machine copy = DR)
+- `data/calibration/summary.json` — optional JSON edge summary (`calibration.py --json`)
+- `data/weekly_pull/{inst}/` — IMMUTABLE weekly pull text files
 - `data/cftc/deahistfo{year}.zip` — COT yearly archives (24h refresh)
 - `data/news_events/` — T4-X structured event JSONs
+- `forecasts/{weekly,daily}/{all 11 instruments}/` — forecast/validation output markdown

@@ -1,15 +1,16 @@
 # _HOT — Boot State (thin)
 *First file read each session. Pointers + non-derivable judgment only.*
 *RULE: **never store a value that can be computed from source** — no live R, SL-hit status, spot,
-EC, ATR, ADX, V1b status, zone prices, lots. Those live in `trades_log.csv` / `forecasts/*` / the
+EC, ATR, ADX, V1b status, zone prices, lots. Those live in the `trade` table / `forecasts/*` / the
 pull and must be recomputed, never cached here. This file = current week + open human decisions +
 watch notes + where to look. Hard cap **40 lines.** Prune every session.*
 
 ## Source of truth — read these, don't duplicate them here
-- **Positions / live order limits / closed trades + R** → `data/trades_log.csv` (PENDING = live limit,
-  LOSS/WIN = closed). Recompute open-position SL/TP touch from price CSVs every /validate.
+- **Positions / live order limits / closed trades + R** → `trade` table in `data/index.db`
+  (`bash scripts/pyrun.sh scripts/trade_log.py list`; PENDING = live limit, LOSS/WIN = closed).
+  Recompute open-position SL/TP touch from the `ohlc` table every /validate.
 - **Current zones / forecasts** → `forecasts/weekly/{inst}/2026-W25.md`
-- **Shadow ledger / calibration** → `data/zone_ledger.csv`, `wiki/system/core/calibration.md`
+- **Shadow ledger / calibration** → `zone_ledger`/`zone_outcome` tables, `wiki/system/core/calibration.md`
 - **Latest validations** → `forecasts/daily/{inst}/<date>.md`
 - **Macro baseline** → `wiki/system/core/macro/yield_environment.md`
 - **Design beliefs / history** → `wiki/system/core/decisions.md`, `_INDEX.md`

@@ -35,10 +35,11 @@ MoF intervention regime (Mimura jawboning 06-10).
 - **MoF/JPY:** flat through BoJ 06-16; W26 setups = post-BoJ washouts.
 
 ## Last session
-2026-06-16 02:26 UTC — /validate ALL (11 instruments, hourly). **0 order limits** — hard-block week.
-Today = BoJ MPM + RBA decision day; FOMC tomorrow 06-17. JPY trio NO ZONES (BoJ/MoF). audusd RBA-blocked
-(prior limit expired unfilled). xauusd/eurusd/gbpusd/nzdusd/usdcad/usdchf all pre-FOMC — a fresh fill
-today carries unattended into FOMC → NO TRADE; zones intact & PENDING. eurgbp validated in full (only
-non-USD pair): V1b intact both zones, price mid-range ~0.8646 (no E0), but UK CPI 06-17 06:00 + BoE 06-18
-= pre-event carry block → NO TRADE. All zones remain PENDING (none invalidated). Details in
-`forecasts/daily/*/2026-06-16.md`.
+2026-06-16 09:10 UTC — /validate ALL (hourly re-run). **0 order limits** — hard-block week (unchanged).
+Gates re-confirmed via scripts: CB calendar (BoJ+RBA today HARD, FOMC 06-17 18:00 blocks all 8 USD pairs
+via pre-event carry, BoE+SNB 06-18), econ calendar (UK CPI 06-17 06:00, NZ GDP 06-17 22:45, FOMC presser
+06-17 18:30), intervention watch (usdjpy/eurjpy/gbpjpy MoF jawboning CAUTION; JPY trio NO ZONES/BoJ HARD).
+Every active instrument unconditionally NO TRADE. No fresh T4-X shock (US-Iran deal carryover, news store
+latest 06-15 21:20). Zones PENDING/intact — no new D1 close since prior run (next 00:00 UTC 06-17), V1/V1b
+unchanged. Redundant 11-pair price pull skipped (hard blocks make confluence moot; outcome identical to
+prior run). Verdicts in `forecasts/daily/*/2026-06-16.md`.

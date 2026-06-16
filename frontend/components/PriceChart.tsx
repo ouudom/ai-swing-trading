@@ -4,7 +4,7 @@ import {
   type ChartResponse,
   type ChartTf,
 } from "@/lib/api";
-import { INSTRUMENTS } from "@/lib/instruments";
+import { INSTRUMENTS, pricePrecision } from "@/lib/instruments";
 import {
   CandlestickSeries,
   createChart,
@@ -95,7 +95,18 @@ export default function PriceChart() {
         setError(null);
         setMeta(d);
 
+        // Per-instrument price precision — without the right minMove, lightweight-charts
+        // cannot scale sub-cent FX ranges and keeps a stale (e.g. gold) price scale.
+        const { precision, minMove } = pricePrecision(instrument);
+        series.applyOptions({
+          priceFormat: { type: "price", precision, minMove },
+        });
+
         series.setData(d.candles as { time: Time; open: number; high: number; low: number; close: number }[]);
+
+        // Force the price scale back to autoscale on the new data (a prior instrument
+        // with a wildly different range can otherwise leave the scale pinned).
+        chartRef.current?.priceScale("right").applyOptions({ autoScale: true });
 
         // clear old price lines
         priceLinesRef.current.forEach((pl) => series.removePriceLine(pl));

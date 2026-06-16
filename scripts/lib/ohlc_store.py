@@ -266,8 +266,8 @@ def upsert(source: str, symbol: str, tf: str, df: pd.DataFrame) -> dict:
                                   quarantine_csv=os.path.join(p["dir"], "_quarantine.csv"))
 
     # Persist the merged slice to the DB `ohlc` table (canonical store). On DB failure, write the
-    # CSV as an emergency fallback so a pull never loses freshly-fetched bars (csv_to_sqlite can
-    # re-ingest it). Normal path: DB only — no CSV mirror.
+    # CSV as an emergency fallback so a pull never loses freshly-fetched bars (re-ingest manually
+    # via db.replace_ohlc_slice). Normal path: DB only — no CSV mirror.
     try:
         import db
         db.replace_ohlc_slice(source, symbol, tf, merged[OHLC_COLS])

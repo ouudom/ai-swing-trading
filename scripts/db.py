@@ -1,13 +1,13 @@
 """
-db.py — shared SQLite access for the state registries (data/index.db).
+db.py — shared SQLite access for the canonical store (data/database/index.db).
 
-Canonical store for the trade/zone tables is now the DB; every write also dumps a
-git-ignored CSV **mirror** so existing CSV readers (calibration.py, compute.py, the
-importer) keep working unchanged during the migration. All values are kept as text
-(matching the all-string CSV convention) — no dtype churn, exact round-trip.
+The DB is the source of truth for every tabular dataset; source CSVs were migrated in
+and deleted. All values are kept as text (the old all-string CSV convention) — no dtype
+churn, exact round-trip. `write_table(..., mirror_csv=)` can still dump a CSV mirror, but
+callers no longer pass it (state registries are DB-only).
 
-Used by: trade_log.py, zone_ledger.py, zone_outcomes.py.
-Full rebuild from CSV (e.g. fresh clone): scripts/csv_to_sqlite.py.
+Used by: trade_log.py, zone_ledger.py, zone_outcomes.py, live_r.py, weekly_pull.py,
+ohlc_store.py. Tables are written live by those scripts — there is no CSV import step.
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ import pandas as pd
 
 DB = Path("data/database/index.db")
 
-# Indexes kept in sync with csv_to_sqlite.py — re-applied after every replace.
+# Index set for the state tables — re-applied after every replace.
 INDEXES = {
     "trade": [("instrument", "status")],
     "zone_ledger": [("instrument", "week")],
@@ -94,7 +94,7 @@ OHLC_COLUMNS = ["source", "symbol", "tf", "datetime", "open", "high", "low", "cl
 # ── reader helpers (return CSV-shaped frames; callers parse dtypes as before) ──
 
 def clean_symbol(symbol: str) -> str:
-    """Canonical ohlc-table symbol form (matches csv_to_sqlite dir names): lowercase, no slash."""
+    """Canonical ohlc-table symbol form: lowercase, no slash (e.g. EUR/USD → eurusd)."""
     return symbol.lower().replace("/", "")
 
 
@@ -210,8 +210,8 @@ def replace_ohlc_slice(source: str, symbol: str, tf: str, bars: pd.DataFrame):
     """Replace the (source,symbol,tf) slice of the `ohlc` table with `bars`.
 
     `bars` carries datetime+open/high/low/close/volume for one series; source/symbol/tf
-    are prepended. Values stored as text (matches csv_to_sqlite's cold-rebuild output, so
-    incremental upserts and full rebuilds agree). Called by ohlc_store.upsert.
+    are prepended. Values stored as text (the all-string convention used across the DB,
+    so reads round-trip exactly). Called by ohlc_store.upsert.
     """
     symbol = clean_symbol(symbol)
     df = bars.copy()

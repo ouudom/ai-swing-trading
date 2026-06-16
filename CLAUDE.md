@@ -4,8 +4,9 @@
 Multi-instrument swing trading system — **10 active instruments** (XAUUSD + 9 FX pairs):
 **structured rules + AI (Claude) analysis → high-quality entry signal generation.** Weekly
 forecast produces **Trading Zones**; daily validation gates entries. Markdown-authoring — Claude
-writes forecasts/validations directly; tabular data also mirrored to a derived SQLite cache
-(`data/database/index.db`, rebuildable) for queries + frontend (CSVs stay source of truth; see `STORAGE.md`).
+writes forecasts/validations directly; tabular data lives in a canonical SQLite store
+(`data/database/index.db`, gitignored) for queries + frontend — written live by the pipeline.
+Source CSVs were migrated in and deleted; the DB is the source of truth now.
 
 Instruments: xauusd (momentum) | eurusd, gbpusd, eurgbp, audusd, nzdusd, usdcad, usdchf
 (mean-reversion variants) | usdjpy (asymmetric carry-drift) | eurjpy, gbpjpy (cross-JPY fades).
@@ -24,7 +25,7 @@ Context resets each session. Load state in order:
                                                    positions/numbers — those come from the `trade` table)
 1b. data/database/index.db `trade` table                  — open positions, live order limits (PENDING rows),
    (`scripts/trade_log.py list`)                   closed trades + realized R (the position truth).
-                                                   DB is canonical now — NO trades_log.csv (see STORAGE.md)
+                                                   DB is canonical now — NO trades_log.csv
 2. _INDEX.md                                     — file locations and current state
 3. wiki/system/core/constitution.md              — risk, SL/TP/offset, zone + re-forecast rules,
                                                    multi-instrument table (TICK/V1b/macro per pair)
@@ -96,11 +97,12 @@ JSON) and the news store (free RSS feeds) are **key-free**; if either feed is do
 
 ## Architecture (markdown-authoring + SQLite mirror)
 No **authoring** database — Claude reads markdown for context and writes forecast/validation
-markdown directly. A derived **SQLite mirror** (`data/database/index.db`, gitignored, rebuildable) indexes
-every tabular CSV under `data/` (10 tables: ohlc, macro_series, market_series, trade, zone_ledger,
+markdown directly. A **canonical SQLite store** (`data/database/index.db`, gitignored) holds every
+tabular dataset (10 tables: ohlc, macro_series, market_series, trade, zone_ledger,
 zone_outcome, news, econ_calendar, gld_holdings, ohlc_quarantine) for fast queries + the frontend.
-**CSVs remain source of truth**; the DB is a cache. Rebuild after any data change:
-`bash scripts/pyrun.sh scripts/csv_to_sqlite.py`. Details: `STORAGE.md`.
+**The DB is the source of truth** — source CSVs were migrated in and deleted. Tables are written
+live: state registries via `db.py` (`trade_log.py`/`zone_ledger.py`), OHLC via `ohlc_store.upsert`,
+market/macro/news/econ via the `weekly_pull.py` DB sync.
 Structured data engine = the `scripts/` pipeline producing the weekly pull text file:
 - `scripts/weekly_pull.py` (orchestrator) → `scripts/fetch.py` (TD+FRED) + `scripts/compute.py` (indicators)
 - `scripts/structure.py`, `scripts/lib/ohlc_store.py` — shared structure/OHLC helpers
@@ -131,10 +133,10 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
 - `forecasts/weekly/{instrument}/` — immutable after Monday open. Claude writes markdown.
 - `forecasts/daily/{instrument}/` — append-style. Claude writes markdown.
 - `data/weekly_pull/{instrument}/` — IMMUTABLE. Never edit `weekly_pull_*.txt`.
-- `data/database/index.db` — canonical store (gitignored, rebuildable via `csv_to_sqlite.py`). Tables:
+- `data/database/index.db` — canonical store (gitignored, written live by `db.py` + `ohlc_store`). Tables:
   `trade` (write via `trade_log.py`), `zone_ledger`/`zone_outcome` (via `zone_ledger.py` add /
   `zone_outcomes.py` resolve — no hand edits), `ohlc`, `macro_series`, `market_series`, `news`,
-  `econ_calendar`, `gld_holdings`. No source CSVs anymore — see `STORAGE.md`.
+  `econ_calendar`, `gld_holdings`. No source CSVs — the DB is canonical, written live.
 - `wiki/` — update in place. One concept per page. Never create a parallel page. Cross-link `[[filename]]`.
 - After creating/updating any file: update `_INDEX.md`. End of every session: update `_HOT.md`.
 - `_HOT.md` — **THIN boot file, hard cap 40 lines.** Contains ONLY: current week, open HUMAN

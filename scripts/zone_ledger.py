@@ -6,14 +6,17 @@ trade ever fires. `zone_outcomes.py` later replays OHLC against these rows to
 measure zone hit-rates, confluence-score calibration, and would-be R outcomes.
 Without this, confluence scores are never validated against reality.
 
-Ledger: data/zone_ledger.csv (append-style; resolver flips status OPEN→RESOLVED).
-zone_id = {instrument}-{week}-{label}, e.g. gbpusd-2026-W24-PRIMARY.
+Store: `zone_ledger` table in data/database/index.db (DB-canonical; resolver flips
+status OPEN→RESOLVED). zone_id = {instrument}-{week}-{label}, e.g. gbpusd-2026-W24-PRIMARY.
 
 Usage:
     bash scripts/pyrun.sh scripts/zone_ledger.py add \
         --instrument gbpusd --week 2026-W24 --label PRIMARY --direction SHORT \
         --zone-bottom 1.3400 --zone-top 1.3447 --score 8.0 --conviction MEDIUM \
         [--invalidation-level 1.3460] [--tp-anchor 1.32866] [--notes "..."]
+    bash scripts/pyrun.sh scripts/zone_ledger.py validate \
+        --zone-id gbpusd-2026-W24-PRIMARY --verdict ORDER_LIMIT \
+        [--entry-confluence 7.5] [--limit-price 1.3452] [--date 2026-06-16]
     bash scripts/pyrun.sh scripts/zone_ledger.py list [--week 2026-W24] [--status OPEN]
 
 `--invalidation-level` optional: when omitted, the resolver applies the default
@@ -40,9 +43,12 @@ COLUMNS = [
     "zone_bottom", "zone_top", "zone_confluence", "conviction",
     "invalidation_level", "tp_anchor", "published_utc", "source_file",
     "status", "notes",
+    # daily-validation write-back (latest /validate verdict per zone) — frontend reads these
+    "entry_confluence", "daily_verdict", "limit_price", "validated_date",
 ]
 
 LABELS = ["PRIMARY", "SECONDARY", "COUNTER"]
+VERDICTS = ["PENDING", "ORDER_LIMIT", "NO_TRADE", "INVALIDATED"]
 
 
 def load_ledger() -> pd.DataFrame:
@@ -85,12 +91,37 @@ def cmd_add(args):
         "source_file": args.source_file or f"forecasts/weekly/{args.instrument}/{args.week}.md",
         "status": "OPEN",
         "notes": args.notes or "",
+        "entry_confluence": "",
+        "daily_verdict": "PENDING",      # set by `zone_ledger.py validate` at /validate
+        "limit_price": "",
+        "validated_date": "",
     }
     new = pd.DataFrame([row])
     df = new if df.empty else pd.concat([df, new], ignore_index=True)
     save_ledger(df)
     print(f"✅ ledger += {zone_id}  {args.direction} {args.zone_bottom}–{args.zone_top} "
-          f"(R1 {args.score}) → {LEDGER_CSV}")
+          f"(R1 {args.score}) → {TABLE} (DB)")
+
+
+def cmd_validate(args):
+    """Write the latest daily-validation verdict back onto a published zone row.
+    Called once per validated zone at the end of /validate so the frontend can show
+    per-zone status (ORDER_LIMIT / NO_TRADE / INVALIDATED) + R2 + limit without
+    scraping the daily markdown body."""
+    df = load_ledger()
+    mask = df["zone_id"] == args.zone_id
+    if not mask.any():
+        sys.exit(f"❌ {args.zone_id} not in ledger — publish it first (zone_ledger.py add)")
+    df.loc[mask, "entry_confluence"] = "" if args.entry_confluence is None else str(args.entry_confluence)
+    df.loc[mask, "daily_verdict"] = args.verdict
+    df.loc[mask, "limit_price"] = "" if args.limit_price is None else str(args.limit_price)
+    df.loc[mask, "validated_date"] = args.date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    save_ledger(df)
+    extra = "".join([
+        f" R2 {args.entry_confluence}" if args.entry_confluence is not None else "",
+        f" limit {args.limit_price}" if args.limit_price is not None else "",
+    ])
+    print(f"✅ {args.zone_id} validated {df.loc[mask, 'validated_date'].iloc[0]}: {args.verdict}{extra}")
 
 
 def cmd_list(args):
@@ -105,7 +136,7 @@ def cmd_list(args):
         print("no matching rows")
         return
     cols = ["zone_id", "direction", "zone_bottom", "zone_top", "zone_confluence",
-            "conviction", "status"]
+            "conviction", "status", "daily_verdict"]
     print(df[cols].to_string(index=False))
     print(f"\n{len(df)} rows | status: {df['status'].value_counts().to_dict()}")
 
@@ -133,6 +164,14 @@ def main():
     a.add_argument("--notes", default="")
     a.add_argument("--force", action="store_true", help="overwrite existing zone_id")
     a.set_defaults(func=cmd_add)
+
+    v = sub.add_parser("validate", help="write a daily-validation verdict back onto a zone")
+    v.add_argument("--zone-id", required=True, help="e.g. eurusd-2026-W25-PRIMARY")
+    v.add_argument("--verdict", required=True, choices=VERDICTS)
+    v.add_argument("--entry-confluence", type=float, default=None, help="Entry Confluence R2 (0–10)")
+    v.add_argument("--limit-price", type=float, default=None, help="order-limit price on ORDER_LIMIT")
+    v.add_argument("--date", default="", help="validation date YYYY-MM-DD (default: today UTC)")
+    v.set_defaults(func=cmd_validate)
 
     l = sub.add_parser("list", help="show ledger rows")
     l.add_argument("--instrument", default="")

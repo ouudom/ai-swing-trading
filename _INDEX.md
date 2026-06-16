@@ -4,8 +4,6 @@
 ## Agent Docs
 - `CLAUDE.md` — full operating manual (Claude Code native)
 - `AGENTS.md` — Kimi Code CLI entry point; points to `CLAUDE.md`
-- `STORAGE.md` — SQLite mirror (`data/database/index.db`) schema, scope, rebuild cmd; CSVs stay source of truth
-- `FRONTEND_PLAN.md` — phased plan: read-only visual frontend over the data (dashboard → charts → calibration)
 
 ## System — Core
 - `wiki/system/core/constitution.md` — risk, SL/TP/offset, zone rules, re-forecast triggers (v2)
@@ -142,7 +140,6 @@
 - `scripts/backfill_twelvedata.py` — one-off util (not in weekly pipeline): pull/update OHLC backward from TD
 - `scripts/resample_twelvedata.py` — one-off util (not in weekly pipeline): M15 → H1/H4/D1
 - `scripts/backfill_fred.py` — one-off util (not in weekly pipeline): pull/update FRED macro series
-- `scripts/csv_to_sqlite.py` — legacy importer / cold rebuild of `data/database/index.db` from CSV (now only usable if CSVs exist; source CSVs deleted — kept for one-time rebuilds + `--refresh` quarantine sync)
 - `scripts/backup_db.py` — pg_dump-style gzipped SQL dump of index.db → `data/database/backups/`; `--keep N`; restore `gunzip -c <dump> | sqlite3 data/database/index.db`
 - `scripts/db.py` — SQLite helpers: `read_table`/`write_table`/`read_ohlc`/`read_slice`/`sync_slice`/`sync_table`/`last_ohlc_dt`/`last_series_date`/`replace_ohlc_slice` (canonical store access)
 
@@ -150,7 +147,8 @@
 - `scripts/fx_exposure.py` — FX currency-leg ledger, ADVISORY (D024): all 10 FX instruments / 8 currency legs; flags shared-leg concentration + suggests cleaner trade (highest EC); no caps, no auto-skip. `--selftest` / `--orders` / `--candidate`.
 
 ## Scripts — Shadow Ledger (zone outcome tracking, 2026-06-11)
-- `scripts/zone_ledger.py` — registry of every published Trading Zone → `zone_ledger` table in `data/database/index.db` (`add` MANDATORY per zone at /weekly publish; `list` to inspect)
+- `scripts/zone_ledger.py` — registry of every published Trading Zone → `zone_ledger` table in `data/database/index.db` (`add` MANDATORY per zone at /weekly publish; `validate` writes the daily verdict/R2/limit back per zone at /validate for the frontend; `list` to inspect)
+- `scripts/live_r.py` — recomputes live unrealized R + SL/TP-touch + MFE/MAE for OPEN trades from the latest OHLC (`live_metrics()` reusable by the frontend export). R read off the actual bar that hit SL — fixes the 2026-06-15 stale-R bug. `--tf` / `--include-pending` / `--id`
 - `scripts/zone_outcomes.py` — replays 1H/4H/D1 OHLC vs ledger: fill at zone midpoint from publish time, constitution SL, TP1 2.5R / BE 1.5R / SL −1R → `zone_outcome` table + confluence-bucket calibration summary (run for prior week at each /weekly)
 - `scripts/calibration.py` — aggregates the `zone_outcome` table → `wiki/system/core/calibration.md` (sliceable edge report: instrument/direction/R1/conviction/session, INSUFFICIENT below `--min-n`, default 10); `--json` side-output; run after `zone_outcomes.py` at /weekly
 
@@ -183,8 +181,8 @@
 - `scripts/db.py` — shared SQLite access for `data/database/index.db`: `read_table`/`write_table` (state registries, DB-canonical + CSV mirror) + `replace_ohlc_slice` (OHLC live sync). All-string round-trip, auto-indexes
 
 ## Data
-- `data/database/index.db` — **CANONICAL store** (gitignored, rebuildable via `scripts/csv_to_sqlite.py`). All
-  tabular data now lives here — the source CSVs were migrated + deleted (see `STORAGE.md`). Tables:
+- `data/database/index.db` — **CANONICAL store** (gitignored, written live by `db.py` + `ohlc_store` + `weekly_pull.py`). All
+  tabular data now lives here — the source CSVs were migrated + deleted. Tables:
   - `trade` — real-trade registry (write via `trade_log.py`; replaces old `trades_log.csv`)
   - `zone_ledger` — published-zone shadow registry (`zone_ledger.py`)
   - `zone_outcome` — would-be R outcomes per zone (`zone_outcomes.py`)

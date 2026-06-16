@@ -36,11 +36,8 @@ MoF intervention regime (Mimura jawboning 06-10).
 - **MoF/JPY:** flat through BoJ 06-16; W26 setups = post-BoJ washouts.
 
 ## Last session
-2026-06-16 10:11 UTC — /validate ALL (hourly re-run). **0 order limits** — hard-block week (unchanged).
-Gates re-confirmed via scripts: CB calendar (BoJ+RBA today HARD, FOMC 06-17 18:00 blocks all 8 USD pairs
-via pre-event carry, BoE+SNB 06-18), econ calendar (UK CPI 06-17 06:00, NZ GDP 06-17 22:45, FOMC presser
-06-17 18:30), intervention watch (usdjpy/eurjpy/gbpjpy MoF jawboning CAUTION; JPY trio NO ZONES/BoJ HARD).
-Every active instrument unconditionally NO TRADE. No fresh T4-X shock (US-Iran deal carryover, news store
-latest 06-15 21:20). Zones PENDING/intact — no new D1 close since prior run (next 00:00 UTC 06-17), V1/V1b
-unchanged. Redundant 11-pair price pull skipped (hard blocks make confluence moot; outcome identical to
-prior run). Verdicts in `forecasts/daily/*/2026-06-16.md`.
+2026-06-16 13:58 UTC — /validate ALL (hourly). **0 order limits** — hard-block week (unchanged).
+Gates re-confirmed: BoJ+RBA today HARD, FOMC 06-17 → all 8 USD pairs pre-event carry block, BoE+SNB 06-18,
+eurgbp pre-UK-CPI 06-17; JPY trio MoF HARD_BLOCK + NO ZONES. BoJ HIKED today, yen steady (no MoF slam);
+no fresh T4-X shock; no new D1 close (next 00:00 UTC 06-17); zones intact, trade table clean (no open positions).
+Earlier 06-16 hourly re-runs (05:09→11:44 UTC) all **0 order limits** — same gates, verdicts unchanged.

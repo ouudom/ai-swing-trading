@@ -319,8 +319,11 @@ NO TRADE — [hard block / score < 5.0]: [specific reason]
 
 ## Save + Update
 Save `forecasts/daily/<INSTRUMENT>/[DATE].md` using `wiki/system/templates/daily_validation.md`
-(Claude writes markdown directly — no DB). Then update `_HOT.md`: per-zone verdict; remove
+(Claude writes the forecast markdown directly). Then update `_HOT.md`: per-zone verdict; remove
 INVALIDATED; record limit/SL/TP/expiry on ORDER LIMIT; move filled to Open Position; update Risk Used.
+Finally **refresh the SQLite mirror** so `data/index.db` reflects any freshly-pulled market data:
+`bash scripts/pyrun.sh scripts/csv_to_sqlite.py --refresh` (trade/zone tables are DB-canonical, left
+untouched; skip if Step 2 pulled no data — e.g. a hard-block re-run). See `STORAGE.md`.
 
 ## Multi-Zone Handling
 Validate every PENDING zone for the instrument independently. Multiple ORDER LIMITs allowed if zones

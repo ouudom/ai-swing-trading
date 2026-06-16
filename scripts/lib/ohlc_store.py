@@ -6,9 +6,13 @@ Layout:
   data/{source}/{symbol}/_manifest.json
 """
 import os
+import sys
 import json
 import pandas as pd
 from datetime import datetime, timezone
+from pathlib import Path
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # scripts/ for `db`
 
 OHLC_COLS = ["datetime", "open", "high", "low", "close", "volume"]
 
@@ -159,8 +163,23 @@ def to_utc(df: pd.DataFrame, source_tz: str, dt_col: str = "datetime") -> pd.Dat
 
 
 def read_csv_utc(path: str, source_tz: str) -> pd.DataFrame:
-    """Read an OHLC CSV and normalize its datetime column to UTC."""
-    df = pd.read_csv(path, parse_dates=["datetime"])
+    """Read OHLC bars and normalize datetime to UTC. DB (`ohlc` table) is canonical; the
+    legacy data/{source}/{symbol}/{tf}.csv path is parsed for symbol/tf and used as fallback."""
+    df = None
+    try:
+        import db
+        p = Path(path)
+        df = db.read_ohlc(p.parent.name, p.stem, source=p.parent.parent.name)
+        if df is not None and not df.empty:
+            df = df.copy()
+            df["datetime"] = pd.to_datetime(df["datetime"])
+            for c in ["open", "high", "low", "close", "volume"]:
+                if c in df.columns:
+                    df[c] = pd.to_numeric(df[c], errors="coerce")
+    except Exception:
+        df = None
+    if df is None or df.empty:
+        df = pd.read_csv(path, parse_dates=["datetime"])
     return to_utc(df, source_tz)
 
 
@@ -212,9 +231,21 @@ def upsert(source: str, symbol: str, tf: str, df: pd.DataFrame) -> dict:
     df = filter_trading_session(df, tf)
 
     p = _paths(source, symbol, tf)
-    if os.path.exists(p["csv"]):
-        old = pd.read_csv(p["csv"], parse_dates=["datetime"])
-        merged = pd.concat([old, df], ignore_index=True)
+    # Merge against prior bars from the DB (canonical) — CSV fallback keeps cold starts working.
+    try:
+        import db
+        old = db.read_ohlc(symbol, tf, source=source)
+    except Exception:
+        old = None
+    if (old is None or old.empty) and os.path.exists(p["csv"]):
+        old = pd.read_csv(p["csv"])
+    if old is not None and not old.empty:
+        old = old.copy()
+        old["datetime"] = pd.to_datetime(old["datetime"])
+        for c in ["open", "high", "low", "close", "volume"]:
+            if c in old.columns:
+                old[c] = pd.to_numeric(old[c], errors="coerce")
+        merged = pd.concat([old[OHLC_COLS], df], ignore_index=True)
     else:
         merged = df
     merged = (
@@ -226,9 +257,17 @@ def upsert(source: str, symbol: str, tf: str, df: pd.DataFrame) -> dict:
     merged = quarantine_bad_ticks(merged, tf,
                                   quarantine_csv=os.path.join(p["dir"], "_quarantine.csv"))
 
-    tmp = p["csv"] + ".tmp"
-    merged.to_csv(tmp, index=False)
-    os.replace(tmp, p["csv"])
+    # Persist the merged slice to the DB `ohlc` table (canonical store). On DB failure, write the
+    # CSV as an emergency fallback so a pull never loses freshly-fetched bars (csv_to_sqlite can
+    # re-ingest it). Normal path: DB only — no CSV mirror.
+    try:
+        import db
+        db.replace_ohlc_slice(source, symbol, tf, merged[OHLC_COLS])
+    except Exception as e:  # noqa: BLE001
+        print(f"  ⚠ ohlc DB write failed ({source}/{symbol}/{tf}) — writing CSV fallback: {e}")
+        tmp = p["csv"] + ".tmp"
+        merged.to_csv(tmp, index=False)
+        os.replace(tmp, p["csv"])
 
     manifest = load_manifest(source, symbol)
     manifest[tf] = {

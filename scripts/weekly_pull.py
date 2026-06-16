@@ -100,6 +100,23 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 from ohlc_store import upsert, last_dt as manifest_last_dt, filter_trading_session
 from structure import structure_events, time_at_price
 
+try:                       # DB-live mirror sync (canonical store migration); CSV stays working set
+    import db
+except Exception:
+    db = None
+
+
+def _db_sync(label, fn):
+    """Best-effort sync of a freshly-written slice into data/index.db. Never breaks the
+    pull on a DB error — the CSV write already succeeded and is the fallback (STORAGE.md)."""
+    if db is None:
+        return
+    try:
+        fn()
+    except Exception as e:
+        print(f"  ⚠ DB sync {label} failed (CSV OK): {e}")
+
+
 load_dotenv()
 
 TWELVE_KEY = os.getenv("TWELVE_DATA_KEY")
@@ -188,7 +205,14 @@ def fetch_15m(force=False):
     return df
 
 def resample_all():
-    src = pd.read_csv(TD_DIR / "15min.csv", parse_dates=["datetime"])
+    src = db.read_ohlc(SYMBOL, "15min") if db else None   # DB master; CSV fallback for cold start
+    if src is None or src.empty:
+        src = pd.read_csv(TD_DIR / "15min.csv")
+    src = src.copy()
+    src["datetime"] = pd.to_datetime(src["datetime"])
+    for c in ["open", "high", "low", "close", "volume"]:
+        if c in src.columns:
+            src[c] = pd.to_numeric(src[c], errors="coerce")
     src = src.sort_values("datetime").set_index("datetime")
     results = []
     for tf, rule in TF_RESAMPLE.items():
@@ -231,14 +255,19 @@ def update_fred(force=False, series=None):
             if not force and last_date:
                 new = new[new["date"] > last_date]
             if not new.empty:
-                if csv_path.exists():
-                    existing = pd.read_csv(csv_path)
-                    combined = (pd.concat([existing, new], ignore_index=True)
+                prior = db.read_slice("macro_series", {"series_id": sid}, ["date", "value"]) if db else None
+                if (prior is None or prior.empty) and csv_path.exists():
+                    prior = pd.read_csv(csv_path)[["date", "value"]]
+                if prior is not None and not prior.empty:
+                    combined = (pd.concat([prior, new], ignore_index=True)
                                 .drop_duplicates("date", keep="last")
                                 .sort_values("date").reset_index(drop=True))
                 else:
                     combined = new
-                combined.to_csv(csv_path, index=False)
+                _db_sync(f"macro_series:{sid}", lambda c=combined, s=sid: db.sync_slice(
+                    "macro_series", {"series_id": s},
+                    c.assign(series_id=s)[["series_id", "date", "value"]],
+                    index_cols=["series_id", "date"]))
                 manifest[sid] = {"last_dt": str(combined["date"].iloc[-1]),
                                  "rows": len(combined),
                                  "last_pull_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
@@ -251,13 +280,23 @@ def update_fred(force=False, series=None):
 # ── STEP 3: LOAD LOCAL DATA ───────────────────────────────────────────────────
 
 def load_ohlc(path):
-    df = pd.read_csv(path, parse_dates=["datetime"]).set_index("datetime").sort_index()
+    # Read from the DB `ohlc` table (kept live by ohlc_store.upsert); CSV fallback on miss.
+    p = Path(path)
+    df = db.read_ohlc(p.parent.name, p.stem, source=p.parent.parent.name) if db else None
+    if df is None or df.empty:
+        df = pd.read_csv(path)
+    df["datetime"] = pd.to_datetime(df["datetime"])
+    df = df.set_index("datetime").sort_index()
     for col in ["open", "high", "low", "close"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
     return df.dropna(subset=["open", "high", "low", "close"])
 
 def load_fred_local(sid):
-    df = pd.read_csv(FRED_DIR / f"{sid}.csv", parse_dates=["date"]).set_index("date").sort_index()
+    df = db.read_slice("macro_series", {"series_id": sid}, ["date", "value"]) if db else None
+    if df is None or df.empty:
+        df = pd.read_csv(FRED_DIR / f"{sid}.csv")[["date", "value"]]
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.set_index("date").sort_index()
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
     return df.dropna()
 
@@ -641,7 +680,7 @@ def fetch_gld_flows():
         if total_assets <= 0:
             return {"error": "yfinance totalAssets unavailable"}
         # spot gold (use latest D1 close from our pull)
-        d1 = pd.read_csv(TD_DIR / "1day.csv", parse_dates=["datetime"]).sort_values("datetime")
+        d1 = load_ohlc(TD_DIR / "1day.csv").sort_index()   # DB-backed (CSV fallback)
         spot = float(d1["close"].iloc[-1])
         oz_per_tonne = 32150.7466
         tonnes = total_assets / (spot * oz_per_tonne)
@@ -649,15 +688,15 @@ def fetch_gld_flows():
 
         # Append to history CSV (idempotent — keep latest per date)
         GLD_HOLD_CSV.parent.mkdir(parents=True, exist_ok=True)
-        if GLD_HOLD_CSV.exists():
-            hist = pd.read_csv(GLD_HOLD_CSV)
-        else:
-            hist = pd.DataFrame(columns=["date", "tonnes", "aum_usd", "spot"])
+        hist = db.read_table("gld_holdings") if db else None
+        if (hist is None or hist.empty):
+            hist = pd.read_csv(GLD_HOLD_CSV) if GLD_HOLD_CSV.exists() \
+                else pd.DataFrame(columns=["date", "tonnes", "aum_usd", "spot"])
         hist = pd.concat([hist, pd.DataFrame([{
             "date": today, "tonnes": round(tonnes, 2),
             "aum_usd": total_assets, "spot": spot
         }])], ignore_index=True).drop_duplicates("date", keep="last").sort_values("date").reset_index(drop=True)
-        hist.to_csv(GLD_HOLD_CSV, index=False)
+        _db_sync("gld_holdings", lambda h=hist: db.sync_table("gld_holdings", h))
 
         wk_chg = round(tonnes - float(hist.iloc[-6]["tonnes"]), 2) if len(hist) >= 6 else None
         mo_chg = round(tonnes - float(hist.iloc[-21]["tonnes"]), 2) if len(hist) >= 21 else None
@@ -679,21 +718,32 @@ def fetch_dxy(force=False):
             "date": h.index.strftime("%Y-%m-%d"),
             "value": h["Close"].round(3).values,
         })
-        if DXY_CSV.exists() and not force:
-            existing = pd.read_csv(DXY_CSV)
-            combined = (pd.concat([existing, new], ignore_index=True)
+        prior = db.read_slice("market_series", {"source": "yahoo", "symbol": "DXY"},
+                              ["date", "value"]) if db else None
+        if (prior is None or prior.empty) and DXY_CSV.exists():
+            prior = pd.read_csv(DXY_CSV)[["date", "value"]]
+        if prior is not None and not prior.empty and not force:
+            combined = (pd.concat([prior, new], ignore_index=True)
                         .drop_duplicates("date", keep="last")
                         .sort_values("date").reset_index(drop=True))
         else:
             combined = new
-        combined.to_csv(DXY_CSV, index=False)
+        _db_sync("market_series:yahoo:DXY", lambda c=combined: db.sync_slice(
+            "market_series", {"source": "yahoo", "symbol": "DXY"},
+            c.assign(source="yahoo", symbol="DXY")[["source", "symbol", "date", "value"]],
+            index_cols=["source", "symbol", "date"]))
         return {"last_date": str(combined["date"].iloc[-1]), "value": float(combined["value"].iloc[-1]), "rows": len(combined)}
     except Exception as e:
         return {"error": str(e)}
 
 def load_dxy_local():
     """Returns DataFrame indexed by date with 'value' column (matches load_fred_local interface)."""
-    df = pd.read_csv(DXY_CSV, parse_dates=["date"]).set_index("date").sort_index()
+    df = db.read_slice("market_series", {"source": "yahoo", "symbol": "DXY"},
+                       ["date", "value"]) if db else None
+    if df is None or df.empty:
+        df = pd.read_csv(DXY_CSV)[["date", "value"]]
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.set_index("date").sort_index()
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
     return df.dropna()
 
@@ -752,13 +802,16 @@ def fetch_econ_calendar(force=False, days_back=10, days_fwd=10):
     new = pd.DataFrame(recs, columns=ECON_COLS)
     new = new[new["date"].astype(str).str.len() == 10]   # drop unparseable dates
     ECON_DIR.mkdir(parents=True, exist_ok=True)
-    if ECON_CSV.exists() and not force:
-        old = pd.read_csv(ECON_CSV, dtype=str).fillna("")
-        new = pd.concat([old, new.astype(str)], ignore_index=True)
+    if not force:
+        old = db.read_table("econ_calendar") if db else None
+        if (old is None or old.empty) and ECON_CSV.exists():
+            old = pd.read_csv(ECON_CSV, dtype=str).fillna("")
+        if old is not None and not old.empty:
+            new = pd.concat([old[ECON_COLS], new.astype(str)], ignore_index=True)
     new = (new.astype(str)
            .drop_duplicates(["date", "country", "event"], keep="last")
            .sort_values(["date", "time_utc"]).reset_index(drop=True))
-    new.to_csv(ECON_CSV, index=False)
+    _db_sync("econ_calendar", lambda n=new: db.sync_table("econ_calendar", n))
     return {"rows": len(new), "this_pull": len(recs), "source": "faireconomy(FF)",
             "last": new["date"].iloc[-1] if len(new) else "?",
             "warn": ("partial: " + "; ".join(errors)) if errors else ""}
@@ -844,12 +897,15 @@ def fetch_news(force=False, categories=None):
         return {"error": f"RSS news fetch failed ({'; '.join(errors) or 'no rows'})"}
     new = pd.DataFrame(recs, columns=NEWS_COLS)
     NEWS_DIR.mkdir(parents=True, exist_ok=True)
-    if NEWS_CSV.exists() and not force:
-        old = pd.read_csv(NEWS_CSV, dtype=str).fillna("")
-        new = (pd.concat([old, new.astype(str)], ignore_index=True)
-               .drop_duplicates("url", keep="last")
-               .sort_values("datetime_utc").reset_index(drop=True))
-    new.to_csv(NEWS_CSV, index=False)
+    if not force:
+        old = db.read_table("news") if db else None
+        if (old is None or old.empty) and NEWS_CSV.exists():
+            old = pd.read_csv(NEWS_CSV, dtype=str).fillna("")
+        if old is not None and not old.empty:
+            new = (pd.concat([old[NEWS_COLS], new.astype(str)], ignore_index=True)
+                   .drop_duplicates("url", keep="last")
+                   .sort_values("datetime_utc").reset_index(drop=True))
+    _db_sync("news", lambda n=new: db.sync_table("news", n))
     return {"rows": len(new), "this_pull": len(recs),
             "source": "rss(" + "+".join(s for s, _, _ in NEWS_RSS_SOURCES) + ")",
             "last": new["datetime_utc"].max() if len(new) else "?",
@@ -870,11 +926,18 @@ def fetch_commodities_yf(tickers: dict):
             new = pd.DataFrame({"date": h.index.strftime("%Y-%m-%d"),
                                 "value": h["Close"].round(4).values})
             p = COMMODITIES_DIR / f"{name}.csv"
-            if p.exists():
-                new = (pd.concat([pd.read_csv(p), new], ignore_index=True)
+            prior = db.read_slice("market_series", {"source": "commodities", "symbol": name},
+                                  ["date", "value"]) if db else None
+            if (prior is None or prior.empty) and p.exists():
+                prior = pd.read_csv(p)[["date", "value"]]
+            if prior is not None and not prior.empty:
+                new = (pd.concat([prior, new], ignore_index=True)
                        .drop_duplicates("date", keep="last")
                        .sort_values("date").reset_index(drop=True))
-            new.to_csv(p, index=False)
+            _db_sync(f"market_series:commodities:{name}", lambda n=new, nm=name: db.sync_slice(
+                "market_series", {"source": "commodities", "symbol": nm},
+                n.assign(source="commodities", symbol=nm)[["source", "symbol", "date", "value"]],
+                index_cols=["source", "symbol", "date"]))
             out[name] = {"rows": len(new), "last": new["date"].iloc[-1],
                          "value": float(new["value"].iloc[-1])}
         except Exception as ex:
@@ -882,7 +945,17 @@ def fetch_commodities_yf(tickers: dict):
     return out
 
 def load_commodity_local(name: str):
-    """Load a commodity series (FRED dir or commodities dir) → date-indexed 'value' frame."""
+    """Load a commodity series → date-indexed 'value' frame. DB first (market_series then
+    macro_series), CSV fallback (commodities/ then fred/)."""
+    if db:
+        df = db.read_slice("market_series", {"source": "commodities", "symbol": name}, ["date", "value"])
+        if df is None or df.empty:
+            df = db.read_slice("macro_series", {"series_id": name}, ["date", "value"])
+        if df is not None and not df.empty:
+            df["date"] = pd.to_datetime(df["date"])
+            df = df.set_index("date").sort_index()
+            df["value"] = pd.to_numeric(df["value"], errors="coerce")
+            return df.dropna()
     for d in (COMMODITIES_DIR, FRED_DIR):
         p = d / f"{name}.csv"
         if p.exists():
@@ -1278,9 +1351,12 @@ def _compute_and_write(out_path):
 
     # ── News feed (#A) — recent pair-filtered headlines from the store ──
     news_block = ""
-    if NEWS_CSV.exists():
+    nf0 = db.read_table("news") if db else None
+    if (nf0 is None or nf0.empty) and NEWS_CSV.exists():
+        nf0 = pd.read_csv(NEWS_CSV, dtype=str)
+    if nf0 is not None and not nf0.empty:
         try:
-            nf = pd.read_csv(NEWS_CSV, dtype=str).fillna("").sort_values("datetime_utc").tail(40)
+            nf = nf0.fillna("").sort_values("datetime_utc").tail(40)
             kws = _NEWS_KEYWORDS.get(SYM_CLEAN, []) + ["fed", "fomc", "rate", "inflation", "cpi"]
             hits = nf[nf["headline"].str.lower().apply(lambda h: any(k in h for k in kws))].tail(8)
             if not hits.empty:

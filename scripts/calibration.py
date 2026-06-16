@@ -36,6 +36,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import db  # noqa: E402
 from zone_outcomes import COMPLETED_STATUSES, OUTCOMES_CSV, R1_BUCKETS  # noqa: E402
 
 REPORT_MD = Path("wiki/system/core/calibration.md")
@@ -179,10 +180,12 @@ def build(df: pd.DataFrame, min_n: int) -> tuple[str, dict]:
     # R2 / real-trade section
     parts += ["## R2 Entry Confluence (real trades only)", ""]
     real_n = 0
-    if TRADES_CSV.exists():
+    rt = db.read_table("trade")                      # canonical; CSV fallback
+    if (rt is None or rt.empty) and TRADES_CSV.exists():
         rt = pd.read_csv(TRADES_CSV)
-        rt = rt.dropna(how="all")
-        real_n = len(rt[rt.get("r_actual").notna()]) if "r_actual" in rt.columns else 0
+    if rt is not None and not rt.empty:
+        rt = rt.replace("", pd.NA).dropna(how="all")
+        real_n = len(rt[rt["r_actual"].notna()]) if "r_actual" in rt.columns else 0
     if real_n == 0:
         parts.append("_Awaiting live trades. Shadow trades fill at the zone midpoint with no "
                      "E0/offset replay, so Entry Confluence (R2) cannot be calibrated from "
@@ -207,9 +210,14 @@ def main():
     ap.add_argument("--json", default="", help="also write the summary as JSON to this path")
     args = ap.parse_args()
 
-    if not OUTCOMES_CSV.exists():
-        sys.exit(f"{OUTCOMES_CSV} not found — run zone_outcomes.py first")
-    df = pd.read_csv(OUTCOMES_CSV, dtype={"week": str})
+    df = db.read_table("zone_outcome")               # canonical; CSV fallback
+    if (df is None or df.empty) and OUTCOMES_CSV.exists():
+        df = pd.read_csv(OUTCOMES_CSV, dtype={"week": str})
+    if df is None or df.empty:
+        sys.exit("no zone_outcome rows in data/index.db — run zone_outcomes.py first")
+    for c in ("zone_confluence", "r_result", "mfe_r", "mae_r", "sl_dist", "entry"):
+        if c in df.columns:                          # DB read is all-string → restore numerics
+            df[c] = pd.to_numeric(df[c], errors="coerce")
     if args.week:
         df = df[df["week"] == args.week]
     if df.empty:

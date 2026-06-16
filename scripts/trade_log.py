@@ -34,7 +34,10 @@ from pathlib import Path
 
 import pandas as pd
 
+import db
+
 TRADES_CSV = Path("data/trades_log.csv")
+TABLE = "trade"
 
 COLUMNS = [
     "trade_id", "instrument", "date", "week", "setup", "direction", "status",
@@ -53,9 +56,13 @@ def now_utc() -> str:
 
 
 def load() -> pd.DataFrame:
-    if TRADES_CSV.exists() and TRADES_CSV.stat().st_size > 0:
-        df = pd.read_csv(TRADES_CSV, dtype=str).fillna("")  # all-string: no dtype churn on edit
-        for c in COLUMNS:            # tolerate older/narrower headers
+    # Canonical store = data/index.db (table `trade`); CSV is a mirror.
+    df = db.read_table(TABLE, columns=COLUMNS)
+    if not df.empty:
+        return df
+    if TRADES_CSV.exists() and TRADES_CSV.stat().st_size > 0:  # cold-start fallback
+        df = pd.read_csv(TRADES_CSV, dtype=str).fillna("")
+        for c in COLUMNS:
             if c not in df.columns:
                 df[c] = ""
         return df
@@ -63,10 +70,7 @@ def load() -> pd.DataFrame:
 
 
 def save(df: pd.DataFrame):
-    TRADES_CSV.parent.mkdir(parents=True, exist_ok=True)
-    tmp = str(TRADES_CSV) + ".tmp"
-    df[COLUMNS].to_csv(tmp, index=False)
-    Path(tmp).replace(TRADES_CSV)
+    db.write_table(TABLE, df, columns=COLUMNS)   # DB-canonical; no CSV mirror
 
 
 def resolve_id(df: pd.DataFrame, args) -> str:

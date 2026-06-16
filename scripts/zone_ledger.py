@@ -29,7 +29,11 @@ from pathlib import Path
 
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # for `db` import
+import db  # noqa: E402
+
 LEDGER_CSV = Path("data/zone_ledger.csv")
+TABLE = "zone_ledger"
 
 COLUMNS = [
     "zone_id", "instrument", "week", "label", "direction",
@@ -42,16 +46,17 @@ LABELS = ["PRIMARY", "SECONDARY", "COUNTER"]
 
 
 def load_ledger() -> pd.DataFrame:
-    if LEDGER_CSV.exists():
+    # Canonical store = data/index.db (table `zone_ledger`); CSV is a mirror.
+    df = db.read_table(TABLE, columns=COLUMNS)
+    if not df.empty:
+        return df
+    if LEDGER_CSV.exists():            # cold-start fallback
         return pd.read_csv(LEDGER_CSV, dtype={"week": str})
     return pd.DataFrame(columns=COLUMNS)
 
 
 def save_ledger(df: pd.DataFrame):
-    LEDGER_CSV.parent.mkdir(parents=True, exist_ok=True)
-    tmp = str(LEDGER_CSV) + ".tmp"
-    df[COLUMNS].to_csv(tmp, index=False)
-    Path(tmp).replace(LEDGER_CSV)
+    db.write_table(TABLE, df, columns=COLUMNS)   # DB-canonical; no CSV mirror
 
 
 def cmd_add(args):

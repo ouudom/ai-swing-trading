@@ -285,3 +285,7 @@ Save to `forecasts/weekly/<INSTRUMENT>/YYYY-WNN.md` (Claude writes markdown dire
 3. Update `_HOT.md`: Active Forecast link + bias; new zones PENDING (box + direction) tagged by instrument;
    week number; reset risk used + `weekly_reforecast_count` to 0 if new week; refresh Pending Actions.
 4. Update `_INDEX.md`: add the new forecast file under Forecasts.
+5. **Refresh the SQLite mirror** so `data/index.db` reflects this week's pulled data:
+   `bash scripts/pyrun.sh scripts/csv_to_sqlite.py --refresh`
+   Syncs the CSV-canonical tables (ohlc/macro/market/news/econ/gld) into the DB; the DB-canonical
+   trade/zone tables are written live and left untouched. See `STORAGE.md`.

@@ -51,11 +51,19 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=12, help="max headlines (default 12)")
     args = ap.parse_args()
 
-    if not NEWS_CSV.exists():
-        print(f"(no news store at {NEWS_CSV} — run weekly_pull.py to populate from RSS; "
-              f"web-search fallback applies)")
+    df = None
+    try:
+        import db
+        df = db.read_table("news")                      # canonical store
+    except Exception:
+        df = None
+    if (df is None or df.empty) and NEWS_CSV.exists():
+        df = pd.read_csv(NEWS_CSV, dtype=str).fillna("")
+    if df is None or df.empty:
+        print(f"(no news store in data/index.db or {NEWS_CSV} — run weekly_pull.py to populate "
+              f"from RSS; web-search fallback applies)")
         return 0
-    df = pd.read_csv(NEWS_CSV, dtype=str).fillna("")
+    df = df.fillna("")
     cutoff = (datetime.now(timezone.utc) - timedelta(days=args.days)).strftime("%Y-%m-%d")
     df = df[df["datetime_utc"].str[:10] >= cutoff]
 

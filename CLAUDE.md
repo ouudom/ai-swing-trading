@@ -3,8 +3,9 @@
 ## What This Is
 Multi-instrument swing trading system — **10 active instruments** (XAUUSD + 9 FX pairs):
 **structured rules + AI (Claude) analysis → high-quality entry signal generation.** Weekly
-forecast produces **Trading Zones**; daily validation gates entries. Markdown-only — Claude
-writes forecasts/validations directly (no DB).
+forecast produces **Trading Zones**; daily validation gates entries. Markdown-authoring — Claude
+writes forecasts/validations directly; tabular data also mirrored to a derived SQLite cache
+(`data/index.db`, rebuildable) for queries + frontend (CSVs stay source of truth; see `STORAGE.md`).
 
 Instruments: xauusd (momentum) | eurusd, gbpusd, eurgbp, audusd, nzdusd, usdcad, usdchf
 (mean-reversion variants) | usdjpy (asymmetric carry-drift) | eurjpy, gbpjpy (cross-JPY fades).
@@ -91,8 +92,13 @@ sandbox. If `.pydeps` is missing (fresh sandbox), rebuild once with `bash script
 Keys live in `.env` (`TWELVE_DATA_KEY`, `FRED_KEY`). Econ calendar (#1/#2, Forex Factory free
 JSON) and the news store (free RSS feeds) are **key-free**; if either feed is down → web-search fallback.
 
-## Architecture (markdown-only)
-No database. Claude reads markdown for context and writes forecast/validation markdown directly.
+## Architecture (markdown-authoring + SQLite mirror)
+No **authoring** database — Claude reads markdown for context and writes forecast/validation
+markdown directly. A derived **SQLite mirror** (`data/index.db`, gitignored, rebuildable) indexes
+every tabular CSV under `data/` (10 tables: ohlc, macro_series, market_series, trade, zone_ledger,
+zone_outcome, news, econ_calendar, gld_holdings, ohlc_quarantine) for fast queries + the frontend.
+**CSVs remain source of truth**; the DB is a cache. Rebuild after any data change:
+`bash scripts/pyrun.sh scripts/csv_to_sqlite.py`. Details: `STORAGE.md`.
 Structured data engine = the `scripts/` pipeline producing the weekly pull text file:
 - `scripts/weekly_pull.py` (orchestrator) → `scripts/fetch.py` (TD+FRED) + `scripts/compute.py` (indicators)
 - `scripts/structure.py`, `scripts/lib/ohlc_store.py` — shared structure/OHLC helpers

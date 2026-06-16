@@ -4,6 +4,8 @@
 ## Agent Docs
 - `CLAUDE.md` — full operating manual (Claude Code native)
 - `AGENTS.md` — Kimi Code CLI entry point; points to `CLAUDE.md`
+- `STORAGE.md` — SQLite mirror (`data/index.db`) schema, scope, rebuild cmd; CSVs stay source of truth
+- `FRONTEND_PLAN.md` — phased plan: read-only visual frontend over the data (dashboard → charts → calibration)
 
 ## System — Core
 - `wiki/system/core/constitution.md` — risk, SL/TP/offset, zone rules, re-forecast triggers (v2)
@@ -140,6 +142,7 @@
 - `scripts/backfill_twelvedata.py` — one-off util (not in weekly pipeline): pull/update OHLC backward from TD
 - `scripts/resample_twelvedata.py` — one-off util (not in weekly pipeline): M15 → H1/H4/D1
 - `scripts/backfill_fred.py` — one-off util (not in weekly pipeline): pull/update FRED macro series
+- `scripts/csv_to_sqlite.py` — importer: all tabular CSV under `data/` → `data/index.db` (10 tables, idempotent rebuild); NOT imported: weekly_pull/*.txt, cftc/*.zip, *_manifest.json, calibration/summary.json
 
 ## Scripts — Risk / Portfolio
 - `scripts/fx_exposure.py` — FX currency-leg ledger, ADVISORY (D024): all 10 FX instruments / 8 currency legs; flags shared-leg concentration + suggests cleaner trade (highest EC); no caps, no auto-skip. `--selftest` / `--orders` / `--candidate`.
@@ -174,9 +177,11 @@
 - `scripts/config/usdjpy/config.py` — USDJPY config (D024 pair #5; USD-base + FIRST JPY: PIP_SIZE 0.01, PRICE_DP 3, TICK 650 static, COT 6J inverted, BoJ carry off)
 - `scripts/config/eurjpy/config.py` — EURJPY config (D024 pair #6; FIRST cross-JPY: USD_BETA_SIGN 0, JPY pip plumbing, one-leg macro RATE_GBP=None, COT EUR/JPY XRATE direct)
 - `scripts/config/gbpjpy/config.py` — GBPJPY config (D024 pair #7 LAST; cross-JPY #2: one-leg macro live leg = SONIA via RATE_EUR slot + LIVE_LEG_LABEL/BASELINE_LABEL, V1b 0.05, COT disabled — no CFTC cross contract)
-- `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities + bad-tick guard (auto wick-clamp/bar-drop on upsert, >10% D1 / >5% intraday dev vs rolling-median close; log → `data/{source}/{symbol}/_quarantine.csv`)
+- `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities + bad-tick guard (auto wick-clamp/bar-drop on upsert, >10% D1 / >5% intraday dev vs rolling-median close; log → `data/{source}/{symbol}/_quarantine.csv`). `upsert` also slice-syncs the merged bars into the `ohlc` table of `data/index.db` (fail-soft; CSV stays reader-facing mirror)
+- `scripts/db.py` — shared SQLite access for `data/index.db`: `read_table`/`write_table` (state registries, DB-canonical + CSV mirror) + `replace_ohlc_slice` (OHLC live sync). All-string round-trip, auto-indexes
 
 ## Data
+- `data/index.db` — **SQLite mirror** of all tabular CSV below (gitignored, rebuildable via `scripts/csv_to_sqlite.py`); 10 tables; query + frontend layer. CSVs remain source of truth. See `STORAGE.md`
 - `data/trades_log.csv` — manual trade log (plain CSV)
 - `data/zone_ledger.csv` — shadow-ledger zone registry (script-managed: `zone_ledger.py`; W24 seeded 15 zones 2026-06-11)
 - `data/zone_outcomes.csv` — would-be R outcomes per zone (script-managed: `zone_outcomes.py`)

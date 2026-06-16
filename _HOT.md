@@ -35,7 +35,7 @@ MoF intervention regime (Mimura jawboning 06-10).
 - **MoF/JPY:** flat through BoJ 06-16; W26 setups = post-BoJ washouts.
 
 ## Last session
-2026-06-16 09:10 UTC — /validate ALL (hourly re-run). **0 order limits** — hard-block week (unchanged).
+2026-06-16 10:11 UTC — /validate ALL (hourly re-run). **0 order limits** — hard-block week (unchanged).
 Gates re-confirmed via scripts: CB calendar (BoJ+RBA today HARD, FOMC 06-17 18:00 blocks all 8 USD pairs
 via pre-event carry, BoE+SNB 06-18), econ calendar (UK CPI 06-17 06:00, NZ GDP 06-17 22:45, FOMC presser
 06-17 18:30), intervention watch (usdjpy/eurjpy/gbpjpy MoF jawboning CAUTION; JPY trio NO ZONES/BoJ HARD).

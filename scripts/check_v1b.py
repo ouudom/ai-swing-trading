@@ -35,12 +35,24 @@ def main():
     parser.add_argument("--label", default="", help="optional zone label for output")
     args = parser.parse_args()
 
-    h4_csv = Path(f"data/twelvedata/{args.instrument}/4h.csv")
-    if not h4_csv.exists():
-        print(f"❌ Missing {h4_csv}")
-        sys.exit(1)
-
-    h4 = pd.read_csv(h4_csv, parse_dates=["datetime"]).sort_values("datetime")
+    h4 = None
+    try:
+        import db
+        h4 = db.read_ohlc(args.instrument, "4h")          # canonical store
+    except Exception:
+        h4 = None
+    if h4 is None or h4.empty:
+        h4_csv = Path(f"data/twelvedata/{args.instrument}/4h.csv")   # CSV fallback
+        if not h4_csv.exists():
+            print(f"❌ Missing {h4_csv}")
+            sys.exit(1)
+        h4 = pd.read_csv(h4_csv)
+    h4 = h4.copy()
+    h4["datetime"] = pd.to_datetime(h4["datetime"])
+    for c in ["open", "high", "low", "close"]:
+        if c in h4.columns:
+            h4[c] = pd.to_numeric(h4[c], errors="coerce")
+    h4 = h4.sort_values("datetime")
     last2 = h4.tail(2)
     if len(last2) < 2:
         print("Not enough H4 bars.")

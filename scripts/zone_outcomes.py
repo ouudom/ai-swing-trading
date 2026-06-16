@@ -42,9 +42,11 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # for `config.*` imports
 
+import db  # noqa: E402
 from zone_ledger import load_ledger, save_ledger  # noqa: E402
 
 OUTCOMES_CSV = Path("data/zone_outcomes.csv")
+OUTCOMES_TABLE = "zone_outcome"
 TERMINAL = {"NO_TOUCH", "TOUCH_NO_FILL", "INVALIDATED", "WIN_TP1", "LOSS_SL", "BREAKEVEN"}
 
 # R1 (zone_confluence) buckets, shared with calibration.py. (label, lo_inclusive, hi_exclusive).
@@ -78,10 +80,18 @@ def atr14_before(df: pd.DataFrame, cutoff: pd.Timestamp):
 
 
 def load_tf(instrument: str, tf: str) -> pd.DataFrame:
-    p = Path(f"data/twelvedata/{instrument}/{tf}.csv")
-    if not p.exists():
-        raise FileNotFoundError(p)
-    return pd.read_csv(p, parse_dates=["datetime"]).sort_values("datetime").reset_index(drop=True)
+    df = db.read_ohlc(instrument, tf)        # canonical; CSV fallback for cold start
+    if df is None or df.empty:
+        p = Path(f"data/twelvedata/{instrument}/{tf}.csv")
+        if not p.exists():
+            raise FileNotFoundError(p)
+        df = pd.read_csv(p)
+    df = df.copy()
+    df["datetime"] = pd.to_datetime(df["datetime"])
+    for c in ["open", "high", "low", "close", "volume"]:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+    return df.sort_values("datetime").reset_index(drop=True)
 
 
 def min_bar_range(instrument: str) -> float:
@@ -242,15 +252,13 @@ def main():
               + (f" ({out['r_result']:+.1f}R)" if out["r_result"] != "" else ""))
 
     res = pd.DataFrame(rows)[OUT_COLS]
-    if OUTCOMES_CSV.exists():  # keep rows for zones outside this run's filter
-        old = pd.read_csv(OUTCOMES_CSV, dtype=str)
+    old = db.read_table(OUTCOMES_TABLE)  # keep rows for zones outside this run's filter
+    if not old.empty and "zone_id" in old.columns:
         old = old[~old["zone_id"].isin(res["zone_id"])]
         if not old.empty:
-            res = pd.concat([old, res], ignore_index=True)
-    OUTCOMES_CSV.parent.mkdir(parents=True, exist_ok=True)
-    tmp = str(OUTCOMES_CSV) + ".tmp"
-    res.to_csv(tmp, index=False)
-    Path(tmp).replace(OUTCOMES_CSV)
+            res = pd.concat([old.astype(str), res.astype(str)], ignore_index=True)
+    # Canonical store = data/index.db (table `zone_outcome`); DB-only, no CSV mirror.
+    db.write_table(OUTCOMES_TABLE, res)
     save_ledger(ledger)
     print(f"\n→ {OUTCOMES_CSV} ({len(res)} rows); ledger statuses updated")
 

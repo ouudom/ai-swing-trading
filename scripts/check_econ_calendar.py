@@ -50,11 +50,19 @@ HIGH = {"high", "3", "h"}  # Forex Factory impact "High" (lowercased) = high-imp
 
 
 def load_calendar() -> pd.DataFrame:
-    if not ECON_CSV.exists():
-        print(f"❌ Missing {ECON_CSV} — run weekly_pull.py (Forex Factory free JSON, no key) before "
-              f"trusting the no-trade calendar. Web-search fallback applies meanwhile.")
+    df = None
+    try:
+        import db
+        df = db.read_table("econ_calendar")             # canonical store
+    except Exception:
+        df = None
+    if (df is None or df.empty) and ECON_CSV.exists():
+        df = pd.read_csv(ECON_CSV, dtype=str).fillna("")
+    if df is None or df.empty:
+        print(f"❌ No econ calendar in data/index.db or {ECON_CSV} — run weekly_pull.py (Forex "
+              f"Factory free JSON, no key) before trusting the no-trade calendar. Web-search fallback applies.")
         sys.exit(1)
-    df = pd.read_csv(ECON_CSV, dtype=str).fillna("")
+    df = df.fillna("")
     df["country"] = df["country"].str.upper().str.strip()
     return df
 

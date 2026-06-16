@@ -13,15 +13,24 @@ Status: planning. No code yet. Read-only visual layer over the markdown trading 
 
 ## Phase 0 — CSV → SQLite migration (do FIRST, before any frontend)
 
-Move the **3 state registries** into `data/index.db`. Market-data CSVs stay as files (provider caches — out of scope).
+**Rule: tabular (CSV) → `data/index.db`. Prose/config stay files.** Sequenced by blast radius: 0a state registries (isolated), then 0b market data (touches fetch pipeline).
+
+### Stays a file (NOT migrated — not tabular)
+- `weekly_pull/*.txt` — immutable prose dumps Claude reads as text (CLAUDE.md: IMMUTABLE).
+- `*.json` config — `cb_calendar_*.json`, `intervention_watch.json`. Git-tracked config.
+- `*.zip` — cftc archives.
+
+---
+
+### Phase 0a — state registries
+
+Move the **3 state registries** into `data/index.db`.
 
 | Migrate | Writer | Readers |
 |---------|--------|---------|
 | `trades_log.csv` | `scripts/trade_log.py` | validate, weekly, calibration.py |
 | `zone_ledger.csv` | `scripts/zone_ledger.py` | zone_outcomes.py |
 | `zone_outcomes.csv` | `scripts/zone_outcomes.py` | calibration.py |
-
-**Leave as files (NOT migrated):** `fred/*`, `yahoo/*`, `commodities/*`, `news/*`, `econ_calendar/*`, `gld_holdings.csv` — fetched/regenerated provider caches.
 
 ### Why migration is low-risk
 Each registry already routes all I/O through a thin DataFrame load/save pair:
@@ -50,6 +59,28 @@ zone_ledger  ← zone_ledger.csv columns (zone_id PK, ...)
 zone_outcome ← zone_outcomes.csv columns (zone_id PK, ...)
 ```
 Same column names → parsers/readers need no rename. R/SL/price → SQLite `NUMERIC`/text, not REAL.
+
+---
+
+### Phase 0b — market data (after 0a proven)
+
+Move all tabular market-data CSV into the same `data/index.db`. Bigger blast radius — touches the fetch pipeline. ~60 OHLC files are the bulk.
+
+| Migrate | Layer to repoint | Table |
+|---------|------------------|-------|
+| `twelvedata/{symbol}/{tf}.csv` (~60) | `scripts/lib/ohlc_store.py` (`upsert`/`last_dt`/`_paths`) | `ohlc(source, symbol, tf, ts, o,h,l,c,v)` |
+| per-symbol `_quarantine.csv` | `ohlc_store.quarantine_bad_ticks` | `ohlc_quarantine` |
+| per-symbol manifest `*.json` | `ohlc_store.load_manifest`/`_save_manifest` | `ohlc_manifest` |
+| `fred/*.csv` (11) | `backfill_fred.py`, `fetch.py` | `macro_series(series_id, ts, value)` |
+| `yahoo/`, `commodities/`, `gld_holdings.csv`, `cftc` | `fetch.py` | one table each |
+| `news/headlines.csv` | `weekly_pull.fetch_news`, `check_news.py` | `news` |
+| `econ_calendar/calendar.csv` | `check_econ_calendar.py` | `econ_calendar` |
+
+**Key:** `ohlc_store.py` is already an abstraction over `data/{source}/{symbol}/{tf}.csv` → this is a **backend swap, not a rewrite**. Index `ohlc` on `(source, symbol, tf, ts)`. Readers in `compute.py`/`structure.py` switch `read_csv(path)` → `db.df_read_ohlc(symbol, tf)`.
+
+**Steps:** repoint `ohlc_store.py` first (covers most files) → backfill importer reads existing CSVs into `ohlc` → verify `compute.py` output unchanged vs pre-migration (diff a weekly pull) → repoint fred/news/econ → drop CSV trees. Provider caches were git-noise; gitignored DB shrinks the repo.
+
+---
 
 ### Sandbox note (CLAUDE.md cross-env)
 `data/index.db` is a file in the repo → the Linux scheduled-task sandbox reaches it free. No server, no `DATABASE_URL`, no host decision. This is exactly why SQLite over Postgres for unattended `/validate`+`/weekly`.

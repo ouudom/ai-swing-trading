@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pandas as pd
 
-DB = Path("data/index.db")
+DB = Path("data/database/index.db")
 
 # Indexes kept in sync with csv_to_sqlite.py — re-applied after every replace.
 INDEXES = {

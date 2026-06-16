@@ -5,7 +5,7 @@ Multi-instrument swing trading system — **10 active instruments** (XAUUSD + 9 
 **structured rules + AI (Claude) analysis → high-quality entry signal generation.** Weekly
 forecast produces **Trading Zones**; daily validation gates entries. Markdown-authoring — Claude
 writes forecasts/validations directly; tabular data also mirrored to a derived SQLite cache
-(`data/index.db`, rebuildable) for queries + frontend (CSVs stay source of truth; see `STORAGE.md`).
+(`data/database/index.db`, rebuildable) for queries + frontend (CSVs stay source of truth; see `STORAGE.md`).
 
 Instruments: xauusd (momentum) | eurusd, gbpusd, eurgbp, audusd, nzdusd, usdcad, usdchf
 (mean-reversion variants) | usdjpy (asymmetric carry-drift) | eurjpy, gbpjpy (cross-JPY fades).
@@ -22,7 +22,7 @@ Context resets each session. Load state in order:
 1. _HOT.md                                       — thin boot state: current week, open HUMAN decisions,
                                                    watch notes, source-of-truth pointers (NO live
                                                    positions/numbers — those come from the `trade` table)
-1b. data/index.db `trade` table                  — open positions, live order limits (PENDING rows),
+1b. data/database/index.db `trade` table                  — open positions, live order limits (PENDING rows),
    (`scripts/trade_log.py list`)                   closed trades + realized R (the position truth).
                                                    DB is canonical now — NO trades_log.csv (see STORAGE.md)
 2. _INDEX.md                                     — file locations and current state
@@ -38,7 +38,7 @@ Context resets each session. Load state in order:
 ## Session Start Protocol
 1. Read `_HOT.md` — current week, open human decisions, watch notes, pointers (thin; no positions)
 2. Read the `trade` table — `bash scripts/pyrun.sh scripts/trade_log.py list` (open positions /
-   live limits / closed R; position truth, not _HOT). Canonical store = `data/index.db`.
+   live limits / closed R; position truth, not _HOT). Canonical store = `data/database/index.db`.
 3. Read `_INDEX.md` — orient to file state
 4. Read `yield_environment.md` — macro baseline
 5. Never create duplicate pages — update existing in place
@@ -96,7 +96,7 @@ JSON) and the news store (free RSS feeds) are **key-free**; if either feed is do
 
 ## Architecture (markdown-authoring + SQLite mirror)
 No **authoring** database — Claude reads markdown for context and writes forecast/validation
-markdown directly. A derived **SQLite mirror** (`data/index.db`, gitignored, rebuildable) indexes
+markdown directly. A derived **SQLite mirror** (`data/database/index.db`, gitignored, rebuildable) indexes
 every tabular CSV under `data/` (10 tables: ohlc, macro_series, market_series, trade, zone_ledger,
 zone_outcome, news, econ_calendar, gld_holdings, ohlc_quarantine) for fast queries + the frontend.
 **CSVs remain source of truth**; the DB is a cache. Rebuild after any data change:
@@ -110,7 +110,7 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
   CSV) + `--retro` surprise readout for the Step 2b retrospective; mandatory at /weekly + /validate
 - `scripts/check_intervention_watch.py` — JPY MoF intervention/jawboning gate (#4, static JSON
   `config/intervention_watch.json`); spot-vs-level; mandatory for JPY pairs at /weekly + /validate
-- `scripts/check_news.py` — pair-filtered headline readout from the `news` table in `data/index.db`
+- `scripts/check_news.py` — pair-filtered headline readout from the `news` table in `data/database/index.db`
   (free RSS feeds, `weekly_pull.fetch_news`); context for Section 2 + Step 2b (NOT a gate)
 - `scripts/check_structured_news_event.py` — T4-X validation
 - Pull now COMPUTES the confluence oscillators (Stoch/W%R/CCI/Keltner/Donchian/TTM-squeeze/PSAR/
@@ -131,7 +131,7 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
 - `forecasts/weekly/{instrument}/` — immutable after Monday open. Claude writes markdown.
 - `forecasts/daily/{instrument}/` — append-style. Claude writes markdown.
 - `data/weekly_pull/{instrument}/` — IMMUTABLE. Never edit `weekly_pull_*.txt`.
-- `data/index.db` — canonical store (gitignored, rebuildable via `csv_to_sqlite.py`). Tables:
+- `data/database/index.db` — canonical store (gitignored, rebuildable via `csv_to_sqlite.py`). Tables:
   `trade` (write via `trade_log.py`), `zone_ledger`/`zone_outcome` (via `zone_ledger.py` add /
   `zone_outcomes.py` resolve — no hand edits), `ohlc`, `macro_series`, `market_series`, `news`,
   `econ_calendar`, `gld_holdings`. No source CSVs anymore — see `STORAGE.md`.

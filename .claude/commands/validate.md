@@ -56,7 +56,7 @@ Then read the pull file + CSVs and compute live values (set `INSTRUMENT`, `MIN_B
 
 ```python
 import pandas as pd, sys
-sys.path.insert(0, "scripts"); import db        # data/index.db is the canonical store (STORAGE.md)
+sys.path.insert(0, "scripts"); import db        # data/database/index.db is the canonical store (STORAGE.md)
 INSTRUMENT = "xauusd"          # ← set per Step 0
 MIN_BAR_RANGE = 1.0            # ← gold 1.0 | FX 0.0003
 TICK_MULTIPLIER = 100          # ← gold 100 | FX 100000
@@ -333,7 +333,7 @@ NO TRADE — [hard block / score < 5.0]: [specific reason]
 Save `forecasts/daily/<INSTRUMENT>/[DATE].md` using `wiki/system/templates/daily_validation.md`
 (Claude writes the forecast markdown directly). Then update `_HOT.md`: per-zone verdict; remove
 INVALIDATED; record limit/SL/TP/expiry on ORDER LIMIT; move filled to Open Position; update Risk Used.
-Finally **refresh the SQLite mirror** so `data/index.db` reflects any freshly-pulled market data:
+Finally **refresh the SQLite mirror** so `data/database/index.db` reflects any freshly-pulled market data:
 `bash scripts/pyrun.sh scripts/csv_to_sqlite.py --refresh` (trade/zone tables are DB-canonical, left
 untouched; skip if Step 2 pulled no data — e.g. a hard-block re-run). See `STORAGE.md`.
 

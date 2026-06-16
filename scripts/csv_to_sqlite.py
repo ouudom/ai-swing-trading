@@ -26,7 +26,7 @@ from pathlib import Path
 import pandas as pd
 
 DATA = Path("data")
-DB = DATA / "index.db"
+DB = DATA / "database" / "index.db"
 
 # Tables written live (canonical = DB) — `--refresh` leaves these untouched; only a full cold
 # rebuild reloads them from CSV. trade/zone_* via scripts/db.py; `ohlc` via ohlc_store.upsert.

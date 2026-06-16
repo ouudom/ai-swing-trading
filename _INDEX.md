@@ -4,7 +4,7 @@
 ## Agent Docs
 - `CLAUDE.md` — full operating manual (Claude Code native)
 - `AGENTS.md` — Kimi Code CLI entry point; points to `CLAUDE.md`
-- `STORAGE.md` — SQLite mirror (`data/index.db`) schema, scope, rebuild cmd; CSVs stay source of truth
+- `STORAGE.md` — SQLite mirror (`data/database/index.db`) schema, scope, rebuild cmd; CSVs stay source of truth
 - `FRONTEND_PLAN.md` — phased plan: read-only visual frontend over the data (dashboard → charts → calibration)
 
 ## System — Core
@@ -142,15 +142,15 @@
 - `scripts/backfill_twelvedata.py` — one-off util (not in weekly pipeline): pull/update OHLC backward from TD
 - `scripts/resample_twelvedata.py` — one-off util (not in weekly pipeline): M15 → H1/H4/D1
 - `scripts/backfill_fred.py` — one-off util (not in weekly pipeline): pull/update FRED macro series
-- `scripts/csv_to_sqlite.py` — legacy importer / cold rebuild of `data/index.db` from CSV (now only usable if CSVs exist; source CSVs deleted — kept for one-time rebuilds + `--refresh` quarantine sync)
-- `scripts/backup_db.py` — pg_dump-style gzipped SQL dump of index.db → `data/backups/`; `--keep N`; restore `gunzip -c <dump> | sqlite3 data/index.db`
+- `scripts/csv_to_sqlite.py` — legacy importer / cold rebuild of `data/database/index.db` from CSV (now only usable if CSVs exist; source CSVs deleted — kept for one-time rebuilds + `--refresh` quarantine sync)
+- `scripts/backup_db.py` — pg_dump-style gzipped SQL dump of index.db → `data/database/backups/`; `--keep N`; restore `gunzip -c <dump> | sqlite3 data/database/index.db`
 - `scripts/db.py` — SQLite helpers: `read_table`/`write_table`/`read_ohlc`/`read_slice`/`sync_slice`/`sync_table`/`last_ohlc_dt`/`last_series_date`/`replace_ohlc_slice` (canonical store access)
 
 ## Scripts — Risk / Portfolio
 - `scripts/fx_exposure.py` — FX currency-leg ledger, ADVISORY (D024): all 10 FX instruments / 8 currency legs; flags shared-leg concentration + suggests cleaner trade (highest EC); no caps, no auto-skip. `--selftest` / `--orders` / `--candidate`.
 
 ## Scripts — Shadow Ledger (zone outcome tracking, 2026-06-11)
-- `scripts/zone_ledger.py` — registry of every published Trading Zone → `zone_ledger` table in `data/index.db` (`add` MANDATORY per zone at /weekly publish; `list` to inspect)
+- `scripts/zone_ledger.py` — registry of every published Trading Zone → `zone_ledger` table in `data/database/index.db` (`add` MANDATORY per zone at /weekly publish; `list` to inspect)
 - `scripts/zone_outcomes.py` — replays 1H/4H/D1 OHLC vs ledger: fill at zone midpoint from publish time, constitution SL, TP1 2.5R / BE 1.5R / SL −1R → `zone_outcome` table + confluence-bucket calibration summary (run for prior week at each /weekly)
 - `scripts/calibration.py` — aggregates the `zone_outcome` table → `wiki/system/core/calibration.md` (sliceable edge report: instrument/direction/R1/conviction/session, INSUFFICIENT below `--min-n`, default 10); `--json` side-output; run after `zone_outcomes.py` at /weekly
 
@@ -179,11 +179,11 @@
 - `scripts/config/usdjpy/config.py` — USDJPY config (D024 pair #5; USD-base + FIRST JPY: PIP_SIZE 0.01, PRICE_DP 3, TICK 650 static, COT 6J inverted, BoJ carry off)
 - `scripts/config/eurjpy/config.py` — EURJPY config (D024 pair #6; FIRST cross-JPY: USD_BETA_SIGN 0, JPY pip plumbing, one-leg macro RATE_GBP=None, COT EUR/JPY XRATE direct)
 - `scripts/config/gbpjpy/config.py` — GBPJPY config (D024 pair #7 LAST; cross-JPY #2: one-leg macro live leg = SONIA via RATE_EUR slot + LIVE_LEG_LABEL/BASELINE_LABEL, V1b 0.05, COT disabled — no CFTC cross contract)
-- `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities + bad-tick guard (auto wick-clamp/bar-drop on upsert, >10% D1 / >5% intraday dev vs rolling-median close; log → `data/{source}/{symbol}/_quarantine.csv`). `upsert` also slice-syncs the merged bars into the `ohlc` table of `data/index.db` (fail-soft; CSV stays reader-facing mirror)
-- `scripts/db.py` — shared SQLite access for `data/index.db`: `read_table`/`write_table` (state registries, DB-canonical + CSV mirror) + `replace_ohlc_slice` (OHLC live sync). All-string round-trip, auto-indexes
+- `scripts/lib/ohlc_store.py` — shared OHLC loading/caching utilities + bad-tick guard (auto wick-clamp/bar-drop on upsert, >10% D1 / >5% intraday dev vs rolling-median close; log → `data/{source}/{symbol}/_quarantine.csv`). `upsert` also slice-syncs the merged bars into the `ohlc` table of `data/database/index.db` (fail-soft; CSV stays reader-facing mirror)
+- `scripts/db.py` — shared SQLite access for `data/database/index.db`: `read_table`/`write_table` (state registries, DB-canonical + CSV mirror) + `replace_ohlc_slice` (OHLC live sync). All-string round-trip, auto-indexes
 
 ## Data
-- `data/index.db` — **CANONICAL store** (gitignored, rebuildable via `scripts/csv_to_sqlite.py`). All
+- `data/database/index.db` — **CANONICAL store** (gitignored, rebuildable via `scripts/csv_to_sqlite.py`). All
   tabular data now lives here — the source CSVs were migrated + deleted (see `STORAGE.md`). Tables:
   - `trade` — real-trade registry (write via `trade_log.py`; replaces old `trades_log.csv`)
   - `zone_ledger` — published-zone shadow registry (`zone_ledger.py`)
@@ -194,8 +194,8 @@
   - `market_series` — yahoo DXY + commodities (source/symbol/date/value)
   - `news` — free-RSS headlines (`check_news.py`); `econ_calendar` — Forex Factory releases
     (`check_econ_calendar.py`); `gld_holdings` — daily GLD tonnage
-- `data/twelvedata/{inst}/` — only `_quarantine.csv` (bad-tick log) remains (manifests removed — last_dt now from DB MAX)
-- `data/backups/` — `backup_db.py` gzipped SQL dumps of index.db (gitignored; off-machine copy = DR)
+- `data/database/backups/` — `backup_db.py` gzipped SQL dumps of index.db (gitignored; off-machine copy = DR)
+- (removed: `_manifest.json` → last_dt from DB; `_quarantine.csv` bad-tick log + `calibration/summary.json` → derived, regenerate on demand)
 - `data/calibration/summary.json` — optional JSON edge summary (`calibration.py --json`)
 - `data/weekly_pull/{inst}/` — IMMUTABLE weekly pull text files
 - `data/cftc/deahistfo{year}.zip` — COT yearly archives (24h refresh)

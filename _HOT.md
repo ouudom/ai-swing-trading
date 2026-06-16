@@ -6,7 +6,7 @@ pull and must be recomputed, never cached here. This file = current week + open 
 watch notes + where to look. Hard cap **40 lines.** Prune every session.*
 
 ## Source of truth — read these, don't duplicate them here
-- **Positions / live order limits / closed trades + R** → `trade` table in `data/index.db`
+- **Positions / live order limits / closed trades + R** → `trade` table in `data/database/index.db`
   (`bash scripts/pyrun.sh scripts/trade_log.py list`; PENDING = live limit, LOSS/WIN = closed).
   Recompute open-position SL/TP touch from the `ohlc` table every /validate.
 - **Current zones / forecasts** → `forecasts/weekly/{inst}/2026-W25.md`

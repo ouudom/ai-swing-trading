@@ -16,12 +16,9 @@ __pycache__/
 *.egg-info/
 .ipynb_checkpoints/
 
-# Data — track small artifacts (weekly_pull txt, quarantine logs, cftc zips, calibration json);
-# ignore the big rebuildable SQLite store + its WAL sidecars + local SQL backups.
-data/index.db
-data/index.db-wal
-data/index.db-shm
-data/backups/
+# Data — track small artifacts (weekly_pull txt, cftc zips); ignore the big rebuildable
+# SQLite store + WAL sidecars + local SQL backups (all under data/database/).
+data/database/
 
 # Claude local — ignore settings but SHARE commands/
 .claude/*

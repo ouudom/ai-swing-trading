@@ -1,6 +1,6 @@
 # Storage — SQLite migration
 
-Tabular CSV under `data/` is mirrored into **`data/index.db`** (SQLite) for fast queries
+Tabular CSV under `data/` is mirrored into **`data/database/index.db`** (SQLite) for fast queries
 + the frontend. `data/` (incl. `index.db`, `-wal`, `-shm`) is gitignored — the DB is a
 **rebuildable cache**, regenerated from the CSVs anytime.
 
@@ -35,7 +35,7 @@ Idempotent — each table fully reloaded from its CSV(s) (`if_exists="replace"`)
 - ✅ **Importer** `csv_to_sqlite.py` — `--refresh` (CSV-canonical tables only) or full cold rebuild
   (all tables from CSV). Parity exact. DB ≈ 132 MB. Wired into /weekly + /validate ends (`--refresh`).
 - ✅ **State registries DB-direct** (`scripts/db.py`): `trade_log.py`, `zone_ledger.py`,
-  `zone_outcomes.py` read/write `data/index.db` as canonical + auto-dump the CSV mirror on every save.
+  `zone_outcomes.py` read/write `data/database/index.db` as canonical + auto-dump the CSV mirror on every save.
   Cold-start falls back to CSV. Downstream (`calibration.py`) reads the mirror unchanged.
 - ✅ **OHLC DB-live** (step 3): `ohlc_store.upsert` syncs each merged slice into the `ohlc` table
   (slice-replace on source+symbol+tf) right after writing the CSV mirror. DB stays fresh every pull —
@@ -43,7 +43,7 @@ Idempotent — each table fully reloaded from its CSV(s) (`if_exists="replace"`)
   backtests read it unchanged). DB sync is fail-soft — a DB error prints a warning, never breaks the pull.
 - ✅ **All fetches DB-live** (step 4): every `weekly_pull` fetch (`update_fred`, `fetch_dxy`,
   `fetch_commodities_yf`, `fetch_gld_flows`, econ, news) now reads prior state from the DB and
-  syncs the fresh slice into `data/index.db` after writing the CSV mirror — fail-soft via `_db_sync`.
+  syncs the fresh slice into `data/database/index.db` after writing the CSV mirror — fail-soft via `_db_sync`.
   So the DB is fresh *mid-run*, before any reader runs.
 - ✅ **All readers repointed to DB** (step 4, DB-first + CSV fallback): `weekly_pull.load_ohlc/
   load_fred_local/load_dxy_local/load_commodity_local` + news block, `ohlc_store.read_csv_utc` &
@@ -66,14 +66,21 @@ Idempotent — each table fully reloaded from its CSV(s) (`if_exists="replace"`)
 - ✅ **`_manifest.json` removed.** The incremental-fetch bookmark (`last_dt`) is now derived from
   the DB — `db.last_ohlc_dt` (MAX datetime) + `db.last_series_date` (MAX date). `ohlc_store.upsert`
   no longer writes a manifest; `update_fred` reads its bookmark from `macro_series`.
-- ✅ **Backup:** `scripts/backup_db.py` — pg_dump-style gzipped SQL dump → `data/backups/
-  index_<ts>.sql.gz`, prunes to `--keep` (default 14). Restore: `gunzip -c <dump> | sqlite3 data/index.db`.
-  Run after each /weekly (or schedule). `data/backups/` is gitignored — copy off-machine for true DR.
+- ✅ **Backup:** `scripts/backup_db.py` — pg_dump-style gzipped SQL dump → `data/database/backups/
+  index_<ts>.sql.gz`, prunes to `--keep` (default 14). Restore: `gunzip -c <dump> | sqlite3 data/database/index.db`.
+  Run after each /weekly (or schedule). `data/database/backups/` is gitignored — copy off-machine for true DR.
 
 ## .gitignore (post-migration)
-`data/` is no longer blanket-ignored. Ignored: `data/index.db`(+`-wal`/`-shm`), `data/backups/`.
-Tracked: `weekly_pull/*.txt`, `twelvedata/*/_quarantine.csv`, `cftc/*.zip`, `calibration/summary.json`,
-`news_events/*.json`. The DB itself is NOT in git — back it up via `backup_db.py` + off-machine copy.
+`data/` is no longer blanket-ignored. Ignored: `data/database/index.db`(+`-wal`/`-shm`), `data/database/backups/`.
+Tracked: `weekly_pull/*.txt` (immutable pull history), `cftc/*.zip` (COT cache, live-consumed +
+self-refilling). The DB itself is NOT in git — back it up via `backup_db.py` + off-machine copy.
+
+## Removable / removed extras
+- `_quarantine.csv` (bad-tick log) + `calibration/summary.json` (`--json` side-output) — both
+  derived/diagnostic, read by nothing in the pipeline → **deleted** (regenerate on demand:
+  quarantine on next bad tick, summary via `calibration.py --json`).
+- `cftc/*.zip` — **kept**: read live each /weekly for COT positioning; deleting only forces a
+  re-download from cftc.gov next pull.
 
 ## DB-canonical vs CSV-canonical (`csv_to_sqlite.py`)
 - `DB_CANONICAL = {trade, zone_ledger, zone_outcome, ohlc, macro_series, market_series, news,

@@ -3,12 +3,12 @@
 backup_db.py — pg_dump-style logical backup of data/index.db.
 
 Writes a gzipped SQL dump (full schema + INSERTs, via sqlite3.iterdump) to
-data/backups/index_YYYYMMDD_HHMMSS.sql.gz and prunes to the most recent --keep.
+data/database/backups/index_YYYYMMDD_HHMMSS.sql.gz and prunes to the most recent --keep.
 index.db is gitignored + rebuildable, but the source CSVs are gone — this dump is
 the portable recovery artifact. Run it after each /weekly (or on a schedule).
 
 Run:     bash scripts/pyrun.sh scripts/backup_db.py [--keep 14]
-Restore: gunzip -c data/backups/index_<ts>.sql.gz | sqlite3 data/index.db
+Restore: gunzip -c data/database/backups/index_<ts>.sql.gz | sqlite3 data/database/index.db
 """
 from __future__ import annotations
 
@@ -18,8 +18,8 @@ import sqlite3
 import time
 from pathlib import Path
 
-DB = Path("data/index.db")
-OUT = Path("data/backups")
+DB = Path("data/database/index.db")
+OUT = Path("data/database/backups")
 
 
 def main():

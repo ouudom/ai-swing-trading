@@ -349,44 +349,18 @@ After a run completes, emit a concise plain-text summary and send it via
 `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` from `.env`; fails safe if absent). This section is the
 single source of truth for the message layout — automation references it, not its own copy.
 
-Plain text only — the sender sets no `parse_mode`, so use emoji + blank lines + `•` bullets for
-structure (no `*bold*` / `_italics_` / `<b>`; they render as literal characters). Put a blank line
-between every block. Keep under ~20 lines / 4096 chars (Telegram cap; the helper truncates).
-
-Layout (N ≥ 1 — one 🟢/🔴 block per ORDER LIMIT):
+Layout:
 ```
-📋 VALIDATE · <YYYY-MM-DD> <HH:MM> UTC
-━━━━━━━━━━━━━━━━
-✅ Order limits: <N>
-
-🟢 <PAIR> LONG @<limit>
-   <lots> lots · SL <sl> · TP1 <tp1> · EC <score>/10
-
-🔴 <PAIR> SHORT @<limit>
-   <lots> lots · SL <sl> · TP1 <tp1> · EC <score>/10
-
-⚠️ Flags
-• <flag>
-
-📌 <closing status>
-```
-Layout (N = 0 — no order blocks; reason on its own line):
-```
-📋 VALIDATE · <YYYY-MM-DD> <HH:MM> UTC
-━━━━━━━━━━━━━━━━
-🚫 Order limits: 0
-<reason — e.g. hard-block week (FOMC), all below EC floor, all PENDING>
-
-⚠️ Flags
-• <flag>
-
-📌 <closing status>
+<YYYY-MM-DD> <HH:MM> UTC validate — N order limit(s)
+<PAIR> <LONG|SHORT> @<limit> | <lots> lots | SL <sl> | TP1 <tp1> | EC <score>/10
+<PAIR> ...                                  ← one line per ORDER LIMIT
+⚠ <flags>                                   ← re-forecast / INVALIDATION / concentration, if any
 ```
 Rules:
-- Header line + the `Order limits:` count line are always present (✅ if N≥1, 🚫 if N=0).
-- One 🟢 (LONG) / 🔴 (SHORT) block per ORDER LIMIT; line 2 holds lots · SL · TP1 · EC. Skip
-  PENDING / NO-TRADE zones entirely.
-- `N = 0` → omit all order blocks; put the reason on the line directly under the count.
-- `⚠️ Flags` block: one `•` bullet per re-forecast trigger, V1/V1b/V3 INVALIDATION, or CONCENTRATED
-  netting advisory. Omit the whole block (header + bullets) if there are none.
-- Close with a `📌` status line (e.g. `All zones PENDING · none invalidated`, or open-position note).
+- First line always present; `N` = count of ORDER LIMITs this run.
+- One line per ORDER LIMIT only (skip PENDING / NO-TRADE zones to keep it short).
+- `N = 0` → single line: `<date> <time> UTC validate — 0 order limits (<reason>)`,
+  reason = e.g. `all PENDING`, `hard-block day (FOMC)`, `all below EC floor`.
+- Append a final `⚠` line for any re-forecast trigger, V1/V1b/V3 INVALIDATION, or CONCENTRATED
+  netting advisory. Omit the line entirely if none.
+- Keep under ~20 lines / 4096 chars (Telegram cap; the helper truncates).

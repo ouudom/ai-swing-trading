@@ -964,7 +964,7 @@ def fetch_and_update(force=False):
     print("Fetching 15M bars from Twelve Data (1 API call)...")
     new_15m  = fetch_15m(force=force)
     info_15m = upsert("twelvedata", SYMBOL, "15min", new_15m)
-    print(f"  → {len(new_15m)} new 15M bars | last: {info_15m['last_dt']}")
+    print(f"  → {len(new_15m)} new 15M bars | last: {info_15m.get('last_dt', 'n/a (already current)')}")
     print("Resampling 15min → 1h / 4h / 1day...")
     resample_results = resample_all()
     for tf, rows, last in resample_results:

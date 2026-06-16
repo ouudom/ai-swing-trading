@@ -9,21 +9,21 @@
   GBP SONIA (IUDSOIA):  3.73%
   Rate diff (EUR−GBP):  -1.73%  (was -1.73% 20d ago, Δ -0.00%)
   → NARROWING (EUR carry down, bearish EURGBP)
-VIX:              17.68  (EG4: risk-off polarity INVERTED vs USD-majors)
+VIX:              16.20  (EG4: risk-off polarity INVERTED vs USD-majors)
 
 ━━━ PRICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-EURGBP:          $0.86446 (was $0.86258, +0.22% ~1w chg)
+EURGBP:          $0.86461 (was $0.86258, +0.24% ~1w chg)
 
 
 ━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ATR(14) Daily:    $0.00228
-ATR(14) H4:       $0.00117  (trading days only)
-SL (constitution v2): $0.00117 = H4 ATR (floor — 0.5×D1 0.00114 < H4)
+ATR(14) H4:       $0.00106  (trading days only)
+SL (constitution v2): $0.0011 = avg(0.5×D1 0.00114, H4 0.00106)
 D1 ATR now:       $0.00228 | 20d median: $0.00329 → COMPRESSED ✅
 
 Lot sizing ($2000 risk, SL above):
-  Raw lots:  17.094
-  Use lots:  17.09  (floored to 0.01-lot step, min 0.01)
+  Raw lots:  18.182
+  Use lots:  18.18  (floored to 0.01-lot step, min 0.01)
 
 ADX(14) D1:       14.3 → RANGING (favor reversal/counter at zone edges; floor 6.0)
 EMA 50 D1:        $0.8659 | Price BELOW
@@ -58,18 +58,18 @@ MACD(12,26,9) D1 — last 5 bars:
         Keltner u0.86876/m0.86454/l0.86033 → inside
         Donchian u0.86868/l0.86139 → mid-channel | TTM squeeze ON (2 bars)
         PSAR 0.86139 (long FLIP) | Supertrend 0.86954 (down)
-  H4:  Stoch %K 55.5/%D 64.9 (mid) | W%R -40.9 (mid) | CCI 139.7 (OVERBOUGHT (>+100))
-        Keltner u0.86584/m0.86353/l0.86122 → inside
-        Donchian u0.86529/l0.86231 → mid-channel | TTM squeeze ON (16 bars)
-        PSAR 0.86286 (long) | Supertrend 0.86547 (down)
-  EXTREMES: D1 TTM squeeze ON 2b · H4 CCI 139.7 OVERBOUGHT (>+100) · H4 TTM squeeze ON 16b
+  H4:  Stoch %K 70.3/%D 69.0 (mid) | W%R -30.7 (mid) | CCI 103.4 (OVERBOUGHT (>+100))
+        Keltner u0.86587/m0.86383/l0.8618 → inside
+        Donchian u0.86529/l0.86231 → mid-channel | TTM squeeze ON (20 bars)
+        PSAR 0.86339 (long) | Supertrend 0.86547 (down)
+  EXTREMES: D1 TTM squeeze ON 2b · H4 CCI 103.4 OVERBOUGHT (>+100) · H4 TTM squeeze ON 20b
 
 ━━━ MARKET STRUCTURE (BOS/CHoCH, fractal N=2) ━━━━━━━━━━━
   D1: state DOWN | last BOS DOWN @ 0.86312 (2026-06-09 00:00, 4 bars ago)
-  H4: state UP | last CHoCH UP @ 0.86406 (2026-06-15 08:00, 3 bars ago)
+  H4: state UP | last CHoCH UP @ 0.86406 (2026-06-15 08:00, 7 bars ago)
 
 ━━━ ENTRY TRIGGERS (E0, latest closed 1H — reclaim > pin/engulf, D027) ━━
-  latest closed 1H bar: 2026-06-16 02:00:00  (RSI 59, Stoch %K 57)
+  latest closed 1H bar: 2026-06-16 17:00:00  (RSI 59, Stoch %K 58)
   LONG-confirm fired:  none
   SHORT-confirm fired: none
   ✦ = RSI-reclaim is the highest-R E0 gate (backtest); per-pair primary in confluence_criteria. Toward zone dir only.
@@ -79,8 +79,8 @@ VP disabled for eurgbp (no usable futures proxy)
 VP check: zone within ~8 units of POC/VAH/VAL = confluent
 
 ━━━ TIME-AT-PRICE (H1 acceptance — VP substitute, NOT volume) ━━
-HTN (most-accepted): 0.86434
-Value area: 0.86248 – 0.86537 (70% of time)
+HTN (most-accepted): 0.86453
+Value area: 0.86255 – 0.86523 (70% of time)
 Use as S/R confluence like a POC/VA — acceptance, not traded volume.
 
 
@@ -97,18 +97,18 @@ Gap:         $-0.00063  (-0.073%)  → NOISE
 Thresholds: <0.20% NOISE | 0.20–0.50% NOTE | 0.50–1.00% WARNING | >1.00% RE-FORECAST
 
 ━━━ NEWS FEED (recent, pair-filtered — context for Section 2) ━━
-  2026-06-15 [FXStreet] Euro holds gains as risk appetite offsets downbeat Eurozone data
-  2026-06-15 [FXStreet] Euro: Gradual upside path outlined – Rabobank
-  2026-06-15 [FXStreet] ECB’s Kazimir: Stresses on frontloading interest rate hikes despite US-Iran peace deal
-  2026-06-15 [FXStreet] SNB to keep interest rates at 0% on June 18 and for rest of year – Reuters poll
-  2026-06-15 [Investing.com] Global bond yields fall as U.S.-Iran peace deal defuses inflation fears
-  2026-06-15 [FXStreet] Silver rallies as US Dollar slips on US-Iran framework, Fed decision looms
-  2026-06-15 [Investing.com] Sterling today: Pound climbs on U.S.-Iran deal optimism
-  2026-06-15 [FXStreet] New Zealand Dollar rises on US-Iran de-escalation ahead of Fed decision
+  2026-06-16 [FXStreet] Euro: Limited upside versus Dollar – NBC
+  2026-06-16 [FXStreet] Silver rises on US Dollar weakness as markets eye Fed decision
+  2026-06-16 [FXStreet] Australian Dollar gains after hawkish RBA hold as focus shifts to Federal Reserve
+  2026-06-16 [FXStreet] British Pound holds 1.3400 as Fed’s rate decision looms
+  2026-06-16 [FXStreet] Gold holds firm above $4,300 with Fed decision, US-Iran deal in focus
+  2026-06-16 [FXStreet] The Euro already hiked; now it waits on Warsh
+  2026-06-16 [FXStreet] Canadian Dollar holds near recent lows as soft Oil, Fed uncertainty lift USD/CAD
+  2026-06-16 [FXStreet] Silver Price Forecast: XAG/USD clings to 200-day SMA as Fed takes center stage
 
 ━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
-baseline_rate_diff: -1.731
-baseline_dxy:    99.688
+baseline_rate_diff: -1.73
+baseline_dxy:    99.550
 weekend_gap_pct: -0.073
 
 ━━━ WEEKLY PIVOTS (prior week OHLC) ━━━━━━━━━━━━━━━━━━
@@ -121,7 +121,7 @@ Highs: $0.87068(2026-03-23) | $0.87453(2026-03-31) | $0.87232(2026-04-17) | $0.8
 Lows:  $0.8613(2026-02-04) | $0.86084(2026-03-23) | $0.86843(2026-04-14) | $0.86198(2026-05-01) | $0.86139(2026-05-25)
 
 ━━━ SWING POINTS (H4, N=5, trading days) ━━━━━━━━━━━━━
-Highs: $0.86516(2026-06-08) | $0.86516(2026-06-08) | $0.86516(2026-06-08) | $0.86516(2026-06-08) | $0.86449(2026-06-11)
+Highs: $0.86516(2026-06-08) | $0.86516(2026-06-08) | $0.86516(2026-06-08) | $0.86449(2026-06-11) | $0.86529(2026-06-15)
 Lows:  $0.86159(2026-06-05) | $0.86316(2026-06-08) | $0.86182(2026-06-10) | $0.86231(2026-06-11) | $0.86239(2026-06-15)
 
 ━━━ FIBONACCI (anchored to last D1 swing high/low) ━━━
@@ -150,15 +150,11 @@ datetime
 2026-06-11  0.86327  0.86449  0.86231  0.86285
 2026-06-12  0.86288  0.86406  0.86240  0.86337
 2026-06-15  0.86274  0.86529  0.86239  0.86407
-2026-06-16  0.86405  0.86462  0.86398  0.86446
+2026-06-16  0.86405  0.86512  0.86390  0.86461
 
 ━━━ H4 OHLCV — last 24 bars (trading days) ━━━━━━━━━━━
                         open     high      low    close
 datetime                                               
-2026-06-10 04:00:00  0.86269  0.86318  0.86248  0.86280
-2026-06-10 08:00:00  0.86282  0.86332  0.86190  0.86225
-2026-06-10 12:00:00  0.86229  0.86304  0.86182  0.86251
-2026-06-10 16:00:00  0.86256  0.86329  0.86249  0.86308
 2026-06-10 20:00:00  0.86304  0.86372  0.86246  0.86324
 2026-06-11 00:00:00  0.86327  0.86351  0.86279  0.86302
 2026-06-11 04:00:00  0.86299  0.86308  0.86262  0.86268
@@ -178,6 +174,10 @@ datetime
 2026-06-15 12:00:00  0.86494  0.86529  0.86336  0.86390
 2026-06-15 16:00:00  0.86394  0.86423  0.86372  0.86392
 2026-06-15 20:00:00  0.86402  0.86493  0.86386  0.86407
-2026-06-16 00:00:00  0.86405  0.86462  0.86398  0.86446
+2026-06-16 00:00:00  0.86405  0.86462  0.86398  0.86449
+2026-06-16 04:00:00  0.86448  0.86457  0.86402  0.86425
+2026-06-16 08:00:00  0.86428  0.86512  0.86414  0.86464
+2026-06-16 12:00:00  0.86465  0.86506  0.86390  0.86440
+2026-06-16 16:00:00  0.86439  0.86492  0.86420  0.86461
 
-Generated: 2026-06-16 03:16 UTC (03:16 UTC local)
+Generated: 2026-06-16 18:48 UTC (18:48 UTC local)

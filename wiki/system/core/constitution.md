@@ -93,7 +93,8 @@ Daily workflow (07:30 UTC, before London open):
        V1  D1 close beyond zone           → INVALIDATED
        V1b 2 consecutive H4 closes > [V1b threshold] past zone → INVALIDATED (scripts/check_v1b.py)
            threshold = $5 (XAUUSD) | 5 pips EUR / 6 pips GBP (profile)
-       V3  hard news event within 2h      → NO TRADE
+       V3  event WINDOW (±30min / within 2h of open) → NO TRADE
+           forward-carry event (later same hold)      → ALLOW, expiry = event−60min (D028 flatten)
        VETO VIX > 35 → XAUUSD: all SHORTs NO TRADE | FX: all LONGs NO TRADE (risk-off USD bid)
   3. Entry Confluence score (max 10, floor 5.0) — see confluence_criteria.md R2
        E0 entry confirmation 3.0 | E1 H4 struct 2.5 | E2 DFII10 slope 2.0
@@ -103,7 +104,8 @@ Daily workflow (07:30 UTC, before London open):
         with E0 confirmation → anchor = confirmation candle CLOSE
         without confirmation → anchor = 50% zone midpoint
      ❌ NO TRADE — score < 5.0 or hard block
-  4. Order expires 21:00 UTC — re-validate next morning, never carry forward.
+  4. Order expires 21:00 UTC (or event−60min if a hard event falls in the hold horizon, D028) —
+     re-validate next morning, never carry the ORDER forward; a filled position flattens pre-event.
 ```
 
 ### Entry confirmation (E0 — confirmed on 1H candle CLOSE)
@@ -148,12 +150,30 @@ take the win." TP must land at a structural anchor (prior swing / weekly pivot /
 name it, compute R. After entry the stop is fixed except the one-time BE move at +1.5R.
 
 ## No-Trade Rules
-- No new entries 2h before any red-folder Forex Factory event.
-- NFP, FOMC, CPI, US Retail Sales are hard blocks — cancel any live limit orders.
+- No new entries inside the **event window** itself — release ±30min, OR any hard event within 2h
+  of the 08:00 London / 13:00 NY open. This is the V3 "entry-in-window" block and is unchanged.
 - Scheduled central-bank decisions (FOMC/ECB/BoE/BoJ/SNB/RBA/RBNZ/BoC) come from the static
   calendar `scripts/config/cb_calendar_{year}.json` via `scripts/check_cb_calendar.py` —
   MANDATORY at /weekly (10-day window) and /validate (2-day window). Web search supplements
   the calendar, never replaces it. Rebuild the JSON every December.
+
+### Pre-Event Flatten — carry policy (D028, replaces the binary carry block)
+The risk a CB decision / tier-1 release poses is the **gap** — price jumps *through* the SL, so a
+planned −1R becomes −3 to −5R (MoF intervention slams run 300–500 pips). The fix is to never **hold**
+through the event, NOT to refuse the entry. So a leg facing a hard event later in the carry horizon is
+**no longer auto-NO-TRADE.** Instead:
+- **Entries are allowed** (subject to all other gates: V1/V1b, EC ≥ 5.0, the ±30min/2h window block,
+  VETO, and standing per-pair rules such as the JPY-trio NO ZONES).
+- Any resulting order limit **expires at `flatten_time = event_time − FLATTEN_BUFFER`** instead of the
+  default 21:00 UTC, so a late fill cannot carry in.
+- Any position still open at `flatten_time` is **closed at market** (manual when awake; the limit
+  expiry + BE/TP bound it otherwise). Flat before the event = no gap exposure.
+- `FLATTEN_BUFFER = 60min` (operator-tunable). Clears the ±30min window with margin.
+- **Still a true HARD BLOCK (no entry at all)** — the event-window block above (±30min / within-2h-of-
+  open), the JPY-trio NO ZONES standing rule + active MoF intervention regime, and the day-of CB
+  decision for that pair's own bank. Pre-event flatten only relaxes the *forward-carry* case (e.g. a
+  Tue entry that would otherwise carry into Wed FOMC), not the event hour itself.
+- If multiple events bound a position, `flatten_time` uses the **earliest** affecting event.
 
 ## Invalidation
 - **V1** — any D1 close beyond zone extreme → cancel.

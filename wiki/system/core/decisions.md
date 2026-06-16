@@ -24,6 +24,34 @@ later decision but still in force).
 
 ---
 
+## D028 — Pre-Event Flatten replaces the binary carry block (allow entries, force flat pre-event)
+**Status:** ACTIVE (2026-06-16). Implemented in `constitution.md` (No-Trade Rules → "Pre-Event
+Flatten") + `.claude/commands/validate.md` (V3 split + flatten-time expiry + Telegram flag).
+**Decision:** A hard event (CB decision / tier-1 release) falling *later* in a position's hold horizon
+is **no longer auto-NO-TRADE.** The entry is allowed (all other gates still apply); the order limit
+expires at `flatten_time = event_time − FLATTEN_BUFFER` instead of 21:00 UTC, and any fill is closed at
+market by `flatten_time`. `FLATTEN_BUFFER = 60min` (operator-tunable). What stays a true hard block: the
+event WINDOW itself (release ±30min, or any hard event within 2h of the 08:00 London / 13:00 NY open),
+the pair's OWN central bank deciding that day, the JPY-trio NO ZONES standing rule, and active MoF
+intervention.
+**Rationale:** The carry block conflated two different risks. (1) *Entry-in-window* risk — chaotic
+fills/whipsaw in the ±30min around a release — is real and stays blocked. (2) *Carry/gap* risk —
+holding through the event and eating the gap *through* the SL (intervention slams 300–500 pips → a
+planned −1R becomes −3 to −5R) — was being managed by refusing the entry, which also throws away the
+intraday mean-reversion edge on dense CB weeks (W25 had 4 decisions in 3 days → effectively every
+instrument dead). Flattening before the event removes the gap exposure directly while preserving the
+entry, so the edge is captured without the tail. Rejected alternatives: wider outward offset (wrong
+lever — offset changes entry price/fill-prob only; SL distance and the post-event gap are unchanged, so
+it does nothing for carry risk) and full-size carry-through (keeps the multi-R tail).
+**Caveats:** caps trades that need multi-day runners to reach the 2.5R/3R TPs — a position force-closed
+at `flatten_time` books whatever R it has, often < TP1. Operator may instead manage the close manually.
+Pure forward-carry relaxation; does not touch any in-window or standing block. Re-evaluate buffer if
+fills cluster too close to events.
+**belief_log:**
+- date: 2026-06-16
+  belief: "Carry risk = flatten before the event, not refuse the entry; window/own-CB/JPY blocks stay"
+  trigger: "W25 4-decisions-in-3-days dead week — carry block was throwing away the intraday edge"
+
 ## D027 — E0 entry-confirmation upgraded to oscillator RECLAIM (pin/engulf demoted to fallback)
 **Status:** ACTIVE-PENDING-VALIDATION (2026-06-14). Implemented in pipeline + all rubrics; awaiting
 live-ledger confirmation on the confluence-gated subset before "settled".

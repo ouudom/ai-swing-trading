@@ -179,7 +179,16 @@ counter-move (gold 2.5% / FX 1.5%), T4 = shock, T5 = cumulative macro drift vs b
 - **V1** — D1 close beyond zone? → ❌ INVALIDATED (remove from `_HOT.md`). Wick close-back-inside = sweep, not invalidation.
 - **V1b** — 2 consecutive H4 closes past zone extreme by > `V1B_BUFFER`?
   `scripts/check_v1b.py --instrument <INSTRUMENT> --direction <DIR> --zone-top <T> --zone-bottom <B> --buffer <V1B_BUFFER>` → ❌ INVALIDATED, cancel limit.
-- **V3** — hard event within 2h of London/NY open? → ❌ NO TRADE, cancel live limit.
+- **V3 (two cases — see constitution "Pre-Event Flatten", D028):**
+  - **Event WINDOW** — hard event within 2h of the 08:00 London / 13:00 NY open, OR a release ±30min
+    away right now → ❌ NO TRADE, cancel live limit. (Entry-in-window risk — unchanged hard block.)
+  - **Forward-carry** — a hard event (CB decision / tier-1 release) falls *later* in the hold horizon
+    but is NOT in the window above → **ALLOW the entry** (score it normally); set
+    `flatten_time = event_time − 60min` as the limit expiry instead of 21:00 UTC, and force-flatten
+    any fill at `flatten_time`. If several events qualify, use the earliest.
+  - **Still NO TRADE regardless of flatten** — the pair's OWN central bank deciding today, the JPY-trio
+    NO ZONES standing rule, and active MoF intervention. Flatten only relaxes the forward-carry case
+    (e.g. a Tue entry that would otherwise carry into Wed FOMC), never the event hour itself.
 - **VETO (VIX>35 fresh, OR VIX 1d spike>3 for FX):**
   - xauusd → all SHORT zones NO TRADE (safe-haven bid)
   - eurusd/gbpusd → all LONG zones NO TRADE (risk-off USD bid drives pair down)
@@ -296,6 +305,10 @@ entry_confluence ≥ 5.0 AND E0 present → ✅ ORDER LIMIT, anchor = confirmati
 entry_confluence ≥ 5.0 AND no E0     → ✅ ORDER LIMIT, anchor = 50% zone midpoint
 entry_confluence < 5.0               → ❌ NO TRADE
 ```
+**Forward-carry flatten (D028):** if a hard event falls in the hold horizon (V3 forward-carry case),
+an ORDER LIMIT is still emitted but expiry = `flatten_time = event−60min`; add a `> [!warning]
+Flatten:` callout in the daily file naming the event + flatten_time, and surface it as a Telegram
+flag (`⏱ <PAIR> flatten by <HH:MM> UTC pre-<event>`).
 
 ### Order Limit Calculation (score ≥ 5.0)
 ```python
@@ -313,12 +326,13 @@ limit_price = anchor - offset if direction == "LONG" else anchor + offset
 sl_price    = limit_price - SL if direction == "LONG" else limit_price + SL
 # TP locked from weekly structural anchor: TP1 2.5R (manual), TP2 3.0R (limit), BE at 1.5R
 ```
-Expires: [DATE] 21:00 UTC.
+Expires: [DATE] 21:00 UTC — UNLESS a hard event falls in the hold horizon (D028 forward-carry),
+in which case expiry = `event_time − 60min` (flatten_time) and any fill is force-flattened then.
 
 ## Output Format
 **✅ ORDER LIMIT:**
 ```
-[INSTRUMENT] ORDER LIMIT: BUY/SELL [limit_price] | [lots] lots | SL [sl_price] | TP1 2.5R [p] (manual) | TP2 3.0R [p] (limit) | BE @1.5R | expires 21:00 UTC
+[INSTRUMENT] ORDER LIMIT: BUY/SELL [limit_price] | [lots] lots | SL [sl_price] | TP1 2.5R [p] (manual) | TP2 3.0R [p] (limit) | BE @1.5R | expires [21:00 UTC or flatten_time=event−60min]
 Entry Confluence: [score]/10 (E0:[✅/❌] E1:[✅/❌] E2:[✅/❌] E3:[✅/❌] E4:[✅/❌] E5:[✅/❌])
 Anchor: [confirmation close / 50% zone] | SL [SL] | offset [offset] | R:R [computed]
 "If price reaches [limit_price], order triggers. Cancel if not hit by 21:00 UTC."

@@ -6,7 +6,7 @@ tags: [frontend, architecture, roadmap]
 related: [constitution, decisions, calibration]
 ---
 
-# Frontend Plan — Trading Brain UI
+# Frontend Plan — Claude Swing UI
 
 Read-only dashboard over the canonical SQLite store. Two equal jobs: **live monitoring**
 (cockpit) + **performance review** (calibration/edge). Solo tool, localhost only.

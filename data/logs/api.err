@@ -45,3 +45,11 @@ INFO:     Started reloader process [54008] using WatchFiles
 INFO:     Started server process [54080]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'api/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [54080]
+INFO:     Started server process [54356]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

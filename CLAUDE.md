@@ -1,4 +1,4 @@
-# Trading Brain — Claude Code Operating Manual (v2)
+# Claude Swing — Claude Code Operating Manual (v2)
 
 ## What This Is
 Multi-instrument swing trading system — **10 active instruments** (XAUUSD + 9 FX pairs):

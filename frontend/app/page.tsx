@@ -52,7 +52,7 @@ export default function Cockpit() {
     <main className="mx-auto max-w-6xl px-6 py-8 font-mono text-sm">
       <header className="mb-6 flex items-baseline justify-between border-b border-neutral-800 pb-3">
         <h1 className="text-lg font-semibold tracking-tight">
-          Trading Brain — Cockpit
+          Claude Swing — Cockpit
         </h1>
         <span className="text-xs text-neutral-500">
           {error ? (

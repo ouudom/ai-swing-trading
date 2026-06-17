@@ -30,7 +30,7 @@ from api.charts import chart_for  # noqa: E402
 from api.edge import edge_for  # noqa: E402
 from api.macro import macro_snapshot, news_for  # noqa: E402
 
-app = FastAPI(title="Trading Brain API", version="0.0")
+app = FastAPI(title="Claude Swing API", version="0.0")
 
 # Solo localhost tool — allow the Next dev server only.
 app.add_middleware(

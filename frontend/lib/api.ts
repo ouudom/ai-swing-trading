@@ -1,4 +1,4 @@
-// Thin client for the read-only Trading Brain API (api/main.py). Localhost only.
+// Thin client for the read-only Claude Swing API (api/main.py). Localhost only.
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8008";
 

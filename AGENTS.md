@@ -1,4 +1,4 @@
-# Trading Brain — Agent Operating Manual
+# Claude Swing — Agent Operating Manual
 
 ## What This Is
 Multi-instrument swing trading system — **10 active instruments** (XAUUSD + 9 FX pairs):

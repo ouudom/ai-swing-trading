@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trading Brain",
+  title: "Claude Swing",
   description: "Swing trading cockpit — read-only over index.db",
 };
 

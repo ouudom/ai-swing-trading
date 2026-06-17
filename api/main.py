@@ -35,7 +35,7 @@ app = FastAPI(title="Trading Brain API", version="0.0")
 # Solo localhost tool — allow the Next dev server only.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3008", "http://127.0.0.1:3008"],
     allow_methods=["GET"],
     allow_headers=["*"],
 )

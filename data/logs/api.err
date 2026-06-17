@@ -1,0 +1,47 @@
+INFO:     Will watch for changes in these directories: ['/Users/vuthyouthdom/projects/trading/swing-trading']
+INFO:     Uvicorn running on http://127.0.0.1:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [47227] using WatchFiles
+INFO:     Started server process [47286]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [47286]
+INFO:     Stopping reloader process [47227]
+INFO:     Will watch for changes in these directories: ['/Users/vuthyouthdom/projects/trading/swing-trading']
+INFO:     Uvicorn running on http://127.0.0.1:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [53654] using WatchFiles
+INFO:     Started server process [53726]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [53726]
+INFO:     Stopping reloader process [53654]
+INFO:     Will watch for changes in these directories: ['/Users/vuthyouthdom/projects/trading/swing-trading']
+INFO:     Uvicorn running on http://127.0.0.1:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [53831] using WatchFiles
+INFO:     Started server process [53904]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'api/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [53904]
+INFO:     Started server process [53949]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [53949]
+INFO:     Stopping reloader process [53831]
+INFO:     Will watch for changes in these directories: ['/Users/vuthyouthdom/projects/trading/swing-trading']
+INFO:     Uvicorn running on http://127.0.0.1:8008 (Press CTRL+C to quit)
+INFO:     Started reloader process [54008] using WatchFiles
+INFO:     Started server process [54080]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

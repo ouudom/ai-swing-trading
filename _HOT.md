@@ -33,8 +33,8 @@ JPY trio (usdjpy/eurjpy/gbpjpy) **NO ZONES** all week — BoJ 06-16 + active MoF
   BoJ 06-16; W26 setups = post-BoJ washouts.
 
 ## Last session
-2026-06-16 18:50 UTC — /validate ALL, **first live D028 pass** (carry relaxed → per-zone EC): **0 order
-limits**, now real verdicts not a blanket block. Nearest = SHORT zones price approaches from BELOW (eurusd
-0.32 / gbpusd 0.44 / xauusd 0.55 H4ATR) — no SHORT E0, D1 osc mid, EC < raised ADX floors → NO TRADE; rest
-2–6 ATR away. audusd HARD (RBA own-CB-today); JPY trio NO ZONES. WATCH: those 3 shorts arm on a 1H rejection
-inside the zone, fill flattens pre-FOMC (17:00 Wed). No open positions; 14 PENDING; VIX 16.2; next D1 06-17 00:00.
+2026-06-17 03:11 UTC — /validate ALL (FOMC day, hourly). **0 order limits — blanket hard-block day.**
+FOMC decision 18:00 UTC = own-CB-today HARD for all 8 USD pairs (xauusd/eurusd/gbpusd/audusd/nzdusd/
+usdcad/usdchf/usdjpy) — D028 carve-out does NOT relax own-CB-today. eurgbp HARD: UK CPI tier-1 06:00
+UTC + BoE 06-18. JPY trio NO ZONES (standing W25). All zones remain PENDING/NO_TRADE 06-17. No open
+positions. Tomorrow 06-18 = BoE+SNB (gbpusd/eurgbp/gbpjpy/usdchf still blocked). Next D1 close 06-18 00:00.

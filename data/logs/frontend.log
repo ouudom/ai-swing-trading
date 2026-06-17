@@ -1,0 +1,61 @@
+
+> frontend@0.1.0 dev
+> next dev --port 3008
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3008
+- Network:       http://192.168.10.30:3008
+- Environments: .env.local
+✓ Ready in 330ms
+
+ GET / 200 in 350ms (next.js: 213ms, application-code: 137ms)
+ GET / 200 in 57ms (next.js: 6ms, application-code: 51ms)
+ GET / 200 in 52ms (next.js: 6ms, application-code: 46ms)
+ GET / 200 in 50ms (next.js: 5ms, application-code: 45ms)
+✓ Compiled in 167ms
+ GET / 200 in 63ms (next.js: 13ms, application-code: 50ms)
+ GET / 200 in 45ms (next.js: 4ms, application-code: 41ms)
+ GET / 200 in 110ms (next.js: 4ms, application-code: 106ms)
+ GET / 200 in 78ms (next.js: 9ms, application-code: 69ms)
+[?25h
+
+> frontend@0.1.0 dev
+> next dev --port 3008
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3008
+- Network:       http://192.168.10.30:3008
+- Environments: .env.local
+✓ Ready in 251ms
+
+ GET / 200 in 258ms (next.js: 157ms, application-code: 101ms)
+ GET / 200 in 52ms (next.js: 4ms, application-code: 48ms)
+  Reload env: .env.local
+✓ Compiled in 31ms
+ GET / 200 in 82ms (next.js: 63ms, application-code: 19ms)
+[?25h
+
+> frontend@0.1.0 dev
+> next dev --port 3008
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3008
+- Network:       http://192.168.10.30:3008
+- Environments: .env.local
+✓ Ready in 240ms
+
+ GET / 200 in 211ms (next.js: 87ms, application-code: 124ms)
+ GET / 200 in 51ms (next.js: 6ms, application-code: 45ms)
+[?25h
+
+> frontend@0.1.0 dev
+> next dev --port 3008
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3008
+- Network:       http://192.168.10.30:3008
+- Environments: .env.local
+✓ Ready in 236ms
+
+ GET / 200 in 208ms (next.js: 110ms, application-code: 98ms)
+ GET / 200 in 51ms (next.js: 5ms, application-code: 47ms)

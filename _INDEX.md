@@ -1,4 +1,4 @@
-# Index — Trading Brain (v2)
+# Index — Claude Swing (v2)
 *One line per file. Update after every create or significant rewrite.*
 
 ## Agent Docs

@@ -33,7 +33,7 @@ JPY trio (usdjpy/eurjpy/gbpjpy) **NO ZONES** all week — BoJ 06-16 + active MoF
   BoJ 06-16; W26 setups = post-BoJ washouts.
 
 ## Last session
-2026-06-17 03:11 UTC — /validate ALL (FOMC day, hourly). **0 order limits — blanket hard-block day.**
+2026-06-17 04:07 UTC — /validate ALL (FOMC day, hourly). **0 order limits — blanket hard-block day.**
 FOMC decision 18:00 UTC = own-CB-today HARD for all 8 USD pairs (xauusd/eurusd/gbpusd/audusd/nzdusd/
 usdcad/usdchf/usdjpy) — D028 carve-out does NOT relax own-CB-today. eurgbp HARD: UK CPI tier-1 06:00
 UTC + BoE 06-18. JPY trio NO ZONES (standing W25). All zones remain PENDING/NO_TRADE 06-17. No open

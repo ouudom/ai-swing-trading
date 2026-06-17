@@ -46,3 +46,36 @@ INFO:     127.0.0.1:59422 - "GET /zones HTTP/1.1" 200 OK
 INFO:     127.0.0.1:59423 - "GET /edge HTTP/1.1" 200 OK
 INFO:     127.0.0.1:59424 - "GET /macro HTTP/1.1" 200 OK
 INFO:     127.0.0.1:59426 - "GET /gates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59435 - "GET /news/xauusd?days=7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49467 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49589 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49589 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49589 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49604 - "GET /positions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49603 - "GET /news/xauusd?days=7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49600 - "GET /zones HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49601 - "GET /edge HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49599 - "GET /chart/xauusd?tf=D1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49602 - "GET /macro HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49604 - "GET /gates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49603 - "GET /positions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49602 - "GET /zones HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49600 - "GET /news/xauusd?days=7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49599 - "GET /edge HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49604 - "GET /chart/xauusd?tf=D1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49601 - "GET /macro HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49603 - "GET /gates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49626 - "GET /positions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49625 - "GET /news/xauusd?days=7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49622 - "GET /zones HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49623 - "GET /edge HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49621 - "GET /chart/xauusd?tf=D1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49624 - "GET /macro HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49626 - "GET /gates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49627 - "GET /chart/xauusd?tf=1H HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49627 - "GET /chart/xauusd?tf=H4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49627 - "GET /chart/xauusd?tf=D1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49627 - "GET /chart/xauusd?tf=1H HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49627 - "GET /chart/xauusd?tf=H4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49627 - "GET /chart/xauusd?tf=D1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49627 - "GET /chart/eurusd?tf=D1 HTTP/1.1" 200 OK

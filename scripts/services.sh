@@ -10,8 +10,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cmd="${1:-status}"
 
 _load() {
-    launchctl load -w ~/Library/LaunchAgents/trading.api.plist
-    launchctl load -w ~/Library/LaunchAgents/trading.frontend.plist
+    launchctl list "$API_LABEL" &>/dev/null \
+        && echo "  $API_LABEL already running" \
+        || launchctl load -w ~/Library/LaunchAgents/trading.api.plist
+    launchctl list "$FE_LABEL" &>/dev/null \
+        && echo "  $FE_LABEL already running" \
+        || launchctl load -w ~/Library/LaunchAgents/trading.frontend.plist
     echo "Services loaded."
 }
 

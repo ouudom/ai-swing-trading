@@ -24,6 +24,71 @@ later decision but still in force).
 
 ---
 
+## D029 — Re-forecast T6: nominal-yield + DXY-slope USD-regime drift trigger
+**Status:** ACTIVE.
+**Decision:** Add **T6** to the mid-week re-forecast trigger tree + a parallel FX "USD Regime Drift"
+daily-drift table. T6 fires on `|Δ DGS2| > 0.15%` OR a DXY `slope20` sign-flip vs published bias.
+CONFIRMATION-class (not IMMEDIATE) — must persist one /validate. Counter zones opposed by a confirmed
+flip are voided immediately, without waiting for the recheck.
+**Rationale:** W25 regime flip (hawkish FOMC/Warsh) repriced DGS2 4.05→4.20 and DXY slope20 +1.65, but
+moved neither DFII10 (T1/T5 series) nor the DXY 1-day *jump* (T2) past threshold → **no trigger fired**,
+and stale USD-short / counter-long zones rode into the flip. The trigger tree was blind to nominal +
+slope repricing. Replay confirmed every counter-USD long lost or was saved only by a hard block.
+**Limit:** still ONE re-forecast/week (D-edge-preservation unchanged); T6 is CONFIRMATION because
+nominal/slope is noisier than real-yield. Does not relax the FOMC-day event-proximity precondition —
+you still never re-forecast *into* the event; T6 catches the flip the morning after.
+**belief_log:**
+- date: 2026-06-19
+  belief: "Re-forecast triggers must cover nominal DGS2 + DXY slope, not just real-yield + DXY jump"
+  trigger: "W25 retro — hawkish repricing slipped every trigger; stale USD-short zones carried into flip"
+
+---
+
+## D031 — Retire the hand-logged `trade` table; system is replay-evaluated
+**Status:** ACTIVE.
+**Decision:** Remove `scripts/trade_log.py`, the `/log` skill (`.claude/commands/log.md`), and the
+canonical `trade` table. Replace with **`trade_outcome.py`** — an entry-mechanics replay (E0 + outward
+offset limit + EC score via new `entry_confluence.py`/`config/ec_spec.py`) over the zone ledger,
+producing SYSTEM P&L (would-be R with realistic fills) + a **gate-accuracy audit** (every hard gate
+V1/V1b/V3/VETO/INTERVENTION/EC filled-anyway → counterfactual R → was the block CORRECT_SAVED or
+COSTLY_REFUSED). `calibration.py` R2 + Gate-Accuracy sections now read `trade_outcome`; api
+(`/positions`, `/edge`, `/chart`) + frontend repointed (`midpoint_vs_entry` replaces `shadow_vs_real`).
+**Rationale:** the real book was **n≈2** (1 LOSS, 1 EXPIRED) and would never reach the n to calibrate
+Entry Confluence (R2) — the calibration R2 section sat permanently on "awaiting live trades." The
+system doesn't execute real money; the question worth answering is "is the SYSTEM profitable," which a
+replay answers with many samples. Also fixes the unverified "INVALIDATED = capital saved" assumption in
+`zone_outcome` — gates are now measured, not assumed (W25 cross-check: V1b on nzdusd COUNTER → −1R →
+KEEPS EDGE; V1/V3/EC all net-negative so far).
+**Fidelity caveat:** `ec_spec.py` approximates each pair's `confluence_criteria.md` R2 prose to the
+nearest deterministic predicate (generic fade thresholds); review per-pair before trusting R2.
+**belief_log:**
+- date: 2026-06-19
+  belief: "Measure system profitability + gate accuracy by replay; stop pretending a 2-row real book is the truth"
+  trigger: "User: 'remove real trade log table and command … I want to see the data of our system, if it is profitable'"
+
+---
+
+## D030 (OPEN) — Offset fill-rate vs entry-quality: deferred, n=1
+**Status:** OPEN — no change applied. Tracking only.
+**Observation:** W25 audusd PRIMARY SHORT (EC 6.5) replay = +2.5R, but the live offset limit 0.70902
+never triggered — week high 0.70769, **missed by 13 pips**. Offset = max(SL/3, (10−EC)×0.2×SL) = 0.7×SL
+outward; the wide outward placement put the limit past the reversal high.
+**Why no change:** n=1. Tightening the offset constant changes fill-rate AND R-denominator on **every**
+trade — a calibration decision, not a one-data-point bug. A single near-miss is not evidence to retune a
+live edge parameter (cf. constitution "lag is acceptable / no discretionary reset").
+**Trigger to revisit:** when `zone_outcomes` accumulates enough "replay-filled-at-zone but live-offset-
+missed" near-misses (target n≥8) to show the offset is systematically over-wide. Until then: no edit.
+**Update 2026-06-19 (D031):** the near-miss is now INSTRUMENTED — `trade_outcome.py` marks
+`LIMIT_MISSED` when the offset limit is never reached, and `calibration.md` reports the count + the
+midpoint-vs-entry R gap. W24–W25 already show 4 misses (incl. a usdchf LONG at EC 9.0). Watch the count
+toward n≥8 before retuning the offset constant.
+**belief_log:**
+- date: 2026-06-19
+  belief: "Do not retune offset on one near-miss; instrument the near-miss gap and let it accumulate"
+  trigger: "W25 audusd short missed fill by 13 pips on a 0.7×SL outward offset"
+
+---
+
 ## D028 — Pre-Event Flatten replaces the binary carry block (allow entries, force flat pre-event)
 **Status:** ACTIVE (2026-06-16). Implemented in `constitution.md` (No-Trade Rules → "Pre-Event
 Flatten") + `.claude/commands/validate.md` (V3 split + flatten-time expiry + Telegram flag).

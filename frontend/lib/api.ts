@@ -2,54 +2,35 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8008";
 
-export interface OpenPosition {
-  trade_id: string;
+// /positions now reflects the trade_outcome REPLAY (no hand-logged live positions):
+// system P&L from entry-mechanics fills, not a real-money book.
+interface ReplayBase {
+  trade_id: string;     // zone_id
   instrument: string;
   direction: string;
-  setup: string;
+  label: string;
   week: string;
+  ec_score: number | null;
+  anchor: number | null;
+  limit_px: number | null;
   entry: number | null;
-  sl: number | null;
-  tp: number | null;
-  tp2: number | null;
-  lots: number | null;
-  r_planned: number | null;
-  r_current: number | null;
-  sl_status: string;
-  outcome: string;
-  tp1_touched: boolean;
-  tp2_touched: boolean;
+  sl_dist: number | null;
+  offset: number | null;
+}
+
+export interface FilledTrade extends ReplayBase {
+  status: string;       // WIN_TP1 | LOSS_SL | BREAKEVEN
+  r_result: number | null;
   mfe_r: number | null;
   mae_r: number | null;
-  last_px: number | null;
-  as_of: string | null;
-  ambiguous: boolean;
-}
-
-export interface PendingOrder {
-  trade_id: string;
-  instrument: string;
-  direction: string;
-  setup: string;
-  entry: number | null;
-  sl: number | null;
-  lots: number | null;
-  spot: number | null;
-  distance_to_fill: number | null;
-  expiry: string | null;
-  as_of: string | null;
-}
-
-export interface ClosedTrade {
-  trade_id: string;
-  instrument: string;
-  direction: string;
-  week: string;
-  status: string;
-  r_actual: number | null;
-  exit_reason: string | null;
-  exit_time: string | null;
   fill_time: string | null;
+  exit_time: string | null;
+  block_flags: string | null;
+  block_verdict: string | null;
+}
+
+export interface PendingTrade extends ReplayBase {
+  e0_present: string | null;
 }
 
 export interface RCurvePoint {
@@ -59,9 +40,9 @@ export interface RCurvePoint {
 }
 
 export interface PositionsResponse {
-  open: OpenPosition[];
-  pending: PendingOrder[];
-  closed: ClosedTrade[];
+  filled: FilledTrade[];
+  pending: PendingTrade[];
+  missed: PendingTrade[];
   r_curve: RCurvePoint[];
 }
 
@@ -181,6 +162,7 @@ export interface TradeLine {
   trade_id: string;
   status: string;
   direction: string;
+  ec_score?: number | null;
   entry: number | null;
   sl: number | null;
   tp: number | null;
@@ -257,11 +239,20 @@ export interface ScatterPoint {
   r_result: number;
 }
 
-export interface ShadowVsRealRow {
+export interface MidpointVsEntryRow {
   instrument: string;
-  shadow_zones: number;
-  real_trades: number;
-  real_total_r: number;
+  midpoint_fills: number;
+  midpoint_total_r: number;
+  entry_fills: number;
+  entry_total_r: number;
+  missed: number;
+}
+
+export interface GateStat {
+  n_blocked: number;
+  completed?: number;
+  total_r?: number;
+  verdict: string;
 }
 
 export interface EdgeResponse {
@@ -271,10 +262,12 @@ export interface EdgeResponse {
   note?: string;
   summary: Partial<EdgeSummary>;
   scatter: ScatterPoint[];
-  shadow_vs_real: {
-    by_instrument: ShadowVsRealRow[];
-    real_trades_total: number;
-    real_total_r: number;
+  midpoint_vs_entry: {
+    by_instrument: MidpointVsEntryRow[];
+    entry_fills_total: number;
+    entry_total_r: number;
+    missed_total: number;
+    gates: Record<string, GateStat>;
   };
 }
 

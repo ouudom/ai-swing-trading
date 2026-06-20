@@ -21,11 +21,12 @@ TP: TP1 2.5R (manual close), TP2 3.0R (limit close), BE at +1.5R. Structural TP 
 Context resets each session. Load state in order:
 ```
 1. _HOT.md                                       — thin boot state: current week, open HUMAN decisions,
-                                                   watch notes, source-of-truth pointers (NO live
-                                                   positions/numbers — those come from the `trade` table)
-1b. data/database/index.db `trade` table                  — open positions, live order limits (PENDING rows),
-   (`scripts/trade_log.py list`)                   closed trades + realized R (the position truth).
-                                                   DB is canonical now — NO trades_log.csv
+                                                   watch notes, source-of-truth pointers (NO derived
+                                                   numbers — recompute from source)
+1b. data/database/index.db `trade_outcome` table          — the system's own would-be P&L: entry-mechanics
+   (`scripts/trade_outcome.py`)                    replay (E0+offset+EC) of every published zone +
+                                                   gate-accuracy audit. There is NO hand-logged real
+                                                   trade book — the system is replay-evaluated.
 2. _INDEX.md                                     — file locations and current state
 3. wiki/system/core/constitution.md              — risk, SL/TP/offset, zone + re-forecast rules,
                                                    multi-instrument table (TICK/V1b/macro per pair)
@@ -37,15 +38,17 @@ Context resets each session. Load state in order:
 ```
 
 ## Session Start Protocol
-1. Read `_HOT.md` — current week, open human decisions, watch notes, pointers (thin; no positions)
-2. Read the `trade` table — `bash scripts/pyrun.sh scripts/trade_log.py list` (open positions /
-   live limits / closed R; position truth, not _HOT). Canonical store = `data/database/index.db`.
+1. Read `_HOT.md` — current week, open human decisions, watch notes, pointers (thin; no numbers)
+2. Read system P&L — `bash scripts/pyrun.sh scripts/trade_outcome.py` (entry-mechanics replay of
+   every zone → would-be R + gate accuracy). Canonical store = `data/database/index.db`. No real
+   trade book — the system is replay-evaluated.
 3. Read `_INDEX.md` — orient to file state
 4. Read `yield_environment.md` — macro baseline
 5. Never create duplicate pages — update existing in place
-6. End of session: update `_HOT.md` (week/decisions/watch/pointers only) + log trade changes via
-   `trade_log.py` (writes the `trade` table). Never write a derived number (R, SL status, spot, EC,
-   ATR, ADX, zone price) into `_HOT.md` — recompute it from source each time instead.
+6. End of session: update `_HOT.md` (week/decisions/watch/pointers only). Published zones are
+   registered to the `zone_ledger` at /weekly; outcomes replay from OHLC (`zone_outcomes.py` +
+   `trade_outcome.py`) — no manual trade logging. Never write a derived number (R, SL status, spot,
+   EC, ATR, ADX, zone price) into `_HOT.md` — recompute it from source each time instead.
 
 ## Commands
 
@@ -98,11 +101,13 @@ JSON) and the news store (free RSS feeds) are **key-free**; if either feed is do
 ## Architecture (markdown-authoring + SQLite mirror)
 No **authoring** database — Claude reads markdown for context and writes forecast/validation
 markdown directly. A **canonical SQLite store** (`data/database/index.db`, gitignored) holds every
-tabular dataset (10 tables: ohlc, macro_series, market_series, trade, zone_ledger,
-zone_outcome, news, econ_calendar, gld_holdings, ohlc_quarantine) for fast queries + the frontend.
+tabular dataset (10 tables: ohlc, macro_series, market_series, zone_ledger, zone_outcome,
+trade_outcome, news, econ_calendar, gld_holdings, ohlc_quarantine) for fast queries + the frontend.
 **The DB is the source of truth** — source CSVs were migrated in and deleted. Tables are written
-live: state registries via `db.py` (`trade_log.py`/`zone_ledger.py`), OHLC via `ohlc_store.upsert`,
-market/macro/news/econ via the `weekly_pull.py` DB sync.
+live: state registry via `db.py` (`zone_ledger.py`), OHLC via `ohlc_store.upsert`,
+market/macro/news/econ via the `weekly_pull.py` DB sync. Outcomes are replayed from OHLC
+(`zone_outcomes.py` → `zone_outcome`, `trade_outcome.py` → `trade_outcome`); there is no
+hand-logged real-trade table (retired D031 — replay-evaluated system, the real book was n≈2).
 Structured data engine = the `scripts/` pipeline producing the weekly pull text file:
 - `scripts/weekly_pull.py` (orchestrator) → `scripts/fetch.py` (TD+FRED) + `scripts/compute.py` (indicators)
 - `scripts/structure.py`, `scripts/lib/ohlc_store.py` — shared structure/OHLC helpers
@@ -121,11 +126,18 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
 - `scripts/fx_exposure.py` — FX currency-leg netting ledger (advisory)
 - `scripts/zone_ledger.py` — shadow-trade registry: every published zone → `zone_ledger` table
   (MANDATORY at /weekly publish, one `add` per zone)
-- `scripts/zone_outcomes.py` — replays OHLC vs ledger → would-be R outcomes + confluence
-  calibration → `zone_outcome` table (run at /weekly for prior week)
-- `scripts/calibration.py` — aggregates the `zone_outcome` table into sliceable edge-performance
-  report `wiki/system/core/calibration.md` (by instrument/direction/R1/conviction/session,
-  min-n gated); run after `zone_outcomes.py` at /weekly
+- `scripts/zone_outcomes.py` — replays OHLC vs ledger at the zone MIDPOINT → R1/zone-quality
+  outcomes → `zone_outcome` table (run at /weekly for prior week)
+- `scripts/trade_outcome.py` — entry-mechanics replay: E0 + outward offset limit + EC score
+  (`entry_confluence.py`) on top of the ledger → SYSTEM P&L (would-be R with realistic fills) +
+  gate-accuracy audit (V1/V1b/V3/VETO/INTERVENTION/EC filled-anyway → was the block correct) →
+  `trade_outcome` table. The midpoint-vs-offset fill gap is the D030 over-wide-offset signal.
+- `scripts/entry_confluence.py` (+ `config/ec_spec.py`) — programmatic R2/Entry-Confluence scorer,
+  per-instrument component table; reuses `backtest_signals.py` indicators. **Fidelity-gated** —
+  `ec_spec.py` approximates each pair's `confluence_criteria.md` R2 prose; verify before trusting R2.
+- `scripts/calibration.py` — aggregates `zone_outcome` (R1) + `trade_outcome` (R2/EC + gate accuracy)
+  into sliceable edge-performance report `wiki/system/core/calibration.md` (min-n gated); run after
+  `zone_outcomes.py` + `trade_outcome.py` at /weekly
 - Bad-tick guard: `ohlc_store.upsert()` auto-quarantines provider spikes (wick-clamp or bar-drop,
   logged to `data/{source}/{symbol}/_quarantine.csv`) — never hand-repair ticks again
 
@@ -134,18 +146,18 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
 - `forecasts/daily/{instrument}/` — append-style. Claude writes markdown.
 - `data/weekly_pull/{instrument}/` — IMMUTABLE. Never edit `weekly_pull_*.txt`.
 - `data/database/index.db` — canonical store (gitignored, written live by `db.py` + `ohlc_store`). Tables:
-  `trade` (write via `trade_log.py`), `zone_ledger`/`zone_outcome` (via `zone_ledger.py` add /
-  `zone_outcomes.py` resolve — no hand edits), `ohlc`, `macro_series`, `market_series`, `news`,
-  `econ_calendar`, `gld_holdings`. No source CSVs — the DB is canonical, written live.
+  `zone_ledger` (via `zone_ledger.py` add), `zone_outcome` / `trade_outcome` (via `zone_outcomes.py` /
+  `trade_outcome.py` resolve — no hand edits), `ohlc`, `macro_series`, `market_series`, `news`,
+  `econ_calendar`, `gld_holdings`. No hand-logged `trade` table (retired D031). DB is canonical.
 - `wiki/` — update in place. One concept per page. Never create a parallel page. Cross-link `[[filename]]`.
 - After creating/updating any file: update `_INDEX.md`. End of every session: update `_HOT.md`.
 - `_HOT.md` — **THIN boot file, hard cap 40 lines.** Contains ONLY: current week, open HUMAN
   decisions, watch/judgment notes, and source-of-truth pointers. **NEVER store a value computable
   from source** — no live R, SL-hit status, spot, EC, ATR, ADX, V1b status, zone prices, lots, order
-  details. Those live in the `trade` table / `forecasts/*` / the pull and are recomputed every run; a
+  details. Those live in `forecasts/*` / the pull / the replay tables and are recomputed every run; a
   cached number here will go stale and lie (cf. the 06-15 USDCHF "−0.6R/SL intact" error — R was read
-  off `_HOT`/spot, not the bar low that had already hit SL). Positions/limits → `trade` table (`trade_log.py list`).
-  History → `forecasts/daily|weekly/*`, `decisions.md`, `_INDEX.md` — link, don't repeat.
+  off `_HOT`/spot, not the bar low that had already hit SL). Would-be R / system P&L → `trade_outcome`
+  table (`trade_outcome.py`). History → `forecasts/daily|weekly/*`, `decisions.md`, `_INDEX.md` — link, don't repeat.
 
 ## Frontmatter Schemas
 See `wiki/system/templates/weekly_forecast.md` and `wiki/system/templates/daily_validation.md`

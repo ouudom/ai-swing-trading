@@ -211,6 +211,7 @@ Sunday `/weekly` bias is assumed valid through Friday close. Mid-week re-forecas
 | T3 — Gold counter-move | D1 close moves >2.5% AGAINST weekly bias | `data/twelvedata/xauusd/1day.csv` |
 | T4 — Unscheduled macro shock (X OR Y) | X: structured news event today / Y: VIX 1-day jump > 5.0 | X: web + `data/news_events/[DATE]_t4x.json` / Y: `data/fred/VIXCLS.csv` |
 | T5 — DFII10 cumulative drift | abs(now − baseline) > 0.15% any direction | DFII10 vs `baseline_dfii10` in weekly frontmatter |
+| T6 — USD regime drift (nominal + slope) | DGS2 cumulative drift abs(now − `baseline_dgs2`) > 0.15%, **OR** DXY `slope20` sign-flips vs the published-bias direction | DGS2 (FRED) + DXY `slope20` from the weekly pull vs `baseline_dxy`/published bias |
 
 **T4-X** = tier-1 unscheduled event published today by Reuters/Bloomberg/AP, allowed categories
 ONLY: central-bank emergency, declared war / major G20 sanctions, Fed chair removal, sovereign
@@ -227,8 +228,10 @@ by `scripts/check_structured_news_event.py`) + mirror to `_HOT.md`. No valid JSO
 ### Trigger logic (when preconditions pass)
 ```
 IMMEDIATE re-forecast if: two concurrent {T1,T2,T3,T4} same day, OR T5 alone.
-CONFIRMATION re-forecast if: single {T1..T4} today → log WARN + pending_reforecast_check;
+CONFIRMATION re-forecast if: single {T1..T4} today, OR T6 alone → log WARN + pending_reforecast_check;
    recheck next /validate → still firing = re-forecast, mean-reverted = clear.
+   (T6 = CONFIRMATION not IMMEDIATE: nominal/slope repricing is noisier than real-yield; a 1-day
+   DGS2 spike or a borderline slope flip must persist one /validate before it voids zones.)
 Preconditions fail → log fires as INFO only, no action.
 ```
 
@@ -253,6 +256,22 @@ Forecast frontmatter stores `baseline_dfii10`. Daily DFII10 vs baseline:
 | 0.05–0.10% | Note in daily file. Pass if direction supports bias. |
 | > 0.10% | E3 fails if drift is against direction. HOLD. |
 | > 0.15% any direction | Force re-forecast (regime shift). |
+
+## USD Regime Drift — FX (every /validate)
+xauusd drifts on DFII10 (above); USD-leg FX drifts on **nominal DGS2 + DXY `slope20`** — the W25 gap
+was a hawkish DGS2/slope repricing (DGS2 4.05→4.20, slope20 +1.65) that moved neither DFII10 nor the
+DXY 1-day *jump*, so nothing fired and stale USD-short zones rode into the flip. Frontmatter stores
+`baseline_dgs2` + `baseline_dxy`. Daily check (mirrors T6):
+
+| signal | Action |
+|---|---|
+| \|Δ DGS2\| < 0.10% **and** `slope20` sign unchanged | Macro unchanged. |
+| \|Δ DGS2\| 0.10–0.15% **or** `slope20` flattening toward flip | Note in daily file; E3-equivalent (macro tilt) fails if against direction → HOLD that zone. |
+| \|Δ DGS2\| > 0.15% **or** `slope20` sign-flipped vs published bias | T6 fires → CONFIRMATION re-forecast (recheck next /validate; persists = void zones). |
+
+**Counter zones are voided immediately on a confirmed against-bias USD-regime flip** — counters are
+the most fragile to a regime shift (W25: every counter-USD long lost or was saved only by a hard
+block). Do not wait for the CONFIRMATION recheck to drop a counter that the flip now opposes.
 
 ## Zone Types
 | Zone | Direction | Floor | Extra rules |

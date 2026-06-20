@@ -14,6 +14,13 @@ function rStyle(r: number | undefined): string {
   return r > 0 ? "text-emerald-400" : r < 0 ? "text-red-400" : "text-neutral-400";
 }
 
+function gateStyle(v: string | undefined): string {
+  if (!v) return "text-neutral-500";
+  if (v.includes("COSTING")) return "text-red-400";
+  if (v.includes("KEEPS")) return "text-emerald-400";
+  return "text-neutral-500"; // INSUFFICIENT
+}
+
 function StatTable({ title, group }: { title: string; group: StatGroup | undefined }) {
   const keys = group ? Object.keys(group) : [];
   return (
@@ -150,12 +157,12 @@ export default function EdgePanel() {
         </div>
         <div>
           <h3 className="mb-1 text-[11px] uppercase tracking-wider text-neutral-500">
-            Shadow vs real
+            Midpoint vs entry-mechanics
             {data && (
-              <span className={`ml-2 ${rStyle(data.shadow_vs_real.real_total_r)}`}>
-                real {data.shadow_vs_real.real_trades_total} trades ·{" "}
-                {data.shadow_vs_real.real_total_r >= 0 ? "+" : ""}
-                {data.shadow_vs_real.real_total_r.toFixed(1)}R
+              <span className={`ml-2 ${rStyle(data.midpoint_vs_entry.entry_total_r)}`}>
+                entry {data.midpoint_vs_entry.entry_fills_total} fills ·{" "}
+                {data.midpoint_vs_entry.entry_total_r >= 0 ? "+" : ""}
+                {data.midpoint_vs_entry.entry_total_r.toFixed(1)}R · {data.midpoint_vs_entry.missed_total} missed
               </span>
             )}
           </h3>
@@ -163,22 +170,51 @@ export default function EdgePanel() {
             <thead className="text-neutral-600">
               <tr className="border-b border-neutral-800 text-left">
                 <th className="py-0.5 pr-2">instrument</th>
-                <th className="pr-2">shadow zones</th>
-                <th className="pr-2">real trades</th>
-                <th>real R</th>
+                <th className="pr-2">mid R</th>
+                <th className="pr-2">entry R</th>
+                <th>missed</th>
               </tr>
             </thead>
             <tbody>
-              {data?.shadow_vs_real.by_instrument.map((r) => (
+              {data?.midpoint_vs_entry.by_instrument.map((r) => (
                 <tr key={r.instrument} className="border-b border-neutral-900">
                   <td className="py-0.5 pr-2 uppercase text-neutral-300">{r.instrument}</td>
-                  <td className="pr-2">{r.shadow_zones}</td>
-                  <td className="pr-2">{r.real_trades}</td>
-                  <td className={rStyle(r.real_total_r)}>
-                    {r.real_trades ? `${r.real_total_r >= 0 ? "+" : ""}${r.real_total_r.toFixed(1)}` : "—"}
+                  <td className={`pr-2 ${rStyle(r.midpoint_total_r)}`}>
+                    {r.midpoint_fills ? `${r.midpoint_total_r >= 0 ? "+" : ""}${r.midpoint_total_r.toFixed(1)}` : "—"}
                   </td>
+                  <td className={`pr-2 ${rStyle(r.entry_total_r)}`}>
+                    {r.entry_fills ? `${r.entry_total_r >= 0 ? "+" : ""}${r.entry_total_r.toFixed(1)}` : "—"}
+                  </td>
+                  <td className={r.missed ? "text-amber-300" : "text-neutral-600"}>{r.missed || "—"}</td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+
+          <h3 className="mb-1 mt-4 text-[11px] uppercase tracking-wider text-neutral-500">
+            Gate accuracy — was the block correct?
+          </h3>
+          <table className="w-full border-collapse text-[11px]">
+            <thead className="text-neutral-600">
+              <tr className="border-b border-neutral-800 text-left">
+                <th className="py-0.5 pr-2">gate</th>
+                <th className="pr-2">n blocked</th>
+                <th className="pr-2">would-be R</th>
+                <th>verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data &&
+                Object.entries(data.midpoint_vs_entry.gates).map(([g, st]) => (
+                  <tr key={g} className="border-b border-neutral-900">
+                    <td className="py-0.5 pr-2 text-neutral-300">{g}</td>
+                    <td className="pr-2">{st.n_blocked}</td>
+                    <td className={`pr-2 ${rStyle(st.total_r)}`}>
+                      {st.total_r !== undefined ? `${st.total_r >= 0 ? "+" : ""}${st.total_r.toFixed(1)}` : "—"}
+                    </td>
+                    <td className={gateStyle(st.verdict)}>{st.verdict}</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

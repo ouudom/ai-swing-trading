@@ -18,8 +18,8 @@ Read-only dashboard over the canonical SQLite store. Two equal jobs: **live moni
 - **Charting:** `lightweight-charts` (TradingView) — best for OHLC + zone/SL/TP overlays.
 
 ## Core rule (carries from the pipeline)
-**Recompute every derived value server-side, per request, from `ohlc`/`trade` — never persist a
-stale number.** Live R, SL-touch, distance-to-fill, BE status are all recomputed. Same lesson as
+**Recompute every derived value server-side, per request, from `ohlc`/replay tables — never persist a
+stale number.** Would-be R, SL-touch, fill status are all recomputed from OHLC. Same lesson as
 the 06-15 USDCHF `_HOT` error (R read off cached spot, not the bar low that had hit SL). The API
 is a thin recompute layer, NOT a cache.
 
@@ -35,7 +35,7 @@ Next.js (React) + lightweight-charts
 ## API surface (thin layer over existing scripts)
 | Endpoint | Source table(s) | Reuses |
 |---|---|---|
-| `GET /positions` | trade + ohlc | `trade_log.py`, `live_r.py` |
+| `GET /positions` | trade_outcome | `trade_outcome.py` (replay P&L: filled/pending/missed + gate audit) |
 | `GET /zones?week=` | forecasts + zone_ledger | `zone_ledger.py` |
 | `GET /gates?date=` | cb/econ/intervention configs | `check_cb_calendar.py`, `check_econ_calendar.py`, `check_intervention_watch.py` |
 | `GET /calibration` | zone_outcome | `calibration.py` |
@@ -84,8 +84,8 @@ FastAPI skeleton, read-only DB conn, Next.js scaffold, 10-instrument layout shel
 
 ### Phase 3 — Charts ✅ DONE (2026-06-16)
 - `api/charts.py` (`chart_for(inst, tf, week)`) reads `ohlc` → candles (daily='YYYY-MM-DD',
-  intraday=UTC epoch s) capped per tf; overlays reuse `zones_for` (zone bands), the `trade` table
-  (entry/SL/TP/TP2 lines, open+pending), and `structure.structure_events` (BOS/CHoCH markers,
+  intraday=UTC epoch s) capped per tf; overlays reuse `zones_for` (zone bands), the `trade_outcome`
+  table (entry/limit/SL/TP lines from the latest replayed week), and `structure.structure_events` (BOS/CHoCH markers,
   computed on the SAME returned window so `pos` maps 1:1 onto candles) + structure `state`.
 - `GET /chart/{instrument}?tf=D1|H4|1H|15M&week=`. Self-pins path/CWD. Did NOT modify `scripts/`.
 - Frontend `components/PriceChart.tsx` — **lightweight-charts v5** (`addSeries(CandlestickSeries)`,
@@ -98,7 +98,8 @@ FastAPI skeleton, read-only DB conn, Next.js scaffold, 10-instrument layout shel
   writes calibration.md — no duplicated stats) → sliceable summary JSON (overall + by_r1 /
   instrument / direction / conviction / session / instrument×direction, min-n gated). Adds two
   views the markdown doesn't expose as data: confluence→R `scatter` (completed shadow trades) +
-  `shadow_vs_real` (zone_ledger published count vs `trade` real closed + realized R, per instrument).
+  `midpoint_vs_entry` (zone_outcome midpoint R vs trade_outcome entry-mechanics R + missed fills,
+  per instrument) + gate-accuracy (per gate: blocked n / would-be R / KEEPS-or-COSTING-EDGE).
 - `GET /edge?min_n=&week=`. Self-pins path/CWD. Did NOT modify `scripts/`.
 - Frontend `components/EdgePanel.tsx` — stat tables (verdict colored WORKING/DEAD/INSUFFICIENT),
   hand-rolled SVG scatter (R1 5–10 × R −2..+4, green/red dots), shadow-vs-real table. `lib/api.ts getEdge`.

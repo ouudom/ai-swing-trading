@@ -1,84 +1,84 @@
 
 ╔══════════════════════════════════════════════════════╗
-  AUDUSD WEEKLY DATA — 2026-06-15 (W25)
+  AUDUSD WEEKLY DATA — 2026-06-19 (W25)
 ╚══════════════════════════════════════════════════════╝
 
 ━━━ MACRO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-US 2Y (DGS2):     4.05% (was 4.05% ~1w ago, Δ +0.0%)
-  → FALLING ✅ (USD softness, bullish AUDUSD)
-  20d slope: +0.0037 %/day  (rising trend)
-  1d drift:  -0.080%
-Fed Funds:        3.62%
+US 2Y (DGS2):     4.2% (was 4.13% ~1w ago, Δ +0.07%)
+  → RISING ⚠  (USD strength, bearish AUDUSD)
+  20d slope: +0.0034 %/day  (rising trend)
+  1d drift:  +0.150%
+Fed Funds:        3.63%
 Foreign policy (AU): no daily FRED series — carry leg skipped (dead signal, D021/D024)
-VIX:              17.68
+VIX:              18.44
 
 ━━━ PRICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-AUDUSD:          $0.70859 (was $0.70391, +0.66% ~1w chg)
-DXY (ICE 6-cur):  99.529  (was 99.910,  -0.38% ~1w chg)
+AUDUSD:          $0.70088 (was $0.70445, -0.51% ~1w chg)
+DXY (ICE 6-cur):  100.814  (was 99.750,  +1.07% ~1w chg)
 
 ━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ATR(14) Daily:    $0.00534
-ATR(14) H4:       $0.00219  (trading days only)
-SL (constitution v2): $0.00243 = avg(0.5×D1 0.00267, H4 0.00219)
-D1 ATR now:       $0.00534 | 20d median: $0.00583 → COMPRESSED ✅
+ATR(14) Daily:    $0.00536
+ATR(14) H4:       $0.00234  (trading days only)
+SL (constitution v2): $0.00251 = avg(0.5×D1 0.00268, H4 0.00234)
+D1 ATR now:       $0.00536 | 20d median: $0.00556 → COMPRESSED ✅
 
 Lot sizing ($2000 risk, SL above):
-  Raw lots:  8.23
-  Use lots:  8.23  (floored to 0.01-lot step, min 0.01)
+  Raw lots:  7.968
+  Use lots:  7.96  (floored to 0.01-lot step, min 0.01)
 
-ADX(14) D1:       28.9 → TRENDING (favor continuation/trend setups; floor 6.0)
-EMA 50 D1:        $0.71074 | Price BELOW
-EMA 200 D1:       $0.68981 | Price ABOVE
-RSI(14) D1:       40.8 (was 50.1 10 bars ago, falling)
-Bollinger(20,2):  upper $0.7234 | mid $0.71167 | lower $0.69993 | %B 0.19 → inside bands
+ADX(14) D1:       31.5 → TRENDING (favor continuation/trend setups; floor 6.0)
+EMA 50 D1:        $0.70976 | Price BELOW
+EMA 200 D1:       $0.69038 | Price ABOVE
+RSI(14) D1:       38.3 (was 37.6 10 bars ago, rising)
+Bollinger(20,2):  upper $0.72229 | mid $0.70962 | lower $0.69695 | %B 0.17 → inside bands
 
 RSI D1 (last 10 bars):
-  2026-06-01: 50.1
-  2026-06-02: 51.8
-  2026-06-03: 46.7
-  2026-06-04: 46.2
   2026-06-05: 37.6
   2026-06-08: 36.6
   2026-06-09: 35.0
   2026-06-10: 32.5
   2026-06-11: 41.1
   2026-06-12: 40.8
+  2026-06-15: 44.9
+  2026-06-16: 44.2
+  2026-06-17: 38.8
+  2026-06-18: 38.3
 
 MACD(12,26,9) D1 — last 5 bars:
   Date             MACD   Signal     Hist
-  2026-06-08   -0.00162   -2e-05  -0.0016
-  2026-06-09   -0.00232 -0.00048 -0.00184
-  2026-06-10   -0.00308   -0.001 -0.00207
-  2026-06-11    -0.0032 -0.00144 -0.00176
   2026-06-12   -0.00328 -0.00181 -0.00147
+  2026-06-15   -0.00309 -0.00206 -0.00103
+  2026-06-16   -0.00295 -0.00224 -0.00071
+  2026-06-17    -0.0032 -0.00243 -0.00076
+  2026-06-18   -0.00339 -0.00262 -0.00076
   Histogram NEGATIVE (bearish momentum)
   Cross: MACD below signal (bearish)
 
 ━━━ OSCILLATORS (D1 / H4 — Z2 engine inputs, were eyeballed pre-D025) ━━
-  D1:  Stoch %K 21.5/%D 13.6 (mid) | W%R -70.4 (mid) | CCI -93.5 (mid)
-        Keltner u0.72126/m0.71027/l0.69927 → inside
+  D1:  Stoch %K 24.4/%D 31.5 (mid) | W%R -83.9 (OVERSOLD) | CCI -94.6 (mid)
+        Keltner u0.7198/m0.70818/l0.69657 → inside
         Donchian u0.72004/l0.69789 → mid-channel | TTM squeeze OFF
-        PSAR 0.71455 (short) | Supertrend 0.71787 (down)
-  H4:  Stoch %K 89.0/%D 88.4 (OVERBOUGHT) | W%R -14.4 (OVERBOUGHT) | CCI 103.8 (OVERBOUGHT (>+100))
-        Keltner u0.70809/m0.70423/l0.70037 → inside
-        Donchian u0.70873/l0.69789 → mid-channel | TTM squeeze OFF
-        PSAR 0.70071 (long) | Supertrend 0.70146 (up)
-  EXTREMES: H4 Stoch 89.0 OVERBOUGHT · H4 W%R -14.4 OVERBOUGHT · H4 CCI 103.8 OVERBOUGHT (>+100)
+        PSAR 0.70882 (short) | Supertrend 0.71787 (down)
+  H4:  Stoch %K 24.0/%D 19.7 (mid) | W%R -77.4 (mid) | CCI -63.2 (mid)
+        Keltner u0.70692/m0.70274/l0.69856 → inside
+        Donchian u0.70794/l0.69899 → mid-channel | TTM squeeze OFF
+        PSAR 0.70499 (short) | Supertrend 0.70718 (down)
+  EXTREMES: D1 W%R -83.9 OVERSOLD
 
 ━━━ MARKET STRUCTURE (BOS/CHoCH, fractal N=2) ━━━━━━━━━━━
-  D1: state UP | last CHoCH DOWN @ 0.70983 (2026-06-05 00:00, 5 bars ago)
-  H4: state UP | last BOS UP @ 0.7059 (2026-06-15 00:00, 2 bars ago)
+  D1: state DOWN | last CHoCH DOWN @ 0.70983 (2026-06-05 00:00, 9 bars ago)
+  H4: state DOWN | last BOS DOWN @ 0.70015 (2026-06-19 00:00, 3 bars ago)
 
 ━━━ ENTRY TRIGGERS (E0, latest closed 1H — reclaim > pin/engulf, D027) ━━
-  latest closed 1H bar: 2026-06-15 14:00:00  (RSI 68, Stoch %K 54)
+  latest closed 1H bar: 2026-06-19 15:00:00  (RSI 46, Stoch %K 59)
   LONG-confirm fired:  none
-  SHORT-confirm fired: none
+  SHORT-confirm fired: engulf (bear)
   ✦ = RSI-reclaim is the highest-R E0 gate (backtest); per-pair primary in confluence_criteria. Toward zone dir only.
 
 ━━━ VOLUME PROFILE (6A=F, 3mo daily) ━━━━━━━━━━━━
 VAH: $0.71892
 POC: $0.71591  ← highest volume node
-VAL: $0.70432
+VAL: $0.70518
 VP check: zone within ~8 units of POC/VAH/VAL = confluent
 
 
@@ -93,50 +93,53 @@ Note: net-position extremes vs 1y range = crowded = reversal risk (per-instrumen
 Fetch failed: ETF flows disabled for audusd (no equivalent ETF)
 
 ━━━ WEEKEND GLOBEX GAP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Fri close:   $0.70445  (2026-06-12 20:00:00)
-Sun reopen:  $0.70762  (2026-06-15 00:00:00)
-Gap:         $0.00317  (+0.45%)  → NOTE
-Thresholds: <0.20% NOISE | 0.20–0.50% NOTE | 0.50–1.00% WARNING | >1.00% RE-FORECAST
+No Sunday reopen bar found
 
 ━━━ INTERMARKET (commodity proxies — narrative context, NOT scored) ━━
 PIORECRUSDM 111.6      (Δ1w +0.00%, 20d slope +2.034/day)
-copper     6.49       (Δ1w +2.98%, 20d slope +0.007637/day)
+copper     6.333      (Δ1w -3.28%, 20d slope +0.001212/day)
   Rising copper/iron ore/dairy = risk-on commodity bid → pair-BULLISH context (China-demand proxy). Use in Section 1/4 only.
 
+━━━ NEWS FEED (recent, pair-filtered — context for Section 2) ━━
+  2026-06-19 [FXStreet] Gold Price Forecast: XAU/USD nears $4,100 as  Fed tightening bets rise
+  2026-06-19 [FXStreet] Japanese Yen: Intervention risks rise on Fed stance – UOB
+  2026-06-19 [Investing.com] Higher inflation drives jump in UK budget deficit in May
+  2026-06-19 [FXStreet] Silver extends losses as hawkish Fed, ceasefire curb demand
+  2026-06-19 [FXStreet] United States Dollar: Fed stance and data keep support – Nordea
+  2026-06-19 [FXStreet] Global data: Flash PMIs and inflation focus – Deutsche Bank
+  2026-06-19 [FXStreet] Gold heads for third weekly loss as hawkish Fed rate bets reinforce bearish trend
+  2026-06-19 [FXStreet] Euro steadies as the US Dollar eases, but hawkish Fed bets limit upside
+
 ━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
-baseline_dgs2: 4.05
-baseline_dxy:    99.529
-weekend_gap_pct: 0.45
+baseline_dgs2: 4.2
+baseline_dxy:    100.814
+weekend_gap_pct: N/A
 
 ━━━ WEEKLY PIVOTS (prior week OHLC) ━━━━━━━━━━━━━━━━━━
-R3:0.72997  R2:0.7245  R1:0.71476
-PP:0.70929
-S1:0.69955  S2:0.69408  S3:0.68434
+R3:0.71876  R2:0.71328  R1:0.70886
+PP:0.70338
+S1:0.69896  S2:0.69348  S3:0.68906
 
 ━━━ SWING POINTS (Daily, N=5) ━━━━━━━━━━━━━━━━━━━━━━━━
 Highs: $0.7136(2026-02-26) | $0.71862(2026-03-11) | $0.72208(2026-04-17) | $0.72804(2026-05-06) | $0.72004(2026-05-29)
-Lows:  $0.69452(2026-03-03) | $0.68347(2026-03-30) | $0.71024(2026-04-29) | $0.70802(2026-05-19) | $0.70983(2026-05-28)
+Lows:  $0.68347(2026-03-30) | $0.71024(2026-04-29) | $0.70802(2026-05-19) | $0.70983(2026-05-28) | $0.69789(2026-06-11)
 
 ━━━ SWING POINTS (H4, N=5, trading days) ━━━━━━━━━━━━━
-Highs: $0.70779(2026-06-08) | $0.70779(2026-06-08) | $0.70709(2026-06-09) | $0.70709(2026-06-09) | $0.70372(2026-06-10)
-Lows:  $0.70349(2026-06-08) | $0.70349(2026-06-09) | $0.70052(2026-06-09) | $0.70052(2026-06-09) | $0.69789(2026-06-11)
+Highs: $0.70709(2026-06-09) | $0.70372(2026-06-10) | $0.7088(2026-06-15) | $0.70794(2026-06-16) | $0.70757(2026-06-17)
+Lows:  $0.70052(2026-06-09) | $0.70052(2026-06-09) | $0.69789(2026-06-11) | $0.7044(2026-06-16) | $0.69944(2026-06-17)
 
 ━━━ FIBONACCI (anchored to last D1 swing high/low) ━━━
-Swing: $0.70983 → $0.72004
-  78.6%:      $0.71201
-  61.8%:      $0.71373  ← golden pocket
-  50.0%:      $0.71493
-  38.2%:      $0.71614
-  Ext 127.2%: $0.72282
-  Ext 161.8%: $0.72635  ← TP extension zone
+Swing: $0.69789 → $0.72004
+  78.6%:      $0.70263
+  61.8%:      $0.70635  ← golden pocket
+  50.0%:      $0.70897
+  38.2%:      $0.71158
+  Ext 127.2%: $0.72606
+  Ext 161.8%: $0.73373  ← TP extension zone
 
 ━━━ DAILY OHLCV — last 15 bars ━━━━━━━━━━━━━━━━━━━━━━━
                open     high      low    close
 datetime                                      
-2026-05-26  0.71757  0.71766  0.71559  0.71670
-2026-05-27  0.71670  0.71797  0.71248  0.71416
-2026-05-28  0.71416  0.71696  0.70983  0.71630
-2026-05-29  0.71630  0.72004  0.71489  0.71835
 2026-06-01  0.71781  0.71904  0.71354  0.71605
 2026-06-02  0.71557  0.71877  0.71557  0.71739
 2026-06-03  0.71737  0.71837  0.71268  0.71341
@@ -147,34 +150,38 @@ datetime
 2026-06-10  0.70221  0.70372  0.69853  0.69934
 2026-06-11  0.69934  0.70554  0.69789  0.70476
 2026-06-12  0.70481  0.70590  0.70213  0.70445
-2026-06-15  0.70762  0.70880  0.70652  0.70859
+2026-06-15  0.70762  0.70880  0.70652  0.70720
+2026-06-16  0.70721  0.70794  0.70440  0.70660
+2026-06-17  0.70658  0.70757  0.69944  0.70180
+2026-06-18  0.70178  0.70418  0.70015  0.70130
+2026-06-19  0.70128  0.70243  0.69899  0.70088
 
 ━━━ H4 OHLCV — last 24 bars (trading days) ━━━━━━━━━━━
                         open     high      low    close
 datetime                                               
-2026-06-10 01:00:00  0.70292  0.70309  0.70161  0.70179
-2026-06-10 04:00:00  0.70270  0.70271  0.70094  0.70174
-2026-06-10 05:00:00  0.70180  0.70255  0.70094  0.70107
-2026-06-10 08:00:00  0.70176  0.70182  0.69986  0.70010
-2026-06-10 09:00:00  0.70112  0.70125  0.69996  0.70105
-2026-06-10 12:00:00  0.70011  0.70372  0.70003  0.70207
-2026-06-10 16:00:00  0.70201  0.70266  0.70001  0.70006
-2026-06-10 20:00:00  0.70006  0.70095  0.69853  0.69934
-2026-06-11 00:00:00  0.69934  0.70100  0.69918  0.70020
-2026-06-11 04:00:00  0.70018  0.70125  0.69993  0.70016
-2026-06-11 08:00:00  0.70014  0.70014  0.69914  0.69970
-2026-06-11 12:00:00  0.69970  0.69988  0.69789  0.69941
-2026-06-11 16:00:00  0.69941  0.70554  0.69854  0.70491
-2026-06-11 20:00:00  0.70495  0.70538  0.70425  0.70476
-2026-06-12 00:00:00  0.70481  0.70490  0.70289  0.70401
-2026-06-12 04:00:00  0.70399  0.70453  0.70213  0.70316
-2026-06-12 08:00:00  0.70304  0.70530  0.70302  0.70397
-2026-06-12 12:00:00  0.70399  0.70590  0.70329  0.70474
-2026-06-12 16:00:00  0.70479  0.70529  0.70440  0.70495
-2026-06-12 20:00:00  0.70489  0.70510  0.70433  0.70445
-2026-06-15 00:00:00  0.70762  0.70866  0.70658  0.70819
-2026-06-15 04:00:00  0.70821  0.70873  0.70663  0.70719
-2026-06-15 08:00:00  0.70717  0.70769  0.70680  0.70717
-2026-06-15 12:00:00  0.70717  0.70880  0.70652  0.70859
+2026-06-15 20:00:00  0.70708  0.70749  0.70674  0.70720
+2026-06-16 00:00:00  0.70721  0.70730  0.70558  0.70619
+2026-06-16 04:00:00  0.70618  0.70622  0.70440  0.70602
+2026-06-16 08:00:00  0.70605  0.70789  0.70587  0.70687
+2026-06-16 12:00:00  0.70688  0.70788  0.70636  0.70785
+2026-06-16 16:00:00  0.70783  0.70794  0.70665  0.70667
+2026-06-16 20:00:00  0.70666  0.70708  0.70646  0.70660
+2026-06-17 00:00:00  0.70658  0.70729  0.70603  0.70620
+2026-06-17 04:00:00  0.70619  0.70648  0.70545  0.70640
+2026-06-17 08:00:00  0.70636  0.70649  0.70567  0.70592
+2026-06-17 12:00:00  0.70594  0.70739  0.70594  0.70704
+2026-06-17 16:00:00  0.70705  0.70757  0.69944  0.70071
+2026-06-17 20:00:00  0.70074  0.70202  0.70057  0.70180
+2026-06-18 00:00:00  0.70178  0.70411  0.70163  0.70396
+2026-06-18 04:00:00  0.70397  0.70418  0.70272  0.70330
+2026-06-18 08:00:00  0.70332  0.70336  0.70015  0.70028
+2026-06-18 12:00:00  0.70028  0.70373  0.70023  0.70216
+2026-06-18 16:00:00  0.70213  0.70254  0.70078  0.70148
+2026-06-18 20:00:00  0.70151  0.70221  0.70084  0.70130
+2026-06-19 00:00:00  0.70128  0.70164  0.69978  0.69985
+2026-06-19 04:00:00  0.69998  0.70153  0.69899  0.70103
+2026-06-19 08:00:00  0.70098  0.70204  0.70096  0.70120
+2026-06-19 12:00:00  0.70118  0.70243  0.70079  0.70093
+2026-06-19 16:00:00  0.70095  0.70095  0.70079  0.70088
 
-Generated: 2026-06-15 15:16 UTC (15:16 UTC local)
+Generated: 2026-06-19 16:11 UTC (16:11 UTC local)

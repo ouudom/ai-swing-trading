@@ -6,7 +6,7 @@ and deleted. All values are kept as text (the old all-string CSV convention) —
 churn, exact round-trip. `write_table(..., mirror_csv=)` can still dump a CSV mirror, but
 callers no longer pass it (state registries are DB-only).
 
-Used by: trade_log.py, zone_ledger.py, zone_outcomes.py, live_r.py, weekly_pull.py,
+Used by: zone_ledger.py, zone_outcomes.py, trade_outcome.py, weekly_pull.py,
 ohlc_store.py. Tables are written live by those scripts — there is no CSV import step.
 """
 from __future__ import annotations
@@ -20,9 +20,9 @@ DB = Path("data/database/index.db")
 
 # Index set for the state tables — re-applied after every replace.
 INDEXES = {
-    "trade": [("instrument", "status")],
     "zone_ledger": [("instrument", "week")],
     "zone_outcome": [("instrument", "week")],
+    "trade_outcome": [("instrument", "week")],
 }
 
 

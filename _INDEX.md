@@ -184,9 +184,11 @@
 ## Data
 - `data/database/index.db` — **CANONICAL store** (gitignored, written live by `db.py` + `ohlc_store` + `weekly_pull.py`). All
   tabular data now lives here — the source CSVs were migrated + deleted. Tables:
-  - `trade` — real-trade registry (write via `trade_log.py`; replaces old `trades_log.csv`)
   - `zone_ledger` — published-zone shadow registry (`zone_ledger.py`)
-  - `zone_outcome` — would-be R outcomes per zone (`zone_outcomes.py`)
+  - `zone_outcome` — R1/zone-quality would-be R per zone, midpoint fill (`zone_outcomes.py`)
+  - `trade_outcome` — system P&L: entry-mechanics replay (E0+offset+EC) + gate-accuracy audit
+    (`trade_outcome.py` + `entry_confluence.py`/`config/ec_spec.py`). Replaces the retired hand-logged
+    `trade` table + `/log` skill (D031 — real book was n≈2, never calibratable)
   - `ohlc` — all OHLC bars, cols source/symbol/tf/datetime/o/h/l/c/v (15min master + resampled
     1h/4h/1day, 11 instruments); written live by `ohlc_store.upsert`; read via `db.read_ohlc`
   - `macro_series` — FRED series (series_id/date/value: DFII10, VIXCLS, DGS2/10, ECBDFR, etc.)

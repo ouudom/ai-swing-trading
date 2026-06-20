@@ -1,11 +1,11 @@
 """
 Calibration — edge-performance aggregator + persistent report.
 
-Reads data/zone_outcomes.csv (shadow trades, written by zone_outcomes.py) and, when
-present, data/trades_log.csv (real trades), then writes a sliceable markdown report to
-wiki/system/core/calibration.md. This is the readout the live system needs to KILL dead
-edges and size up working ones — the resolver's stdout summary vanishes; this persists
-and is loaded at session start.
+Reads the zone_outcome table (R1/zone quality, fills at midpoint) and the trade_outcome
+table (R2/entry mechanics + gate accuracy, written by trade_outcome.py), then writes a
+sliceable markdown report to wiki/system/core/calibration.md. This is the readout the
+live system needs to KILL dead edges and size up working ones — the resolver's stdout
+summary vanishes; this persists and is loaded at session start.
 
 Slices (all derived from existing zone_outcomes columns):
   overall · R1 confluence bucket · instrument · direction · instrument×direction ·
@@ -15,8 +15,9 @@ Min-n guard: no win-rate verdict is drawn below --min-n completed trades in a bu
 renders INSUFFICIENT instead. Per-instrument edge verdict: UNPROVEN (n<min) → WORKING /
 DEAD (n>=min, by total-R sign). Avoids over-reading noise — at n=1 everything is UNPROVEN.
 
-R2 (Entry Confluence) calibration needs REAL trades (shadow fills at zone midpoint with no
-E0/offset replay), so its section stays "awaiting live trades" until trades_log.csv fills.
+R2 (Entry Confluence) + Gate Accuracy come from the trade_outcome replay (E0/offset/EC
+applied, every gate evaluated as a non-suppressing flag → counterfactual R per gate), not
+from the retired hand-logged `trade` table (n≈2, never enough to calibrate).
 
 Usage:
     bash scripts/pyrun.sh scripts/calibration.py                 # full report, min-n 10
@@ -40,7 +41,7 @@ import db  # noqa: E402
 from zone_outcomes import COMPLETED_STATUSES, OUTCOMES_CSV, R1_BUCKETS  # noqa: E402
 
 REPORT_MD = Path("wiki/system/core/calibration.md")
-TRADES_CSV = Path("data/trades_log.csv")
+TRADE_OUTCOMES_CSV = Path("data/trade_outcomes.csv")
 DEFAULT_MIN_N = 10
 
 # fill-session tag by UTC hour of fill (informational; overlaps are real-market overlaps).
@@ -177,28 +178,98 @@ def build(df: pd.DataFrame, min_n: int) -> tuple[str, dict]:
     j["by_instrument_direction"] = ixd
     parts.append("")
 
-    # R2 / real-trade section
-    parts += ["## R2 Entry Confluence (real trades only)", ""]
-    real_n = 0
-    rt = db.read_table("trade")                      # canonical; CSV fallback
-    if (rt is None or rt.empty) and TRADES_CSV.exists():
-        rt = pd.read_csv(TRADES_CSV)
-    if rt is not None and not rt.empty:
-        rt = rt.replace("", pd.NA).dropna(how="all")
-        real_n = len(rt[rt["r_actual"].notna()]) if "r_actual" in rt.columns else 0
-    if real_n == 0:
-        parts.append("_Awaiting live trades. Shadow trades fill at the zone midpoint with no "
-                     "E0/offset replay, so Entry Confluence (R2) cannot be calibrated from "
-                     "them — only from real fills in `data/trades_log.csv`._")
-    else:
-        parts.append(f"_{real_n} real trades logged — extend this section to bucket by R2._")
-    parts += ["", "---",
+    # R2 / Entry Confluence + Gate Accuracy — from the trade_outcome replay
+    r2_md, r2_j = build_r2(min_n)
+    parts.append(r2_md)
+    j["r2"] = r2_j
+
+    parts += ["---",
               "_Verdict logic: UNPROVEN/INSUFFICIENT until n≥min-n; then WORKING (total R>0) "
               "or DEAD (total R≤0). Low n = noise; treat WORKING/DEAD as directional, not "
               "final, below ~20 trades._", ""]
-    j["real_trades_n"] = real_n
 
     return "\n".join(parts), j
+
+
+# EC (Entry Confluence) buckets — parallel to R1_BUCKETS. (label, lo_incl, hi_excl).
+EC_BUCKETS = [(">=8.0", 8.0, 99.0), ("6.5–7.9", 6.5, 8.0),
+              ("5.0–6.4", 5.0, 6.5), ("<5.0 (sub-floor)", 0.0, 5.0)]
+GATES = ["V1", "V1b", "V3", "VETO_VIX", "VETO_ADX", "INTERVENTION", "EC_FLOOR"]
+
+
+def build_r2(min_n: int) -> tuple[str, dict]:
+    """R2 Entry Confluence + Gate Accuracy from the trade_outcome table (entry-mechanics
+    replay). Replaces the dead real-trade stub — real fills were n≈2 and never calibrated."""
+    to = db.read_table("trade_outcome")
+    if (to is None or to.empty) and TRADE_OUTCOMES_CSV.exists():
+        to = pd.read_csv(TRADE_OUTCOMES_CSV, dtype={"week": str})
+    out = {"completed_n": 0}
+    parts = ["## R2 — Entry Confluence (trade_outcome replay)", ""]
+    if to is None or to.empty:
+        parts.append("_No trade_outcome rows — run `scripts/trade_outcome.py` first._\n")
+        return "\n".join(parts), out
+
+    to["r_result"] = pd.to_numeric(to.get("r_result"), errors="coerce")
+    to["ec_score"] = pd.to_numeric(to.get("ec_score"), errors="coerce")
+    done = to[to["status"].isin(COMPLETED_STATUSES)].copy()
+    missed = int((to["status"] == "LIMIT_MISSED").sum())
+    out["completed_n"] = len(done)
+
+    parts.append(f"Replayed fills: completed **{len(done)}** · LIMIT_MISSED (offset never "
+                 f"reached = D030 near-miss) **{missed}** · min-n **{min_n}**.\n")
+    parts.append(fmt_stat(stat_row(done, min_n)) if len(done) else
+                 "_No completed replayed fills yet._")
+    parts.append("")
+
+    # EC bucket table
+    parts += ["### By Entry Confluence (EC) bucket", "",
+              "| EC bucket | n | win% | total R | avg R | verdict |", "|---|---|---|---|---|---|"]
+    ec_j = {}
+    if not done.empty:
+        for lbl, lo, hi in EC_BUCKETS:
+            sub = done[(done["ec_score"] >= lo) & (done["ec_score"] < hi)]
+            d = stat_row(sub, min_n)
+            ec_j[lbl] = d
+            if d["n"]:
+                parts.append(f"| {lbl} | {d['n']} | {d['win_pct']:.0%} | {d['total_r']:+.1f} | "
+                             f"{d['avg_r']:+.2f} | {d['verdict']} |")
+    else:
+        parts.append("| _(no completed fills)_ | | | | | |")
+    out["by_ec"] = ec_j
+    parts.append("")
+
+    # Gate accuracy — did blocking/invalidating actually save us?
+    parts += ["### Gate accuracy (was the block correct?)", "",
+              "> Counterfactual: each zone is filled in replay **despite** the gate. A gate "
+              "KEEPS EDGE when its blocked trades net ≤0R (loss avoided); COSTING EDGE when "
+              "they net >0R (winner refused). Replaces the old unverified \"INVALIDATED = "
+              "capital saved\" assumption.", "",
+              "| gate | n blocked | would-be win% | would-be total R | verdict |",
+              "|---|---|---|---|---|"]
+    gate_j = {}
+    fl = to["block_flags"].fillna("")
+    for g in GATES:
+        m = fl.apply(lambda s: g in s.split(",") if s else False)
+        sub = done[m.reindex(done.index, fill_value=False)]
+        n_block = int(m.sum())
+        if sub.empty:
+            gate_j[g] = {"n_blocked": n_block, "completed": 0, "verdict": f"INSUFFICIENT (n<{min_n})"}
+            parts.append(f"| {g} | {n_block} | — | — | INSUFFICIENT |")
+            continue
+        r = pd.to_numeric(sub["r_result"])
+        win = (sub["status"] == "WIN_TP1").mean()
+        if len(sub) < min_n:
+            verdict = f"INSUFFICIENT (n<{min_n})"
+        else:
+            verdict = "KEEPS EDGE" if r.sum() <= 0 else "**COSTING EDGE**"
+        gate_j[g] = {"n_blocked": n_block, "completed": len(sub),
+                     "total_r": round(float(r.sum()), 2), "verdict": verdict}
+        parts.append(f"| {g} | {n_block} | {win:.0%} | {r.sum():+.1f} | {verdict} |")
+    out["gates"] = gate_j
+    parts += ["", f"> D030 offset watch: **{missed}** zones filled at the zone midpoint in "
+              "`zone_outcome` but the entry-mechanics offset limit was never reached — the "
+              "offset is leaving fills (often the winners) on the table.", ""]
+    return "\n".join(parts), out
 
 
 def main():

@@ -91,58 +91,66 @@ export default function Cockpit() {
         )}
       </div>
 
-      {/* Open positions */}
+      {/* System P&L banner — this is the trade_outcome REPLAY, not a real-money book */}
+      <div className="mb-4 rounded border border-neutral-800 px-4 py-2 text-[11px] text-neutral-500">
+        Entry-mechanics <span className="text-neutral-300">replay</span> (trade_outcome): E0 +
+        offset + EC applied to every published zone. No hand-logged trades — this is the system&apos;s
+        own would-be P&amp;L.
+      </div>
+
+      {/* Filled (replay) + cumulative R */}
       <section className="mb-8">
-        <h2 className="mb-2 text-xs uppercase tracking-wider text-neutral-500">
-          Open positions ({data?.open.length ?? 0})
+        <h2 className="mb-2 flex items-baseline gap-3 text-xs uppercase tracking-wider text-neutral-500">
+          Replay fills ({data?.filled.length ?? 0})
+          <span className={`font-semibold ${rColor(totalR)}`}>cum {fmtR(totalR)}</span>
         </h2>
-        {data?.open.length ? (
+        {data?.filled.length ? (
           <table className="w-full border-collapse text-xs">
             <thead className="text-neutral-500">
               <tr className="border-b border-neutral-800 text-left">
                 <th className="py-1 pr-3">instrument</th>
                 <th className="pr-3">dir</th>
+                <th className="pr-3">EC</th>
                 <th className="pr-3">entry</th>
-                <th className="pr-3">SL px</th>
-                <th className="pr-3">live R</th>
+                <th className="pr-3">status</th>
+                <th className="pr-3">R</th>
                 <th className="pr-3">MFE/MAE</th>
-                <th className="pr-3">SL status</th>
-                <th className="pr-3">as of</th>
+                <th className="pr-3">gate</th>
+                <th className="pr-3">verdict</th>
               </tr>
             </thead>
             <tbody>
-              {data.open.map((p) => (
-                <tr key={p.trade_id} className="border-b border-neutral-900">
-                  <td className="py-1 pr-3 uppercase">{p.instrument}</td>
-                  <td className="pr-3">{p.direction}</td>
-                  <td className="pr-3">{fmt(p.entry)}</td>
-                  <td className="pr-3">{fmt(p.sl)}</td>
-                  <td className={`pr-3 font-semibold ${rColor(p.r_current)}`}>
-                    {fmtR(p.r_current)}
+              {data.filled.map((c) => (
+                <tr key={c.trade_id} className="border-b border-neutral-900">
+                  <td className="py-1 pr-3 uppercase">{c.instrument}</td>
+                  <td className="pr-3">{c.direction}</td>
+                  <td className="pr-3 text-neutral-400">{fmt(c.ec_score, 1)}</td>
+                  <td className="pr-3">{fmt(c.entry)}</td>
+                  <td className="pr-3">{c.status}</td>
+                  <td className={`pr-3 font-semibold ${rColor(c.r_result)}`}>
+                    {fmtR(c.r_result)}
                   </td>
                   <td className="pr-3 text-neutral-400">
-                    {fmtR(p.mfe_r)} / {fmtR(p.mae_r)}
+                    {fmtR(c.mfe_r)} / {fmtR(c.mae_r)}
                   </td>
+                  <td className="pr-3 text-amber-300">{c.block_flags || "—"}</td>
                   <td
                     className={`pr-3 ${
-                      p.sl_status === "HIT" ? "text-red-400" : "text-neutral-400"
+                      c.block_verdict === "COSTLY_REFUSED" ? "text-red-400" : "text-neutral-500"
                     }`}
                   >
-                    {p.sl_status}
-                    {p.tp1_touched ? " · TP1✓" : ""}
-                    {p.ambiguous ? " ⚠" : ""}
+                    {c.block_verdict ?? "—"}
                   </td>
-                  <td className="pr-3 text-neutral-600">{p.as_of ?? "—"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <p className="text-neutral-600">No open positions.</p>
+          <p className="text-neutral-600">No replayed fills.</p>
         )}
       </section>
 
-      {/* Pending order limits */}
+      {/* Pending (live week, limit not yet reached) */}
       <section className="mb-8">
         <h2 className="mb-2 text-xs uppercase tracking-wider text-neutral-500">
           Pending limits ({data?.pending.length ?? 0})
@@ -153,10 +161,10 @@ export default function Cockpit() {
               <tr className="border-b border-neutral-800 text-left">
                 <th className="py-1 pr-3">instrument</th>
                 <th className="pr-3">dir</th>
-                <th className="pr-3">entry</th>
-                <th className="pr-3">spot</th>
-                <th className="pr-3">dist-to-fill</th>
-                <th className="pr-3">expiry</th>
+                <th className="pr-3">EC</th>
+                <th className="pr-3">anchor</th>
+                <th className="pr-3">limit</th>
+                <th className="pr-3">E0</th>
               </tr>
             </thead>
             <tbody>
@@ -164,10 +172,10 @@ export default function Cockpit() {
                 <tr key={p.trade_id} className="border-b border-neutral-900">
                   <td className="py-1 pr-3 uppercase">{p.instrument}</td>
                   <td className="pr-3">{p.direction}</td>
-                  <td className="pr-3">{fmt(p.entry)}</td>
-                  <td className="pr-3">{fmt(p.spot)}</td>
-                  <td className="pr-3 text-amber-300">{fmt(p.distance_to_fill, 6)}</td>
-                  <td className="pr-3 text-neutral-600">{p.expiry ?? "—"}</td>
+                  <td className="pr-3 text-neutral-400">{fmt(p.ec_score, 1)}</td>
+                  <td className="pr-3">{fmt(p.anchor)}</td>
+                  <td className="pr-3 text-amber-300">{fmt(p.limit_px)}</td>
+                  <td className="pr-3 text-neutral-500">{p.e0_present ?? "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -177,45 +185,36 @@ export default function Cockpit() {
         )}
       </section>
 
-      {/* Closed trades + cumulative R */}
+      {/* Missed (offset limit never reached = D030 over-wide-offset signal) */}
       <section className="mb-8">
-        <h2 className="mb-2 flex items-baseline gap-3 text-xs uppercase tracking-wider text-neutral-500">
-          Closed ({data?.closed.length ?? 0})
-          <span className={`font-semibold ${rColor(totalR)}`}>
-            cum {fmtR(totalR)}
-          </span>
+        <h2 className="mb-2 text-xs uppercase tracking-wider text-neutral-500">
+          Missed fills · offset never reached ({data?.missed.length ?? 0})
         </h2>
-        {data?.closed.length ? (
+        {data?.missed.length ? (
           <table className="w-full border-collapse text-xs">
             <thead className="text-neutral-500">
               <tr className="border-b border-neutral-800 text-left">
                 <th className="py-1 pr-3">instrument</th>
                 <th className="pr-3">dir</th>
-                <th className="pr-3">week</th>
-                <th className="pr-3">status</th>
-                <th className="pr-3">R</th>
-                <th className="pr-3">reason</th>
-                <th className="pr-3">exit</th>
+                <th className="pr-3">EC</th>
+                <th className="pr-3">anchor</th>
+                <th className="pr-3">limit (unreached)</th>
               </tr>
             </thead>
             <tbody>
-              {data.closed.map((c) => (
-                <tr key={c.trade_id} className="border-b border-neutral-900">
-                  <td className="py-1 pr-3 uppercase">{c.instrument}</td>
-                  <td className="pr-3">{c.direction}</td>
-                  <td className="pr-3 text-neutral-500">{c.week}</td>
-                  <td className="pr-3">{c.status}</td>
-                  <td className={`pr-3 font-semibold ${rColor(c.r_actual)}`}>
-                    {fmtR(c.r_actual)}
-                  </td>
-                  <td className="pr-3 text-neutral-500">{c.exit_reason ?? "—"}</td>
-                  <td className="pr-3 text-neutral-600">{c.exit_time ?? "—"}</td>
+              {data.missed.map((p) => (
+                <tr key={p.trade_id} className="border-b border-neutral-900">
+                  <td className="py-1 pr-3 uppercase">{p.instrument}</td>
+                  <td className="pr-3">{p.direction}</td>
+                  <td className="pr-3 text-neutral-400">{fmt(p.ec_score, 1)}</td>
+                  <td className="pr-3">{fmt(p.anchor)}</td>
+                  <td className="pr-3 text-neutral-500">{fmt(p.limit_px)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <p className="text-neutral-600">No closed trades.</p>
+          <p className="text-neutral-600">No missed fills.</p>
         )}
       </section>
 
@@ -226,7 +225,7 @@ export default function Cockpit() {
         </h2>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
           {INSTRUMENTS.map((inst) => {
-            const hasOpen = data?.open.some((p) => p.instrument === inst);
+            const hasFilled = data?.filled.some((p) => p.instrument === inst);
             const hasPending = data?.pending.some((p) => p.instrument === inst);
             const blocks = gates?.instruments[inst];
             const sev = worstSeverity(blocks);
@@ -250,8 +249,8 @@ export default function Cockpit() {
                     {inst}
                   </span>
                   <span className="text-xs">
-                    {hasOpen ? (
-                      <span className="text-emerald-400">open</span>
+                    {hasFilled ? (
+                      <span className="text-emerald-400">filled</span>
                     ) : hasPending ? (
                       <span className="text-amber-400">pending</span>
                     ) : (

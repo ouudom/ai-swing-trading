@@ -277,7 +277,9 @@ Save to `forecasts/weekly/<INSTRUMENT>/YYYY-WNN.md` (Claude writes markdown dire
    the zone's far edge). NO ZONES published → nothing to register. (Last week's zones for this
    instrument were already resolved in Step 2b; if running a full portfolio, resolve any remaining
    instruments now: `bash scripts/pyrun.sh scripts/zone_outcomes.py --week <prev YYYY-WNN>`.)
-   Then refresh the calibration report (reads the freshly-resolved outcomes):
+   Then replay the entry mechanics for SYSTEM P&L + gate accuracy (R2):
+   `bash scripts/pyrun.sh scripts/trade_outcome.py --week <prev YYYY-WNN>` (→ `trade_outcome` table).
+   Then refresh the calibration report (reads zone_outcome R1 + trade_outcome R2/gate-accuracy):
    `bash scripts/pyrun.sh scripts/calibration.py` → rewrites `wiki/system/core/calibration.md`.
    Scan it: any instrument×direction or R1 bucket flipped to **DEAD** (n≥min-n) → flag in `_HOT.md`
    Pending Actions for a confluence-criteria review before publishing more of that edge.

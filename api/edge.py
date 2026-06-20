@@ -4,7 +4,7 @@ api/edge.py — calibration / edge-performance data for the /edge endpoint (Phas
 Reuses scripts/calibration.build() (the same aggregator that writes calibration.md) for the
 sliceable edge tables — single source of truth, no duplicated stats logic — and adds two views
 the markdown report doesn't expose as data: a confluence→R scatter (completed shadow trades) and
-a shadow(zone_ledger)-vs-real(trade) divergence summary.
+a midpoint(zone_outcome)-vs-entry-mechanics(trade_outcome) divergence summary + gate accuracy.
 
 Most slices read INSUFFICIENT / empty until zones resolve (zone_outcome is PENDING-heavy early) —
 that's expected and rendered gracefully. Self-pins scripts/ path + CWD like the other api modules.
@@ -30,8 +30,6 @@ import calibration  # noqa: E402  (scripts/calibration.py — build/session_of/s
 from zone_outcomes import COMPLETED_STATUSES  # noqa: E402
 
 DEFAULT_MIN_N = getattr(calibration, "DEFAULT_MIN_N", 10)
-
-REAL_CLOSED = {"WIN", "LOSS", "EXPIRED"}
 
 
 def _num(v):
@@ -64,41 +62,57 @@ def _scatter(zo: pd.DataFrame) -> list[dict]:
     return pts
 
 
-def _shadow_vs_real() -> dict[str, Any]:
-    """Per-instrument: published shadow zones vs real closed trades + realized R."""
-    ledger = db.read_table("zone_ledger")
-    trades = db.read_table("trade")
+def _midpoint_vs_entry(min_n: int) -> dict[str, Any]:
+    """Per-instrument: zone_outcome (midpoint fill = zone quality) vs trade_outcome
+    (E0/offset/EC entry mechanics = system P&L), + the gate-accuracy table. Replaces the
+    retired shadow-vs-real(`trade`) view — real fills were n≈2 and never enough."""
+    zo = db.read_table("zone_outcome")
+    to = db.read_table("trade_outcome")
 
     rows: dict[str, dict] = {}
 
     def slot(inst: str) -> dict:
         return rows.setdefault(inst, {
-            "instrument": inst, "shadow_zones": 0,
-            "real_trades": 0, "real_total_r": 0.0,
+            "instrument": inst,
+            "midpoint_fills": 0, "midpoint_total_r": 0.0,
+            "entry_fills": 0, "entry_total_r": 0.0, "missed": 0,
         })
 
-    if not ledger.empty:
-        for inst, c in ledger["instrument"].value_counts().items():
-            slot(str(inst))["shadow_zones"] = int(c)
-
-    real_total = 0.0
-    real_n = 0
-    if not trades.empty:
-        closed = trades[trades["status"].str.upper().isin(REAL_CLOSED)] if "status" in trades else trades
-        for _, t in closed.iterrows():
-            inst = str(t.get("instrument"))
-            r = _num(t.get("r_actual"))
-            s = slot(inst)
-            s["real_trades"] += 1
+    if zo is not None and not zo.empty:
+        done = zo[zo["status"].isin(COMPLETED_STATUSES)]
+        for _, t in done.iterrows():
+            s = slot(str(t.get("instrument")))
+            s["midpoint_fills"] += 1
+            r = _num(t.get("r_result"))
             if r is not None:
-                s["real_total_r"] = round(s["real_total_r"] + r, 2)
-                real_total = round(real_total + r, 2)
-            real_n += 1
+                s["midpoint_total_r"] = round(s["midpoint_total_r"] + r, 2)
+
+    entry_total, entry_n, missed_total = 0.0, 0, 0
+    if to is not None and not to.empty:
+        for _, t in to.iterrows():
+            inst = str(t.get("instrument"))
+            st = str(t.get("status"))
+            s = slot(inst)
+            if st == "LIMIT_MISSED":
+                s["missed"] += 1
+                missed_total += 1
+            elif st in COMPLETED_STATUSES:
+                s["entry_fills"] += 1
+                entry_n += 1
+                r = _num(t.get("r_result"))
+                if r is not None:
+                    s["entry_total_r"] = round(s["entry_total_r"] + r, 2)
+                    entry_total = round(entry_total + r, 2)
+
+    # gate accuracy via the calibration aggregator (single source of truth)
+    _md, r2 = calibration.build_r2(min_n)
 
     return {
         "by_instrument": sorted(rows.values(), key=lambda r: r["instrument"]),
-        "real_trades_total": real_n,
-        "real_total_r": real_total,
+        "entry_fills_total": entry_n,
+        "entry_total_r": entry_total,
+        "missed_total": missed_total,
+        "gates": r2.get("gates", {}),
     }
 
 
@@ -110,7 +124,7 @@ def edge_for(min_n: int | None = None, week: str | None = None) -> dict[str, Any
         return {
             "ok": True, "min_n": min_n, "empty": True,
             "note": "no zone_outcome rows yet — run zone_outcomes.py at /weekly",
-            "summary": {}, "scatter": [], "shadow_vs_real": _shadow_vs_real(),
+            "summary": {}, "scatter": [], "midpoint_vs_entry": _midpoint_vs_entry(min_n),
         }
 
     for c in ("zone_confluence", "r_result", "mfe_r", "mae_r", "sl_dist", "entry"):
@@ -128,5 +142,5 @@ def edge_for(min_n: int | None = None, week: str | None = None) -> dict[str, Any
         "empty": summary.get("completed_n", 0) == 0,
         "summary": summary,          # overall + by_r1/instrument/direction/conviction/session + ixd
         "scatter": _scatter(zo),
-        "shadow_vs_real": _shadow_vs_real(),
+        "midpoint_vs_entry": _midpoint_vs_entry(min_n),
     }

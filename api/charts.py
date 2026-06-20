@@ -98,27 +98,35 @@ def chart_for(instrument: str, tf_label: str = "D1", week: str | None = None) ->
         if zz["zone_bottom"] is not None and zz["zone_top"] is not None
     ]
 
-    # trade price lines (open + pending) for this instrument
+    # entry-mechanics lines from the trade_outcome replay (latest week) for this instrument
     trade_lines = []
-    trades = db.read_table("trade")
-    if not trades.empty:
-        for _, t in trades[trades["instrument"] == inst].iterrows():
-            status = (t.get("status") or "").upper()
-            if status not in ("OPEN", "PENDING"):
-                continue
+    to = db.read_table("trade_outcome")
+    if not to.empty:
+        ti = to[to["instrument"] == inst]
+        if not ti.empty and "week" in ti.columns:
+            ti = ti[ti["week"] == ti["week"].max()]   # most recent replayed week only
 
-            def f(v):
-                try:
-                    return float(v) if v not in (None, "") else None
-                except (TypeError, ValueError):
-                    return None
+        def f(v):
+            try:
+                return float(v) if v not in (None, "") else None
+            except (TypeError, ValueError):
+                return None
 
+        for _, t in ti.iterrows():
+            sign = 1 if (t.get("direction") == "LONG") else -1
+            limit = f(t.get("limit_px"))
+            entry = f(t.get("entry"))
+            sl_dist = f(t.get("sl_dist"))
+            base = entry if entry is not None else limit
+            sl = tp = None
+            if base is not None and sl_dist is not None:
+                sl = round(base - sign * sl_dist, 6)
+                tp = round(base + sign * 2.5 * sl_dist, 6)
             trade_lines.append({
-                "trade_id": t.get("trade_id"), "status": status,
-                "direction": t.get("direction"),
-                "entry": f(t.get("entry")), "sl": f(t.get("sl")),
-                "tp": f(t.get("tp")), "tp2": f(t.get("tp2")),
-                "limit_price": f(t.get("limit_price") if "limit_price" in t else None),
+                "trade_id": t.get("zone_id"), "status": (t.get("status") or "").upper(),
+                "direction": t.get("direction"), "ec_score": f(t.get("ec_score")),
+                "entry": entry, "sl": sl, "tp": tp, "tp2": None,
+                "limit_price": limit,
             })
 
     # BOS/CHoCH markers on the SAME window — pos indexes into `candles`

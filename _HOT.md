@@ -1,40 +1,35 @@
 # _HOT — Boot State (thin)
 *First file read each session. Pointers + non-derivable judgment only.*
 *RULE: **never store a value that can be computed from source** — no live R, SL-hit status, spot,
-EC, ATR, ADX, V1b status, zone prices, lots. Those live in the `trade` table / `forecasts/*` / the
+EC, ATR, ADX, V1b status, zone prices, lots. Those live in the replay tables / `forecasts/*` / the
 pull and must be recomputed, never cached here. This file = current week + open human decisions +
 watch notes + where to look. Hard cap **40 lines.** Prune every session.*
 
 ## Source of truth — read these, don't duplicate them here
-- **Positions / live order limits / closed trades + R** → `trade` table in `data/database/index.db`
-  (`bash scripts/pyrun.sh scripts/trade_log.py list`; PENDING = live limit, LOSS/WIN = closed).
-  Recompute open-position SL/TP touch from the `ohlc` table every /validate.
-- **Current zones / forecasts** → `forecasts/weekly/{inst}/2026-W25.md`
+- **System P&L / would-be R / gate accuracy** → `trade_outcome` table in `data/database/index.db`
+  (`bash scripts/pyrun.sh scripts/trade_outcome.py`; entry-mechanics replay — no hand-logged trades).
+- **Current zones / forecasts** → `forecasts/weekly/{inst}/2026-W25.md` (W26 pending)
 - **Shadow ledger / calibration** → `zone_ledger`/`zone_outcome` tables, `wiki/system/core/calibration.md`
-- **Latest validations** → `forecasts/daily/{inst}/<date>.md`
+- **Latest validations** → `forecasts/daily/{inst}/2026-06-19.md`
 - **Macro baseline** → `wiki/system/core/macro/yield_environment.md`
-- **Design beliefs / history** → `wiki/system/core/decisions.md`, `_INDEX.md`
 
-## Current week — 2026-W25 (Mon 06-15 → Fri 06-19)
-⚠ **HEAVY CB WEEK** — Tue BoJ+RBA · Wed FOMC · Thu BoE+SNB. **NEW POLICY D028 (Pre-Event Flatten):**
-forward-carry is no longer auto-NO-TRADE — entries ALLOWED, order expiry = `event−60min`, fills
-force-flat before the event (gates still apply: event-window ±30min/within-2h-of-open, own-CB-today,
-JPY NO ZONES, EC≥5.0). e.g. a Tue USD-pair entry may run if flat by ~17:00 UTC Wed (FOMC 18:00).
-JPY trio (usdjpy/eurjpy/gbpjpy) **NO ZONES** all week — BoJ 06-16 + active MoF regime (Mimura 06-10).
+## Current week — W25 CLOSED → W26 starts Mon 06-22
+W25: 0 order limits all week. **5 invalidations** (4 at 02:57 UTC + NZDUSD COUNTER LONG V1b at 05:11 UTC).
+**W26 macro rebase required:** DGS2 4.05→4.20, DXY slope20 +1.646 (hawkish FOMC/Warsh week).
+JPY trio: assess post-BoJ; MoF regime still active (spot above triggers).
 
-## Open human decisions (the reason this file exists)
-- none open. (USDCHF W24 long resolved — stopped out, see trades_log.)
+## Open human decisions
+- none open.
 
-## Watch / judgment notes (not computable from data)
-- **US–Iran ceasefire (06-14) + Hormuz reopen** — holds → gold-short/usdcad-long support, risk-on headwind to AUD/NZD shorts. Fragile — wait for hold.
-- **AUDUSD:** W25 SELL expired 06-15; RBA decided 06-16 = own-CB-today HARD all day (D028 doesn't relax). **CB cal** verified only through 06-18 — verify RBNZ H2 / SNB Sep–Dec before /weekly.
-- **Econ-calendar** on Forex Factory free feed (06-15); next-week/`--retro` may need operator's local run.
-- **E0 reclaim (D027)** PENDING ledger validation (pin/engulf fallback counts). **MoF/JPY:** flat through
-  BoJ 06-16; W26 setups = post-BoJ washouts.
+## Watch / judgment notes
+- **W26 USD pairs:** rebase DGS2 to 4.20. DXY +1.646 slope20 = strong USD. All forecasts must reflect.
+  **NEW (D029):** T6 re-forecast trigger live — DGS2 drift >0.15% OR DXY slope20 sign-flip forces re-forecast; counters opposed by a confirmed flip void on sight. Offset retune = D030 OPEN (deferred, n=1).
+- **EURGBP:** D1 CHoCH UP (06-18) + ECB 2.25% vs BoE hold. SECONDARY SHORT V1-invalidated. W26 range may have shifted UP. Reassess PRIMARY LONG zone level.
+- **USDCHF:** Both W25 zones invalidated. DXY slope reversal = no short thesis. W26 = neutral/long reassess.
+- **NZDUSD COUNTER LONG:** V1b INVALIDATED at 05:11 UTC (H4 closes 0.57369+0.57256 below thr 0.57460). W26 reassess needed (spot ~0.572; strong USD week).
+- **CB cal:** update to cover W26 window before /weekly. RBNZ H2 / SNB Sep–Dec dates needed.
+- **E0 reclaim (D027):** PENDING ledger validation (pin/engulf fallback still counts).
 
 ## Last session
-2026-06-17 04:07 UTC — /validate ALL (FOMC day, hourly). **0 order limits — blanket hard-block day.**
-FOMC decision 18:00 UTC = own-CB-today HARD for all 8 USD pairs (xauusd/eurusd/gbpusd/audusd/nzdusd/
-usdcad/usdchf/usdjpy) — D028 carve-out does NOT relax own-CB-today. eurgbp HARD: UK CPI tier-1 06:00
-UTC + BoE 06-18. JPY trio NO ZONES (standing W25). All zones remain PENDING/NO_TRADE 06-17. No open
-positions. Tomorrow 06-18 = BoE+SNB (gbpusd/eurgbp/gbpjpy/usdchf still blocked). Next D1 close 06-18 00:00.
+2026-06-19 16:13 UTC — /validate hourly (W25 late-session). **0 order limits. 0 new invalidations.** All 8 standing zones out of range (fresh 16:00 bars confirm AUDUSD/EURGBP nearest, still outside). No CB decisions + no high-impact US releases in window. AUDUSD COUNTER LONG out-of-range (also ADX hard-veto). W25 zones expire 21:00 UTC tonight.
+Prior (15:01 UTC): 0 limits, 0 invalidations. W25 total = 5 invalidations, 0 fills.

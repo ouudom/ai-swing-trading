@@ -21,7 +21,6 @@ os.chdir(ROOT)
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import db  # noqa: E402  (scripts/db.py)
-import live_r  # noqa: E402  (scripts/live_r.py — live_metrics)
 from fastapi import FastAPI, Query  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from api.gates import gates_for  # noqa: E402
@@ -40,26 +39,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-OPEN = {"OPEN"}
-PENDING = {"PENDING"}
-CLOSED = {"WIN", "LOSS", "EXPIRED"}
-
-
 def _f(v):
     try:
         return float(v) if v not in (None, "") else None
     except (TypeError, ValueError):
         return None
-
-
-def _last_close(instrument: str, tf: str = "1h"):
-    """Latest close for an instrument (recomputed reference price, not cached)."""
-    bars = db.read_ohlc(db.clean_symbol(instrument), tf)
-    if bars.empty:
-        return None, None
-    b = bars.sort_values("datetime")
-    last = b.iloc[-1]
-    return _f(last["close"]), str(last["datetime"])
 
 
 @app.get("/gates")
@@ -95,7 +79,7 @@ def edge(
     min_n: int | None = Query(default=None, description="min completed trades before a verdict"),
     week: str | None = Query(default=None, description="restrict to one ISO week"),
 ):
-    """Calibration / edge performance: sliceable shadow-trade stats + confluence→R scatter + shadow-vs-real."""
+    """Calibration / edge performance: sliceable shadow-trade stats + confluence→R scatter + midpoint-vs-entry-mechanics + gate accuracy."""
     return edge_for(min_n, week)
 
 
@@ -121,78 +105,60 @@ def health():
     return {"ok": True, "db": str(db.DB), "exists": Path(db.DB).exists()}
 
 
+_TO_COMPLETED = {"WIN_TP1", "LOSS_SL", "BREAKEVEN"}
+
+
 @app.get("/positions")
 def positions(tf: str = "1h"):
-    """Open positions (live R recomputed), pending limits (distance-to-fill), closed (stored R)."""
-    df = db.read_table("trade")
-    out = {"open": [], "pending": [], "closed": [], "as_of": None}
+    """System P&L from the trade_outcome replay — there are no hand-logged live positions:
+    filled (completed replay fills + R), pending (live-week limits not yet filled), missed
+    (offset limit never reached = D030), and a cumulative-R curve over completed fills."""
+    df = db.read_table("trade_outcome")
+    out = {"filled": [], "pending": [], "missed": [], "as_of": None}
     if df.empty:
+        out["r_curve"] = []
         return out
 
     for _, row in df.iterrows():
         t = row.to_dict()
         status = (t.get("status") or "").upper()
         base = {
-            "trade_id": t.get("trade_id"),
+            "trade_id": t.get("zone_id"),
             "instrument": t.get("instrument"),
             "direction": t.get("direction"),
-            "setup": t.get("setup"),
+            "label": t.get("label"),
             "week": t.get("week"),
+            "ec_score": _f(t.get("ec_score")),
+            "anchor": _f(t.get("anchor")),
+            "limit_px": _f(t.get("limit_px")),
             "entry": _f(t.get("entry")),
-            "sl": _f(t.get("sl")),
-            "tp": _f(t.get("tp")),
-            "tp2": _f(t.get("tp2")),
-            "lots": _f(t.get("lots")),
-            "r_planned": _f(t.get("r_planned")),
+            "sl_dist": _f(t.get("sl_dist")),
+            "offset": _f(t.get("offset")),
         }
-
-        if status in OPEN:
-            bars = db.read_ohlc(db.clean_symbol(t["instrument"]), tf)
-            m = live_r.live_metrics(t, bars)
-            out["open"].append({**base, **{
-                "r_current": m["r_current"],
-                "sl_status": m["sl_status"],
-                "outcome": m["outcome"],
-                "tp1_touched": m["tp1_touched"],
-                "tp2_touched": m["tp2_touched"],
-                "mfe_r": m["mfe_r"],
-                "mae_r": m["mae_r"],
-                "last_px": m["last_px"],
-                "as_of": m["as_of"],
-                "ambiguous": m["ambiguous"],
-            }})
-
-        elif status in PENDING:
-            spot, as_of = _last_close(t["instrument"], tf)
-            entry = base["entry"]
-            dist = None
-            if spot is not None and entry is not None:
-                dist = round(abs(spot - entry), 6)
-            out["pending"].append({**base, **{
-                "spot": spot,
-                "distance_to_fill": dist,
-                "expiry": t.get("expiry"),
-                "as_of": as_of,
-            }})
-
-        else:  # closed / expired — stored outcome is authoritative
-            out["closed"].append({**base, **{
+        if status in _TO_COMPLETED:
+            out["filled"].append({**base, **{
                 "status": status,
-                "r_actual": _f(t.get("r_actual")),
-                "exit_reason": t.get("exit_reason"),
-                "exit_time": t.get("exit_time"),
+                "r_result": _f(t.get("r_result")),
+                "mfe_r": _f(t.get("mfe_r")),
+                "mae_r": _f(t.get("mae_r")),
                 "fill_time": t.get("fill_time"),
+                "exit_time": t.get("exit_time"),
+                "block_flags": t.get("block_flags"),
+                "block_verdict": t.get("block_verdict"),
             }})
+        elif status == "LIMIT_MISSED":
+            out["missed"].append({**base, "e0_present": t.get("e0_present")})
+        elif status in ("PENDING",):
+            out["pending"].append({**base, "e0_present": t.get("e0_present")})
 
-    # cumulative realized R, oldest→newest by exit_time
-    closed_sorted = sorted(
-        (c for c in out["closed"] if c["r_actual"] is not None),
+    # cumulative replayed R, oldest→newest by exit_time
+    done = sorted(
+        (c for c in out["filled"] if c["r_result"] is not None),
         key=lambda c: c.get("exit_time") or "",
     )
-    cum = 0.0
-    curve = []
-    for c in closed_sorted:
-        cum = round(cum + c["r_actual"], 3)
+    cum, curve = 0.0, []
+    for c in done:
+        cum = round(cum + c["r_result"], 3)
         curve.append({"exit_time": c["exit_time"], "trade_id": c["trade_id"], "cum_r": cum})
     out["r_curve"] = curve
     return out

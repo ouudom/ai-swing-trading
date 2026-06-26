@@ -1,0 +1,181 @@
+
+╔══════════════════════════════════════════════════════╗
+  GBPJPY WEEKLY DATA — 2026-06-25 (W26)
+╚══════════════════════════════════════════════════════╝
+
+━━━ MACRO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠ GBPJPY CROSS — one-leg macro (no daily BoJ policy rate series); LOW-weight NON-SCORING tilt.
+  GBP SONIA (IUDSOIA): 3.73%  (was 3.73% 20d ago, Δ +0.00%)
+  → FLAT (policy step unchanged)
+VIX:              18.63  (carry barometer — polarity per-pair, see signal-results)
+
+━━━ PRICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GBPJPY:          $213.498 (was $212.965, +0.25% ~1w chg)
+
+
+━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ATR(14) Daily:    $1.211
+ATR(14) H4:       $0.424  (trading days only)
+SL (constitution v2): $0.515 = avg(0.5×D1 0.606, H4 0.424)
+D1 ATR now:       $1.211 | 20d median: $0.95 → EXPANDING ⚠
+
+Lot sizing ($2000 risk, SL above):
+  Raw lots:  5.975
+  Use lots:  5.97  (floored to 0.01-lot step, min 0.01)
+
+ADX(14) D1:       15.5 → RANGING (favor reversal/counter at zone edges; floor 6.0)
+EMA 50 D1:        $213.75 | Price BELOW
+EMA 200 D1:       $209.489 | Price ABOVE
+RSI(14) D1:       42.7 (was 56.0 10 bars ago, falling)
+Bollinger(20,2):  upper $215.684 | mid $214.245 | lower $212.805 | %B 0.06 → inside bands
+
+RSI D1 (last 10 bars):
+  2026-06-11: 56.0
+  2026-06-12: 56.1
+  2026-06-15: 57.2
+  2026-06-16: 60.3
+  2026-06-17: 45.2
+  2026-06-18: 41.1
+  2026-06-19: 45.0
+  2026-06-22: 49.6
+  2026-06-23: 44.7
+  2026-06-24: 42.7
+
+MACD(12,26,9) D1 — last 5 bars:
+  Date             MACD   Signal     Hist
+  2026-06-18      0.087    0.215   -0.129
+  2026-06-19      0.015    0.175    -0.16
+  2026-06-22      0.007    0.142   -0.134
+  2026-06-23     -0.057    0.102   -0.159
+  2026-06-24     -0.134    0.055   -0.189
+  Histogram NEGATIVE (bearish momentum)
+  Cross: MACD below signal (bearish)
+
+━━━ OSCILLATORS (D1 / H4 — Z2 engine inputs, were eyeballed pre-D025) ━━
+  D1:  Stoch %K 30.7/%D 32.6 (mid) | W%R -84.3 (OVERSOLD) | CCI -100.5 (OVERSOLD (<-100))
+        Keltner u216.274/m213.959/l211.644 → inside
+        Donchian u215.616/l212.486 → mid-channel | TTM squeeze ON (9 bars)
+        PSAR 214.945 (short) | Supertrend 216.298 (down)
+  H4:  Stoch %K 36.2/%D 33.5 (mid) | W%R -76.6 (mid) | CCI -51.9 (mid)
+        Keltner u214.093/m213.287/l212.481 → inside
+        Donchian u214.693/l212.565 → mid-channel | TTM squeeze OFF
+        PSAR 213.949 (short) | Supertrend 214.101 (down)
+  EXTREMES: D1 W%R -84.3 OVERSOLD · D1 CCI -100.5 OVERSOLD (<-100) · D1 TTM squeeze ON 9b
+
+━━━ MARKET STRUCTURE (BOS/CHoCH, fractal N=2) ━━━━━━━━━━━
+  D1: state DOWN | last BOS UP @ 215.23971 (2026-06-16 00:00, 6 bars ago)
+  H4: state MIXED | last BOS DOWN @ 212.97762 (2026-06-24 08:00, 6 bars ago)
+
+━━━ ENTRY TRIGGERS (E0, latest closed 1H — reclaim > pin/engulf, D027) ━━
+  latest closed 1H bar: 2026-06-25 12:00:00  (RSI 53, Stoch %K 42)
+  LONG-confirm fired:  engulf (bull)
+  SHORT-confirm fired: none
+  ✦ = RSI-reclaim is the highest-R E0 gate (backtest); per-pair primary in confluence_criteria. Toward zone dir only.
+
+━━━ VOLUME PROFILE (disabled, 3mo daily) ━━━━━━━━━━━━
+VP disabled for gbpjpy (no usable futures proxy)
+VP check: zone within ~8 units of POC/VAH/VAL = confluent
+
+━━━ TIME-AT-PRICE (H1 acceptance — VP substitute, NOT volume) ━━
+HTN (most-accepted): 214.771
+Value area: 213.613 – 215.491 (70% of time)
+Use as S/R confluence like a POC/VA — acceptance, not traded volume.
+
+
+━━━ COT — CFTC FUTURES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fetch failed: COT disabled for gbpjpy (system TBD)
+
+━━━ ETF FLOWS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fetch failed: ETF flows disabled for gbpjpy (no equivalent ETF)
+
+━━━ WEEKEND GLOBEX GAP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fri close:   $213.434  (2026-06-19 20:00:00)
+Sun reopen:  $213.21  (2026-06-22 00:00:00)
+Gap:         $-0.224  (-0.105%)  → NOISE
+Thresholds: <0.20% NOISE | 0.20–0.50% NOTE | 0.50–1.00% WARNING | >1.00% RE-FORECAST
+
+━━━ NEWS FEED (recent, pair-filtered — context for Section 2) ━━
+  2026-06-25 [FXStreet] CEE FX: Stronger Dollar and Fed risks weigh – ING
+  2026-06-25 [FXStreet] Japanese Yen: Stretched JPY shorts raise intervention risk – ABN AMRO
+  2026-06-25 [FXStreet] Euro slips against the British Pound as easing Oil prices temper ECB rate-hike bets
+  2026-06-25 [FXStreet] Breaking: US core PCE inflation rises to 3.4% in May as anticipated
+  2026-06-25 [FXStreet] United States Q1 GDP Growth Rate came in at 2.1%
+  2026-06-25 [Investing.com] Japan likely to hold off on fresh yen intervention until USD/JPY nears 160
+  2026-06-25 [Investing.com] Dollar reverses course, turns lower as inflation data mostly matches expectations
+  2026-06-25 [Investing.com] Sterling today: Pound takes a breather as risk sentiment steadies
+
+━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
+baseline_sonia_rate: 3.729
+baseline_dxy:    101.492
+weekend_gap_pct: -0.105
+
+━━━ WEEKLY PIVOTS (prior week OHLC) ━━━━━━━━━━━━━━━━━━
+R3:218.263  R2:216.918  R1:215.176
+PP:213.831
+S1:212.089  S2:210.743  S3:209.001
+
+━━━ SWING POINTS (Daily, N=5) ━━━━━━━━━━━━━━━━━━━━━━━━
+Highs: $215.939(2026-04-15) | $216.609(2026-04-30) | $214.441(2026-05-11) | $215.616(2026-06-05) | $215.573(2026-06-16)
+Lows:  $207.252(2026-02-17) | $209.704(2026-03-31) | $210.589(2026-04-30) | $211.309(2026-05-15) | $212.937(2026-06-08)
+
+━━━ SWING POINTS (H4, N=5, trading days) ━━━━━━━━━━━━━
+Highs: $215.24(2026-06-10) | $215.24(2026-06-10) | $215.381(2026-06-15) | $215.573(2026-06-16) | $214.693(2026-06-22)
+Lows:  $214.342(2026-06-10) | $213.905(2026-06-11) | $214.541(2026-06-16) | $212.486(2026-06-19) | $212.565(2026-06-24)
+
+━━━ FIBONACCI (anchored to last D1 swing high/low) ━━━
+Swing: $212.937 → $215.573
+  78.6%:      $213.501
+  61.8%:      $213.944  ← golden pocket
+  50.0%:      $214.255
+  38.2%:      $214.566
+  Ext 127.2%: $216.29
+  Ext 161.8%: $217.202  ← TP extension zone
+
+━━━ DAILY OHLCV — last 15 bars ━━━━━━━━━━━━━━━━━━━━━━━
+               open     high      low    close
+datetime                                      
+2026-06-05  214.759  215.616  213.533  213.843
+2026-06-08  213.806  214.049  212.937  213.599
+2026-06-09  213.595  214.797  213.513  214.461
+2026-06-10  214.465  215.240  214.342  214.497
+2026-06-11  214.500  214.948  213.905  214.824
+2026-06-12  214.829  215.031  214.580  214.832
+2026-06-15  215.163  215.381  214.880  214.973
+2026-06-16  214.974  215.573  214.541  215.393
+2026-06-17  215.397  215.448  213.233  213.622
+2026-06-18  213.617  214.078  212.521  212.965
+2026-06-19  212.973  213.556  212.486  213.434
+2026-06-22  213.210  214.693  213.210  214.050
+2026-06-23  214.045  214.209  212.978  213.313
+2026-06-24  213.317  213.506  212.565  212.976
+2026-06-25  212.981  213.551  212.816  213.498
+
+━━━ H4 OHLCV — last 24 bars (trading days) ━━━━━━━━━━━
+                        open     high      low    close
+datetime                                               
+2026-06-19 16:00:00  213.244  213.556  213.234  213.439
+2026-06-19 20:00:00  213.416  213.537  213.323  213.434
+2026-06-22 00:00:00  213.210  213.707  213.210  213.473
+2026-06-22 04:00:00  213.485  213.727  213.363  213.423
+2026-06-22 08:00:00  213.406  214.236  213.267  214.142
+2026-06-22 12:00:00  214.139  214.693  213.598  213.966
+2026-06-22 16:00:00  213.971  214.175  213.766  214.090
+2026-06-22 20:00:00  214.108  214.190  213.955  214.050
+2026-06-23 00:00:00  214.045  214.102  213.861  214.050
+2026-06-23 04:00:00  214.036  214.209  213.508  213.571
+2026-06-23 08:00:00  213.585  213.624  213.258  213.443
+2026-06-23 12:00:00  213.447  213.562  212.978  213.098
+2026-06-23 16:00:00  213.091  213.250  213.001  213.233
+2026-06-23 20:00:00  213.229  213.374  213.204  213.313
+2026-06-24 00:00:00  213.317  213.373  213.068  213.243
+2026-06-24 04:00:00  213.245  213.506  213.101  213.291
+2026-06-24 08:00:00  213.301  213.455  212.621  212.764
+2026-06-24 12:00:00  212.772  213.039  212.565  212.859
+2026-06-24 16:00:00  212.855  213.113  212.819  212.975
+2026-06-24 20:00:00  212.980  213.118  212.897  212.976
+2026-06-25 00:00:00  212.981  213.232  212.816  213.188
+2026-06-25 04:00:00  213.192  213.372  213.096  213.342
+2026-06-25 08:00:00  213.333  213.551  212.916  212.950
+2026-06-25 12:00:00  212.940  213.530  212.940  213.498
+
+Generated: 2026-06-25 13:40 UTC (13:40 UTC local)

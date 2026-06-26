@@ -127,6 +127,7 @@ FRED_KEY   = os.getenv("FRED_KEY")
 # (e.g. Jan 1 can belong to ISO week 53 of the PRIOR year).
 TODAY    = datetime.now(timezone.utc)
 YEAR, WEEK_NUM, _ = TODAY.isocalendar()
+ALLOW_IMMUTABLE_REWRITE = False  # set by --rewrite-immutable; overrides the weekly-pull freeze guard
 
 # Defaults — overridden by load_instrument(). These match xauusd/config.py
 # so legacy callers (compute.py, fetch.py) work without explicit load_instrument().
@@ -1449,6 +1450,17 @@ Swing: ${fibs['swing_low']} → ${fibs['swing_high']}
 Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')} UTC ({datetime.now().astimezone().strftime('%H:%M %Z')} local)
 """
     PULL_DIR.mkdir(parents=True, exist_ok=True)
+    # Immutability guard (File Rules): a weekly_pull_*.txt is frozen after its week's Monday open.
+    # The target week is always the current ISO week, so the only clobber risk is a same-week
+    # re-pull on a later day (e.g. a Sunday --force overwriting Monday's frozen snapshot — the
+    # 2026-W25 JPY incident). Refuse to overwrite a snapshot first written on an earlier calendar
+    # day unless explicitly overridden.
+    if out_path.exists() and not ALLOW_IMMUTABLE_REWRITE:
+        created = datetime.fromtimestamp(out_path.stat().st_mtime).date()
+        if created < datetime.now().date():
+            print(f"🛑 IMMUTABLE: {out_path.name} frozen since {created} (File Rules). "
+                  f"Refusing overwrite — pass --rewrite-immutable to override.")
+            return str(out_path)
     out_path.write_text(out)
     print(out)
     print(f"✅ Saved to {out_path}")
@@ -1461,7 +1473,10 @@ if __name__ == "__main__":
     ap.add_argument("--instrument", default="xauusd",
                     choices=list(REGISTERED_INSTRUMENTS) + ["all"],
                     help="Instrument to run (default: xauusd). 'all' runs every registered instrument.")
+    ap.add_argument("--rewrite-immutable", action="store_true",
+                    help="Override the weekly-pull freeze guard (allow overwriting a prior-day snapshot)")
     args = ap.parse_args()
+    ALLOW_IMMUTABLE_REWRITE = args.rewrite_immutable
 
     to_run = list(REGISTERED_INSTRUMENTS) if args.instrument == "all" else [args.instrument]
     for inst in to_run:

@@ -35,6 +35,13 @@ scored by **Zone Confluence** (max 10, floor 5.0 — `wiki/system/{instrument}/c
 3. `wiki/system/{instrument}/confluence_criteria.md` — Zone Confluence (R1) signal set + weights
 4. `wiki/system/{instrument}/{instrument}_profile.md` — drivers, sessions, ATR, events
 
+## Step 0b — DB durability preflight (MANDATORY — never skip)
+```bash
+bash scripts/pyrun.sh scripts/db_guard.py all   # WAL checkpoint → integrity check → rotating backup
+```
+Non-zero exit = corrupt store. **STOP** and recover (`sqlite3 index.db .recover | sqlite3 fixed.db`)
+before publishing zones — the DB is the source of truth.
+
 ## Step 1 — Fetch Data
 ```bash
 bash scripts/pyrun.sh scripts/weekly_pull.py --instrument <INSTRUMENT>   # cache gate → fetch → compute

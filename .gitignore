@@ -19,6 +19,12 @@ __pycache__/
 # Data — track small artifacts (weekly_pull txt, cftc zips); ignore the big rebuildable
 # SQLite store + WAL sidecars + local SQL backups (all under data/database/).
 data/database/
+# Runtime logs + replay-derived CSV — churn every run, rebuilt from source / the DB.
+data/logs/
+data/trade_outcomes.csv
+# Provider OHLC caches + quarantine logs — DB is source of truth; CSVs are throwaway pull caches.
+data/twelvedata/
+*_quarantine.csv
 
 # Claude local — ignore settings but SHARE commands/
 .claude/*

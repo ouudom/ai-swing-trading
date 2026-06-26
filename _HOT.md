@@ -8,28 +8,35 @@ watch notes + where to look. Hard cap **40 lines.** Prune every session.*
 ## Source of truth — read these, don't duplicate them here
 - **System P&L / would-be R / gate accuracy** → `trade_outcome` table in `data/database/index.db`
   (`bash scripts/pyrun.sh scripts/trade_outcome.py`; entry-mechanics replay — no hand-logged trades).
-- **Current zones / forecasts** → `forecasts/weekly/{inst}/2026-W25.md` (W26 pending)
+- **Current zones / forecasts** → `forecasts/weekly/{inst}/2026-W26.md` (PENDING)
 - **Shadow ledger / calibration** → `zone_ledger`/`zone_outcome` tables, `wiki/system/core/calibration.md`
-- **Latest validations** → `forecasts/daily/{inst}/2026-06-19.md`
+- **Latest validations** → `forecasts/daily/{inst}/2026-06-26.md`
 - **Macro baseline** → `wiki/system/core/macro/yield_environment.md`
 
-## Current week — W25 CLOSED → W26 starts Mon 06-22
-W25: 0 order limits all week. **5 invalidations** (4 at 02:57 UTC + NZDUSD COUNTER LONG V1b at 05:11 UTC).
-**W26 macro rebase required:** DGS2 4.05→4.20, DXY slope20 +1.646 (hawkish FOMC/Warsh week).
-JPY trio: assess post-BoJ; MoF regime still active (spot above triggers).
+## Current week — W26 LIVE (Mon 06-22 → Fri 06-26). weekly_reforecast_count = 0.
+All 11 forecasts published 06-21. Macro: hawkish FOMC USD-bull regime (DGS2 4.20, DXY slope +1.65).
+W26 zones PENDING (read forecasts/weekly for exact boxes — never cache numbers here):
+- xauusd SHORT ×2 (nearer-resistance fix) · gbpusd SHORT + COUNTER-LONG
+- eurgbp SHORT(top) · usdchf LONG + COUNTER-SHORT · gbpjpy LONG(weak,capped)
+- **INVALIDATED:** nzdusd PRIMARY-LONG (V1b 06-23 <0.5696) · eurusd COUNTER-LONG (V1b 06-23, 2 H4 closes <1.1415) · eurgbp SECONDARY-LONG (V1b 06-24 04:00, 2 H4 closes <0.8621: 0.86124/0.86129)
+- **NO ZONES:** audusd (ADX31 trend) · usdcad (RSI85 blow-off, ADX41) · usdjpy + eurjpy (MoF HARD-BLOCK longs)
 
 ## Open human decisions
 - none open.
 
 ## Watch / judgment notes
-- **W26 USD pairs:** rebase DGS2 to 4.20. DXY +1.646 slope20 = strong USD. All forecasts must reflect.
-  **NEW (D029):** T6 re-forecast trigger live — DGS2 drift >0.15% OR DXY slope20 sign-flip forces re-forecast; counters opposed by a confirmed flip void on sight. Offset retune = D030 OPEN (deferred, n=1).
-- **EURGBP:** D1 CHoCH UP (06-18) + ECB 2.25% vs BoE hold. SECONDARY SHORT V1-invalidated. W26 range may have shifted UP. Reassess PRIMARY LONG zone level.
-- **USDCHF:** Both W25 zones invalidated. DXY slope reversal = no short thesis. W26 = neutral/long reassess.
-- **NZDUSD COUNTER LONG:** V1b INVALIDATED at 05:11 UTC (H4 closes 0.57369+0.57256 below thr 0.57460). W26 reassess needed (spot ~0.572; strong USD week).
-- **CB cal:** update to cover W26 window before /weekly. RBNZ H2 / SNB Sep–Dec dates needed.
+- **T6 re-forecast trigger live (D029):** DGS2 drift >0.15% from 4.20 OR DXY slope20 sign-flip → re-forecast USD pairs; counters opposed by a confirmed flip void on sight. Offset retune = D030 OPEN (deferred, n=1).
+- **MoF regime ACTIVE (Katayama "decisive action" G7 06-19):** usdjpy + eurjpy longs HARD-BLOCKED; gbpjpy oscillates around the 214 level → CAUTION when <214 (cap LONG MEDIUM), HARD-BLOCK when ≥214 — recheck spot each run (213.15 @04:14 UTC = CAUTION, not hard-block). intervention_watch verified_through 2026-06-28.
+- **Recurring lesson (xauusd W24+W25):** far-resistance shorts never fill in fast selloffs → W26 PRIMARY placed at nearer resistance.
+- **Recurring lesson (eurusd/gbpusd/nzdusd):** counter-macro dip-buys into strong USD keep getting stopped → all W26 long-fades capped + lower zones + mandatory E0 reclaim.
+- **usdcad/audusd:** strong ADX (>30) starves fades both ways — correctly NO ZONES; re-arm only when ADX cools or extreme appears.
 - **E0 reclaim (D027):** PENDING ledger validation (pin/engulf fallback still counts).
 
 ## Last session
-2026-06-19 16:13 UTC — /validate hourly (W25 late-session). **0 order limits. 0 new invalidations.** All 8 standing zones out of range (fresh 16:00 bars confirm AUDUSD/EURGBP nearest, still outside). No CB decisions + no high-impact US releases in window. AUDUSD COUNTER LONG out-of-range (also ADX hard-veto). W25 zones expire 21:00 UTC tonight.
-Prior (15:01 UTC): 0 limits, 0 invalidations. W25 total = 5 invalidations, 0 fills.
+2026-06-26 — **DB recovered + project cleanup.** `index.db` was badly corrupt (Tree-10/ohlc, not
+just news) → `.recover` into fresh DB (integrity ok), parked corrupt as `index.corrupt_*.db`. news
+re-pulled (10 rows). Calibration refreshed → **Overall DEAD −4.5R / 19% / n=16** (the stale 06-21
+stamp lied "WORKING"). New durability guard `scripts/db_guard.py` (checkpoint→check→backup) wired as
+MANDATORY Step 0b in /weekly + /validate; db.py now busy_timeout+synchronous=NORMAL. weekly_pull.py
+immutability guard added (refuses prior-day overwrite; restored clobbered W25 JPY trio). Logs +
+trade_outcomes.csv un-tracked (gitignored). Removed 7 scratch scripts + docs/ orphan.

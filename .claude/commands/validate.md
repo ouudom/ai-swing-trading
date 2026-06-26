@@ -40,6 +40,13 @@ Read the instrument's `wiki/system/{instrument}/confluence_criteria.md` (R2) and
 `wiki/system/{instrument}/{instrument}_profile.md` before scoring. FX uses a DIFFERENT R2 than
 gold (mean-reversion oscillators, not H4-structure + real-yield).
 
+## Step 0b — DB durability preflight (MANDATORY — never skip)
+```bash
+bash scripts/pyrun.sh scripts/db_guard.py all   # WAL checkpoint → integrity check → rotating backup
+```
+Non-zero exit = the canonical store is corrupt. **STOP** — do not write zones/ledger into a corrupt
+DB. Recover first: `sqlite3 data/database/index.db .recover | sqlite3 fixed.db`, swap in, re-run.
+
 ## Step 1 — Load State
 Read `_HOT.md` — all PENDING zones for THIS instrument (box, direction, zone confluence score,
 baseline values, macro confidence, linked weekly file). Read linked weekly frontmatter. No PENDING
@@ -348,15 +355,27 @@ Save `forecasts/daily/<INSTRUMENT>/[DATE].md` using `wiki/system/templates/daily
 (Claude writes the forecast markdown directly). Then update `_HOT.md`: per-zone verdict; remove
 INVALIDATED; record limit/SL/TP/expiry on ORDER LIMIT; move filled to Open Position; update Risk Used.
 
-**Write each zone's verdict back to the ledger** (one call per validated zone) so the frontend
-reads per-zone status/R2/limit from the `zone_ledger` table instead of scraping this markdown:
+Write each zone's verdict back to the ledger (one call per validated zone) so the frontend reads per-zone status/R2/limit from the `zone_ledger` table instead of scraping this markdown:
 ```
 bash scripts/pyrun.sh scripts/zone_ledger.py validate \
     --zone-id <instrument>-<week>-<LABEL> --verdict ORDER_LIMIT|NO_TRADE|INVALIDATED \
-    [--entry-confluence <R2>] [--limit-price <price on ORDER_LIMIT>] --date <DATE>
+    [--entry-confluence <R2>] [--limit-price <price on ORDER_LIMIT>] --date <DATE> \
+    [--hard-block]
 ```
-The DB (`data/database/index.db`) is otherwise written live by the pipeline (`db.py` state
-registries, `ohlc_store` OHLC, `weekly_pull.py` market/macro/news sync) — no import/refresh step.
+
+**Asymmetric anchor lock (D032) — the ledger applies this, you just feed + read it**
+A confirmed `ORDER_LIMIT` locks its anchor (limit + EC) for 4h so the hourly re-run stops whipsawing the resting limit. You always call `validate` with the freshly computed verdict/EC/limit; the ledger decides what to keep:
+
+* ACCEPT — first ORDER_LIMIT (no live lock): the fresh limit is stored, lock set to now+4h (clamped to 21:00 UTC).
+* UPGRADE — a strictly higher EC ORDER_LIMIT while locked: re-anchors to the new limit/EC and resets the 4h clock. (Anchor can only improve.)
+* HOLD — an equal/lower EC ORDER_LIMIT, or a soft `NO_TRADE` (E0 lapsed / EC dipped below floor but no hard gate), while locked: the locked limit/EC/verdict are kept; your fresh numbers are ignored until the lock expires.
+* CANCEL — `INVALIDATED`, or `NO_TRADE --hard-block`, always wins: writes the verdict and clears the lock.
+
+You MUST pass `--hard-block` on a NO_TRADE that is a real gate failure — V3 event window, MoF intervention, or a macro-flip re-forecast (use `--verdict INVALIDATED` for a V1/V1b breach) — so the lock is cleared rather than silently held. A plain `NO_TRADE` (no `--hard-block`) is a soft downgrade and is ignored while a lock is live. When in doubt on a hard gate, pass it.
+
+Read back the effective state. `validate` prints `effective: verdict=… EC=… limit=… lock=…` — that post-lock line is the source of truth. If the result is HOLD, write the LOCKED limit/EC into the daily markdown + `_HOT.md`, not your freshly-recomputed numbers, and add a one-line `> [!note] Anchor locked until <HH:MM> UTC (EC <locked>)` so the file matches the resting order. On a HELD soft-NO_TRADE the zone stays an ORDER LIMIT in the file (it is still live).
+
+The DB (`data/database/index.db`) is otherwise written live by the pipeline (`db.py` state registries, `ohlc_store` OHLC, `weekly_pull.py` market/macro/news sync) — no import/refresh step.
 
 ## Multi-Zone Handling
 Validate every PENDING zone for the instrument independently. Multiple ORDER LIMITs allowed if zones

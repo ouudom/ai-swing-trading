@@ -1,33 +1,66 @@
 {
-  "_comment": "JPY intervention / jawboning watch (#4, D025). Gate for usdjpy/eurjpy/gbpjpy in /weekly + /validate. Claude UPDATES jawboning[] from web search each /weekly JPY run (same discipline as cb_calendar). spot vs intervention_level → HARD_BLOCK new shorts-of-JPY (= longs of usdjpy / eurjpy / gbpjpy) inside the band; recent jawboning within --days → at least CAUTION. Push verified_through forward each review. intervention_level/caution_band in the pair's own price units (JPY pips → whole-figure levels). Levels seeded 2026-06 from _HOT (usdjpy spot 160.5 ~ MoF 160.7; eurjpy record 185; gbpjpy record 214).",
-  "built": "2026-06-13",
-  "pairs": {
-    "usdjpy": {
-      "intervention_level": 160.0,
-      "caution_band": 2.0,
-      "regime": "WATCH",
-      "verified_through": "2026-06-20",
-      "jawboning": [
-        {"date": "2026-06-10", "official": "Mimura (MoF, vice-min intl affairs)", "quote": "watching FX moves with a high sense of urgency", "source": "_HOT W24 note — VERIFY/refresh at /weekly"}
-      ]
+ "_comment": "JPY intervention / jawboning watch (#4, D025). Gate for usdjpy/eurjpy/gbpjpy in /weekly + /validate. Claude UPDATES jawboning[] from web search each /weekly JPY run (same discipline as cb_calendar). spot vs intervention_level \u2192 HARD_BLOCK new shorts-of-JPY (= longs of usdjpy / eurjpy / gbpjpy) inside the band; recent jawboning within --days \u2192 at least CAUTION. Push verified_through forward each review. intervention_level/caution_band in the pair's own price units (JPY pips \u2192 whole-figure levels). Levels seeded 2026-06 from _HOT (usdjpy spot 160.5 ~ MoF 160.7; eurjpy record 185; gbpjpy record 214).",
+ "built": "2026-06-13",
+ "pairs": {
+  "usdjpy": {
+   "intervention_level": 160.0,
+   "caution_band": 2.0,
+   "regime": "ACTIVE",
+   "verified_through": "2026-06-28",
+   "jawboning": [
+    {
+     "date": "2026-06-19",
+     "official": "Katayama (FinMin)",
+     "quote": "fully prepared to take decisive action against speculative/excessive FX moves (G7)",
+     "source": "web search 2026-06-21 (XTB/forex.com \u2014 USDJPY breached 161, since-1986 territory)"
     },
-    "eurjpy": {
-      "intervention_level": 185.0,
-      "caution_band": 3.0,
-      "regime": "WATCH",
-      "verified_through": "2026-06-20",
-      "jawboning": [
-        {"date": "2026-06-10", "official": "Mimura (MoF)", "quote": "crosses slam in sympathy with USDJPY interventions", "source": "_HOT W24 note — VERIFY at /weekly"}
-      ]
-    },
-    "gbpjpy": {
-      "intervention_level": 214.0,
-      "caution_band": 4.0,
-      "regime": "WATCH",
-      "verified_through": "2026-06-20",
-      "jawboning": [
-        {"date": "2026-06-10", "official": "Mimura (MoF)", "quote": "GBPJPY slams are the largest of the crosses on MoF action", "source": "_HOT W24 note — VERIFY at /weekly"}
-      ]
+    {
+     "date": "2026-06-10",
+     "official": "Mimura (MoF, vice-min intl affairs)",
+     "quote": "watching FX moves with a high sense of urgency",
+     "source": "_HOT W24 note \u2014 VERIFY/refresh at /weekly"
     }
+   ]
+  },
+  "eurjpy": {
+   "intervention_level": 185.0,
+   "caution_band": 3.0,
+   "regime": "ACTIVE",
+   "verified_through": "2026-06-28",
+   "jawboning": [
+    {
+     "date": "2026-06-19",
+     "official": "Katayama (FinMin)",
+     "quote": "fully prepared to take decisive action against speculative/excessive FX moves (G7)",
+     "source": "web search 2026-06-21 (XTB/forex.com \u2014 USDJPY breached 161, since-1986 territory)"
+    },
+    {
+     "date": "2026-06-10",
+     "official": "Mimura (MoF)",
+     "quote": "crosses slam in sympathy with USDJPY interventions",
+     "source": "_HOT W24 note \u2014 VERIFY at /weekly"
+    }
+   ]
+  },
+  "gbpjpy": {
+   "intervention_level": 214.0,
+   "caution_band": 4.0,
+   "regime": "ACTIVE",
+   "verified_through": "2026-06-28",
+   "jawboning": [
+    {
+     "date": "2026-06-19",
+     "official": "Katayama (FinMin)",
+     "quote": "fully prepared to take decisive action against speculative/excessive FX moves (G7)",
+     "source": "web search 2026-06-21 (XTB/forex.com \u2014 USDJPY breached 161, since-1986 territory)"
+    },
+    {
+     "date": "2026-06-10",
+     "official": "Mimura (MoF)",
+     "quote": "GBPJPY slams are the largest of the crosses on MoF action",
+     "source": "_HOT W24 note \u2014 VERIFY at /weekly"
+    }
+   ]
   }
+ }
 }

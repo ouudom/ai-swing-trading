@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import {
   getGates,
   getPositions,
@@ -39,9 +40,20 @@ function fmtR(n: number | null): string {
   return n === null || n === undefined ? "—" : `${n >= 0 ? "+" : ""}${n.toFixed(2)}R`;
 }
 
+const TABS = [
+  "Positions",
+  "Instruments",
+  "Chart",
+  "Zones",
+  "Edge",
+  "Macro",
+] as const;
+type Tab = (typeof TABS)[number];
+
 export default function Cockpit() {
   const { data, error, updatedAt } = usePoll(getPositions, 60_000);
   const { data: gates, error: gatesError } = usePoll(getGates, 60_000);
+  const [tab, setTab] = useState<Tab>("Positions");
 
   const totalR =
     data?.r_curve && data.r_curve.length
@@ -90,6 +102,26 @@ export default function Cockpit() {
           "loading gates…"
         )}
       </div>
+
+      {/* Tab bar */}
+      <nav className="mb-6 flex gap-1 border-b border-neutral-800 text-xs">
+        {TABS.map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`-mb-px border-b-2 px-3 py-2 uppercase tracking-wider transition-colors ${
+              tab === t
+                ? "border-neutral-300 text-neutral-100"
+                : "border-transparent text-neutral-500 hover:text-neutral-300"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </nav>
+
+      {/* ── Positions tab ── */}
+      <div className={tab === "Positions" ? "" : "hidden"}>
 
       {/* System P&L banner — this is the trade_outcome REPLAY, not a real-money book */}
       <div className="mb-4 rounded border border-neutral-800 px-4 py-2 text-[11px] text-neutral-500">
@@ -218,6 +250,11 @@ export default function Cockpit() {
         )}
       </section>
 
+      </div>
+
+      {/* ── Instruments tab ── */}
+      <div className={tab === "Instruments" ? "" : "hidden"}>
+
       {/* 10-instrument shell — zone board lands here in Phase 2 */}
       <section>
         <h2 className="mb-2 text-xs uppercase tracking-wider text-neutral-500">
@@ -273,23 +310,25 @@ export default function Cockpit() {
         </div>
       </section>
 
-      {/* Chart — Phase 3 */}
-      <div className="mt-8">
+      </div>
+
+      {/* ── Chart tab ── */}
+      <div className={tab === "Chart" ? "" : "hidden"}>
         <PriceChart />
       </div>
 
-      {/* Zone board — Phase 2 */}
-      <div className="mt-8">
+      {/* ── Zones tab ── */}
+      <div className={tab === "Zones" ? "" : "hidden"}>
         <ZoneBoard />
       </div>
 
-      {/* Calibration / edge — Phase 4 */}
-      <div className="mt-8">
+      {/* ── Edge tab ── */}
+      <div className={tab === "Edge" ? "" : "hidden"}>
         <EdgePanel />
       </div>
 
-      {/* Macro / news — Phase 5 */}
-      <div className="mt-8">
+      {/* ── Macro tab ── */}
+      <div className={tab === "Macro" ? "" : "hidden"}>
         <MacroPanel />
       </div>
     </main>

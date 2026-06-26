@@ -28,8 +28,10 @@ INDEXES = {
 
 def _con() -> sqlite3.Connection:
     DB.parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(DB)
+    con = sqlite3.connect(DB, timeout=30)
     con.execute("PRAGMA journal_mode=WAL")
+    con.execute("PRAGMA busy_timeout=30000")  # wait, don't error, on a held write lock
+    con.execute("PRAGMA synchronous=NORMAL")  # WAL-safe durability without fsync per commit
     return con
 
 

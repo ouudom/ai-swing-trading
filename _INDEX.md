@@ -103,6 +103,9 @@
 - `wiki/research/source/_INDEX.md` — external paper index
 
 ## Forecasts — EURUSD / GBPUSD / EURGBP
+- `forecasts/weekly/eurusd/2026-W26.md` — BEARISH/MED-HIGH; COUNTER-LONG 1.1420–1.1455 (7.5, MED-LOW); no aligned short qualifies (oversold extreme). W25 dip-buy lost.
+- `forecasts/weekly/gbpusd/2026-W26.md` — BEARISH/MED-HIGH; SHORT 1.3380–1.3415 (5.0) + COUNTER-LONG 1.3140–1.3200 (7.0, MED, 20d-low CCI−232). ADX 19 ranging.
+- `forecasts/weekly/eurgbp/2026-W26.md` — NEUTRAL; SHORT 0.8682–0.8715 (8.0, MED, best) + LONG 0.8625–0.8645 (5.0). Range shifted up (CHoCH), TTM squeeze ON.
 - `forecasts/weekly/eurusd/2026-W25.md` — NEUTRAL/MEDIUM; LONG 1.1500–1.1520 (7.5) + SHORT 1.1618–1.1640 (7.0). ECB hiked 2.25% → bias SHORT→NEUTRAL.
 - `forecasts/weekly/gbpusd/2026-W25.md` — NEUTRAL/MEDIUM; SHORT 1.3440–1.3465 (6.5) + COUNTER LONG 1.3304–1.3330 (7.0). TTM squeeze ON; FOMC Wed + BoE Thu block.
 - `forecasts/weekly/eurgbp/2026-W25.md` — NEUTRAL(long-tilt)/MEDIUM; LONG 0.8608–0.8625 (8.5, best) + SHORT 0.8660–0.8682 (6.0). ECB favors long; BoE Thu block.
@@ -111,6 +114,13 @@
 - `forecasts/weekly/eurgbp/2026-W24.md` — NEUTRAL/range (ADX 13.8); LONG 0.8608–0.8624 (ZC 8.0) + SHORT 0.8664–0.8682 (ZC 7.5), conviction MEDIUM. First eurgbp forecast.
 
 ## Forecasts — D024 pairs
+- `forecasts/weekly/audusd/2026-W26.md` — BEARISH/MEDIUM; **NO ZONES** (ADX 31.5 trend starves fades; VIX neutral; watch-short 0.7065–0.7095). AU jobs Thu.
+- `forecasts/weekly/nzdusd/2026-W26.md` — BEARISH(macro-dead)/LOW; LONG 0.5700–0.5730 (6.0, MED-LOW, deep OS floor). W25 long V1b-stopped → lower zone + reclaim.
+- `forecasts/weekly/usdcad/2026-W26.md` — BULLISH/MED-HIGH; **NO ZONES** (RSI 85 blow-off, ADX 41 → short vetoed, long anti-edge; watch-short 1.4180–1.4220). CA CPI Mon.
+- `forecasts/weekly/usdchf/2026-W26.md` — BULLISH/MEDIUM; LONG 0.7980–0.8010 (5.0, DXY slope flipped UP) + COUNTER-SHORT 0.8090–0.8130 (5.0). Broke above SNB band.
+- `forecasts/weekly/usdjpy/2026-W26.md` — **NO ZONES**: spot 161.3 MoF HARD-BLOCK longs + Katayama jawboning; short lacks D1+H4 extreme.
+- `forecasts/weekly/eurjpy/2026-W26.md` — **NO ZONES**: spot 185.1 MoF HARD-BLOCK longs; no short extension (RSI 48 mid); D1 TTM squeeze ON 20b.
+- `forecasts/weekly/gbpjpy/2026-W26.md` — NEUTRAL/MED-LOW; LONG 212.00–212.90 (6.0, weak side, intervention CAUTION). Eased from 214.8 to 213.4.
 - `forecasts/weekly/audusd/2026-W25.md` — BEARISH/MEDIUM; SHORT 0.7065–0.7110 (6.5) + COUNTER LONG 0.6980–0.7000 (7.0); ADX 28.9 (veto>30); RBA Tue + FOMC Wed block.
 - `forecasts/weekly/nzdusd/2026-W25.md` — NEUTRAL; SHORT 0.5855–0.5890 (6.5) + COUNTER LONG 0.5750–0.5790 (6.5, best, D1 OS); squeeze OFF; FOMC Wed.
 - `forecasts/weekly/usdcad/2026-W25.md` — BULLISH/MEDIUM; LONG 1.3830–1.3875 (6.0); SHORT ADX-vetoed (34.8>30); RSI 75 OB; FOMC Wed.
@@ -121,6 +131,7 @@
 - `forecasts/weekly/{audusd,nzdusd,usdcad,usdchf,usdjpy,eurjpy,gbpjpy}/2026-W24.md` — prior week (BEARISH/NEUTRAL/BULLISH per pair; JPY trio NO ZONES). See git/file history.
 
 ## Forecasts — XAUUSD
+- `forecasts/weekly/xauusd/2026-W26.md` — BEARISH/MED-HIGH; SHORT 4200–4235 (8.5, best, nearer-resistance fix) + SHORT 4300–4340 (7.5). Both macro legs aligned (real-yield↑ + DXY↑). Core PCE Thu.
 - `forecasts/weekly/xauusd/2026-W25.md` — BEARISH/MEDIUM; SHORT 4360–4400 (7.5) + SHORT 4450–4485 (7.0). Spot 4215 (Iran bounce); conviction MEDIUM (real-yield vs safe-haven conflict).
 - `forecasts/weekly/xauusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH. (renamed W23→W24: files now named by trade week, not run week)
 
@@ -142,7 +153,8 @@
 - `scripts/resample_twelvedata.py` — one-off util (not in weekly pipeline): M15 → H1/H4/D1
 - `scripts/backfill_fred.py` — one-off util (not in weekly pipeline): pull/update FRED macro series
 - `scripts/backup_db.py` — pg_dump-style gzipped SQL dump of index.db → `data/database/backups/`; `--keep N`; restore `gunzip -c <dump> | sqlite3 data/database/index.db`
-- `scripts/db.py` — SQLite helpers: `read_table`/`write_table`/`read_ohlc`/`read_slice`/`sync_slice`/`sync_table`/`last_ohlc_dt`/`last_series_date`/`replace_ohlc_slice` (canonical store access)
+- `scripts/db.py` — SQLite helpers: `read_table`/`write_table`/`read_ohlc`/`read_slice`/`sync_slice`/`sync_table`/`last_ohlc_dt`/`last_series_date`/`replace_ohlc_slice` (canonical store access). Connections: WAL + `busy_timeout=30s` + `synchronous=NORMAL` (corruption-hardened, D033)
+- `scripts/db_guard.py` — **MANDATORY durability preflight** (Step 0b at /weekly + /validate): `checkpoint`→`check` (PRAGMA quick_check)→`backup` (consistent `VACUUM INTO` gzip, last 7); non-zero exit on corrupt image halts the command before it writes into a bad store. Supersedes `backup_db.py` for routine guarding (D033, after the 2026-06-26 corruption that lost `news` + crashed every replay)
 
 ## Scripts — Risk / Portfolio
 - `scripts/fx_exposure.py` — FX currency-leg ledger, ADVISORY (D024): all 10 FX instruments / 8 currency legs; flags shared-leg concentration + suggests cleaner trade (highest EC); no caps, no auto-skip. `--selftest` / `--orders` / `--candidate`.

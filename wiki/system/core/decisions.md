@@ -24,6 +24,63 @@ later decision but still in force).
 
 ---
 
+## D033 — DB durability guard + weekly-pull immutability guard
+**Status:** ACTIVE.
+
+On 2026-06-26 `data/database/index.db` (the canonical source of truth — CSVs were migrated in and
+deleted) was found **badly corrupt** (Tree-10/`ohlc` malformed pages, not the cosmetic news-only
+glitch `_HOT` had assumed). `trade_outcome.py` crashed mid-run, so system P&L had been silently
+blind for an unknown number of sessions, and the `calibration.md` on disk was a stale 06-21 snapshot
+falsely reading "WORKING +0.5R" while the live picture was **DEAD −4.5R / 19% / n=16**. Recovered via
+`sqlite3 .recover` (integrity ok); only `news` was lost (re-pulled from RSS).
+
+Three durability changes:
+1. **`scripts/db_guard.py`** — `checkpoint`→`check` (PRAGMA quick_check)→`backup` (consistent
+   `VACUUM INTO` gzip, last 7). Non-zero exit on a corrupt image. Wired as **MANDATORY Step 0b** in
+   /weekly + /validate so a command halts before writing into a bad store. Supersedes the SQL-dump
+   `backup_db.py` (whose newest backup was 10 days stale at the incident) for routine guarding.
+2. **`db.py` connection hardening** — `busy_timeout=30000` + `synchronous=NORMAL` on top of WAL, so
+   concurrent writers (hourly /validate + the frontend reader) wait on a lock instead of racing —
+   the likely corruption cause.
+3. **`weekly_pull.py` immutability guard** — refuses to overwrite a `weekly_pull_*.txt` first written
+   on an earlier calendar day (`--rewrite-immutable` overrides). Closes the File-Rules violation where
+   a Sunday `--force` re-pull clobbered the 2026-W25 JPY snapshots frozen since the prior Monday.
+4. **`db_guard.py sweep` (added 2026-06-26 cleanup)** — the FUSE-mounted scheduled-task sandbox renames
+   the old `index.db` inode to `.fuse_hidden*` (not unlink) on every swap while a reader holds it open;
+   these never self-clean and had grown to **7,871 files / 289MB** under `data/database/`. `sweep`
+   unlinks them (safe even if held — POSIX frees the inode on last close) and now runs at the tail of
+   `db_guard all`, so the junk self-clears each preflight instead of silently bloating the store dir.
+
+**Why:** the DB is the source of truth with no CSV fallback; a corrupt image is silent data loss and a
+silently-stale calibration mis-reads the edge. Lesson reinforced: never cache a derived verdict
+(calibration WORKING/DEAD) — recompute from the live store each session.
+
+## D032 — Asymmetric 4h anchor lock on confirmed ORDER_LIMITs
+**Status:** ACTIVE.
+**Decision:** A confirmed `ORDER_LIMIT` **freezes its anchor (limit + EC) for 4h** in the
+`zone_ledger`, so the hourly `/validate` re-run stops whipsawing the resting limit. The lock is
+**asymmetric**: a strictly higher EC re-anchors and resets the clock (**UPGRADE**); an equal/lower
+EC, or a *soft* `NO_TRADE` (E0 lapse / EC dipped below floor with no hard gate), is ignored and the
+locked limit is kept (**HOLD**); `INVALIDATED` or `NO_TRADE --hard-block` (V1/V1b/V3/intervention/
+macro-flip) always cancels and clears the lock (**CANCEL**). Lock window is clamped to the 21:00 UTC
+daily expiry. Implemented in `scripts/zone_ledger.py validate` (cols `anchor_set_utc`,
+`anchor_locked_until`; flags `--hard-block`, `--lock-hours`, `--now`).
+**Rationale:** The entry signal re-derives every hour off the latest closed 1H E0; a single borderline
+candle flipped the anchor between confirmation-close and 50%-midpoint, moving the limit ~25+ pts
+run-to-run (e.g. xauusd 06-22 12:18→13:12→14:15: limit 4223.52→4258.08→4217.59 on E0 appearing /
+lapsing / reappearing). Locking commits to a confirmed entry for one ATR-scale window instead of
+chasing 1H noise, while the hard gates still recompute hourly so V1b / intervention can cancel
+mid-window. Cheaper than the D030 offset retune (still OPEN, n=1) and targets the same churn symptom.
+**Limit:** holds an order on a *stale* trigger if the move fully reverses inside 4h without tripping a
+hard gate — accepted, since EC-below-floor with the zone still structurally valid is treated as noise
+by design. Net effect on realized R is unmeasured (n too low); revisit once `trade_outcome` has enough
+locked-vs-churned fills to compare. Procedure wiring lives in `.claude/commands/validate.md`
+"Save + Update" (operator must paste — file is session-protected).
+**belief_log:**
+- 2026-06-23 — added after the 06-22 hourly churn surfaced the flip-flop; user-requested.
+
+---
+
 ## D029 — Re-forecast T6: nominal-yield + DXY-slope USD-regime drift trigger
 **Status:** ACTIVE.
 **Decision:** Add **T6** to the mid-week re-forecast trigger tree + a parallel FX "USD Regime Drift"

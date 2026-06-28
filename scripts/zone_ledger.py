@@ -17,13 +17,16 @@ Usage:
     bash scripts/pyrun.sh scripts/zone_ledger.py validate \
         --zone-id gbpusd-2026-W24-PRIMARY --verdict ORDER_LIMIT \
         [--entry-confluence 7.5] [--limit-price 1.3452] [--date 2026-06-16] \
+        [--e0]                # confirmation candle present → anchor may lock (D032)
         [--hard-block]        # on a hard-gate NO_TRADE/INVALIDATED → clears the anchor lock
         [--lock-hours 4]      # anchor-lock window (default 4h, clamped to 21:00 UTC)
     bash scripts/pyrun.sh scripts/zone_ledger.py list [--week 2026-W24] [--status OPEN]
 
-Anchor lock (D030 follow-up): a confirmed ORDER_LIMIT freezes its anchor for --lock-hours so the
-hourly /validate re-run stops whipsawing the limit. While locked: a strictly higher EC re-anchors
-and resets the clock (UPGRADE); an equal/lower EC or a soft NO_TRADE (E0 lapse / EC dip) is ignored
+Anchor lock (D030 follow-up; D032): an ORDER_LIMIT confirmed off a 1H/15M E0 (--e0) freezes its
+anchor for --lock-hours so the hourly /validate re-run stops whipsawing the limit. A no-E0 (50%
+zone-midpoint) ORDER_LIMIT writes the verdict but NEVER locks — it keeps re-deriving hourly. While
+locked: a strictly higher-EC *E0* ORDER_LIMIT re-anchors and resets the clock (UPGRADE); an
+equal/lower EC, a no-E0 midpoint ORDER_LIMIT, or a soft NO_TRADE (E0 lapse / EC dip) is ignored
 (HOLD); INVALIDATED or NO_TRADE --hard-block always cancels and clears the lock (CANCEL).
 
 `--invalidation-level` optional: when omitted, the resolver applies the default
@@ -52,10 +55,11 @@ COLUMNS = [
     "status", "notes",
     # daily-validation write-back (latest /validate verdict per zone) — frontend reads these
     "entry_confluence", "daily_verdict", "limit_price", "validated_date",
-    # asymmetric anchor lock (D030 follow-up): freeze a confirmed ORDER_LIMIT anchor for a
-    # window so the hourly /validate re-derivation stops whipsawing the limit. The lock holds
-    # the limit/EC against soft downgrades (E0 lapse, EC dip) but yields to upgrades (a stronger
-    # E0 re-anchors + resets the clock) and to hard blocks (V1/V1b/V3/intervention → cleared).
+    # asymmetric anchor lock (D030 follow-up; D032): freeze an E0-confirmed ORDER_LIMIT anchor for
+    # a window so the hourly /validate re-derivation stops whipsawing the limit. Only --e0 (anchor
+    # = confirmation close) locks; a no-E0 50%-midpoint ORDER_LIMIT re-derives hourly. The lock
+    # holds the limit/EC against soft downgrades (E0 lapse, EC dip) but yields to upgrades (a
+    # stronger E0 re-anchors + resets the clock) and to hard blocks (V1/V1b/V3/intervention → cleared).
     "anchor_set_utc", "anchor_locked_until",
 ]
 
@@ -152,12 +156,16 @@ def cmd_validate(args):
     per-zone status (ORDER_LIMIT / NO_TRADE / INVALIDATED) + R2 + limit without
     scraping the daily markdown body.
 
-    Asymmetric anchor lock (D030 follow-up). When an ORDER_LIMIT is confirmed it locks
-    its anchor (limit/EC) for --lock-hours (default 4), so the hourly re-run stops
-    whipsawing the resting limit. While a lock is live:
-      • UPGRADE  — a strictly higher EC re-anchors (new limit/EC) AND resets the clock.
-      • HOLD     — an equal/lower EC ORDER_LIMIT, or a *soft* NO_TRADE (E0 lapse / EC
-                   below floor), is ignored: the locked limit/EC/verdict stay put.
+    Asymmetric anchor lock (D030 follow-up; D032). Only an E0-confirmed ORDER_LIMIT (--e0,
+    anchor = confirmation candle CLOSE) locks its anchor (limit/EC) for --lock-hours
+    (default 4), so the hourly re-run stops whipsawing the resting limit. A no-E0
+    ORDER_LIMIT (anchor = 50% zone midpoint) writes the verdict but does NOT lock — it
+    keeps re-deriving every hour. While a lock is live:
+      • UPGRADE  — a strictly higher-EC *E0* ORDER_LIMIT re-anchors (new limit/EC) AND
+                   resets the clock.
+      • HOLD     — an equal/lower EC E0 ORDER_LIMIT, a no-E0 (midpoint) ORDER_LIMIT, or a
+                   *soft* NO_TRADE (E0 lapse / EC below floor), is ignored: the locked
+                   limit/EC/verdict stay put.
       • CANCEL   — INVALIDATED, or NO_TRADE with --hard-block (V1/V1b/V3/intervention/
                    macro-flip), always wins: it writes the verdict and clears the lock.
     The lock never extends past the daily 21:00 UTC expiry (clamped).
@@ -200,9 +208,12 @@ def cmd_validate(args):
         _write(args.verdict, new_ec, args.limit_price, set_lock=False)
         action = f"CANCEL ({'hard-block' if args.hard_block else 'invalidated'}) — lock cleared"
     elif args.verdict == "ORDER_LIMIT" and lock_live:
-        if new_ec is not None and prev_ec is not None and new_ec > prev_ec:
-            _write("ORDER_LIMIT", new_ec, args.limit_price, set_lock=True)   # UPGRADE
+        if args.e0 and new_ec is not None and prev_ec is not None and new_ec > prev_ec:
+            _write("ORDER_LIMIT", new_ec, args.limit_price, set_lock=True)   # UPGRADE (E0 only)
             action = f"UPGRADE EC {prev_ec}→{new_ec} — re-anchored, lock reset"
+        elif not args.e0:
+            action = (f"HOLD — no-E0 (midpoint) ORDER_LIMIT cannot re-anchor a locked E0 entry; "
+                      f"locked until {df.at[i,'anchor_locked_until']}; limit {df.at[i,'limit_price']} unchanged")
         else:
             action = (f"HOLD — locked until {df.at[i,'anchor_locked_until']} "
                       f"(EC {prev_ec} ≥ {new_ec}); limit {df.at[i,'limit_price']} unchanged")
@@ -210,8 +221,11 @@ def cmd_validate(args):
         action = (f"HOLD — soft NO_TRADE ignored under lock until "
                   f"{df.at[i,'anchor_locked_until']}; limit {df.at[i,'limit_price']} unchanged")
     elif args.verdict == "ORDER_LIMIT":
-        _write("ORDER_LIMIT", new_ec, args.limit_price, set_lock=True)       # fresh ACCEPT
-        action = f"ACCEPT — anchor locked until {df.at[i,'anchor_locked_until']}"
+        _write("ORDER_LIMIT", new_ec, args.limit_price, set_lock=args.e0)    # fresh ACCEPT
+        if args.e0:
+            action = f"ACCEPT — E0 confirmed, anchor locked until {df.at[i,'anchor_locked_until']}"
+        else:
+            action = "ACCEPT — no-E0 (50% midpoint) anchor, NOT locked (D032; re-derives hourly)"
     else:                                                     # NO_TRADE / PENDING, no live lock
         _write(args.verdict, new_ec, args.limit_price, set_lock=False)
         action = args.verdict
@@ -273,6 +287,10 @@ def main():
     v.add_argument("--hard-block", action="store_true",
                    help="cancel + clear any anchor lock (V1/V1b/V3/intervention/macro-flip). "
                         "Use on a NO_TRADE that is a hard gate, not a soft EC/E0 downgrade.")
+    v.add_argument("--e0", action="store_true",
+                   help="confirmation candle (E0) present — the anchor is a confirmation CLOSE, not a "
+                        "50%% zone midpoint. Only an E0-confirmed ORDER_LIMIT sets/keeps the anchor "
+                        "lock (D032); a no-E0 midpoint ORDER_LIMIT writes the verdict but never locks.")
     v.add_argument("--lock-hours", type=float, default=4.0,
                    help="anchor-lock window in hours (default 4; clamped to 21:00 UTC expiry)")
     v.add_argument("--now", default="",

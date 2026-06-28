@@ -8,35 +8,35 @@ watch notes + where to look. Hard cap **40 lines.** Prune every session.*
 ## Source of truth — read these, don't duplicate them here
 - **System P&L / would-be R / gate accuracy** → `trade_outcome` table in `data/database/index.db`
   (`bash scripts/pyrun.sh scripts/trade_outcome.py`; entry-mechanics replay — no hand-logged trades).
-- **Current zones / forecasts** → `forecasts/weekly/{inst}/2026-W26.md` (PENDING)
+- **Current zones / forecasts** → all 11 on `forecasts/weekly/{inst}/2026-W27.md` (PENDING)
 - **Shadow ledger / calibration** → `zone_ledger`/`zone_outcome` tables, `wiki/system/core/calibration.md`
 - **Latest validations** → `forecasts/daily/{inst}/2026-06-26.md`
 - **Macro baseline** → `wiki/system/core/macro/yield_environment.md`
 
-## Current week — W26 LIVE (Mon 06-22 → Fri 06-26). weekly_reforecast_count = 0.
-All 11 forecasts published 06-21. Macro: hawkish FOMC USD-bull regime (DGS2 4.20, DXY slope +1.65).
-W26 zones PENDING (read forecasts/weekly for exact boxes — never cache numbers here):
-- xauusd SHORT ×2 (nearer-resistance fix) · gbpusd SHORT + COUNTER-LONG
-- eurgbp SHORT(top) · usdchf LONG + COUNTER-SHORT · gbpjpy LONG(weak,capped)
-- **INVALIDATED:** nzdusd PRIMARY-LONG (V1b 06-23 <0.5696) · eurusd COUNTER-LONG (V1b 06-23, 2 H4 closes <1.1415) · eurgbp SECONDARY-LONG (V1b 06-24 04:00, 2 H4 closes <0.8621: 0.86124/0.86129)
-- **NO ZONES:** audusd (ADX31 trend) · usdcad (RSI85 blow-off, ADX41) · usdjpy + eurjpy (MoF HARD-BLOCK longs)
+## Current week — W27 LIVE (Mon 06-29 → Fri 07-03). weekly_reforecast_count = 0.
+**All 11 re-forecast 06-28.** Macro: DGS2 softened 4.20→4.09 (PCE) but DXY 101.36 13-mo high → majors BEARISH/MED.
+W27 zones PENDING (read forecasts/weekly for boxes/scores; recompute live numbers):
+- **xauusd** SHORT 4120–4160 + 4190–4220 (BEARISH, ADX 48, GLD-inflow watch).
+- **eurusd** SHORT 1.1450–1.1490 + 1.1500–1.1545 (sell oversold bounce).
+- **gbpusd** SHORT 1.3340–1.3390 + COUNTER LONG 1.3140–1.3180 (D1-oversold fade, two-sided).
+- **eurgbp** LONG 0.8595–0.8620 + SHORT 0.8675–0.8710 (range, squeeze ON).
+- **usdchf** LONG 0.7990–0.8020 (DXY-slope-up macro-aligned).
+- **usdjpy** COUNTER SHORT 161.90–162.20 only (MoF HARD-BLOCK longs ≥160; MED-LOW).
+- **eurjpy** LONG 183.0–183.6 + SHORT 186.0–186.5 (range, MoF caution caps long).
+- **gbpjpy** SHORT 215.0–215.6 + COUNTER LONG 212.0–212.55 (range/squeeze, MoF caution).
+- **NO ZONES:** audusd (ADX 40.7) · usdcad (ADX 51.5) · nzdusd (ADX 33.7) — fade-vetoes.
 
 ## Open human decisions
 - none open.
 
 ## Watch / judgment notes
-- **T6 re-forecast trigger live (D029):** DGS2 drift >0.15% from 4.20 OR DXY slope20 sign-flip → re-forecast USD pairs; counters opposed by a confirmed flip void on sight. Offset retune = D030 OPEN (deferred, n=1).
-- **MoF regime ACTIVE (Katayama "decisive action" G7 06-19):** usdjpy + eurjpy longs HARD-BLOCKED; gbpjpy oscillates around the 214 level → CAUTION when <214 (cap LONG MEDIUM), HARD-BLOCK when ≥214 — recheck spot each run (213.15 @04:14 UTC = CAUTION, not hard-block). intervention_watch verified_through 2026-06-28.
-- **Recurring lesson (xauusd W24+W25):** far-resistance shorts never fill in fast selloffs → W26 PRIMARY placed at nearer resistance.
+- **T6 re-forecast trigger live (D029):** DGS2 drift >0.15% from **4.09** OR DXY slope20 sign-flip → re-forecast USD pairs; counters opposed by a confirmed flip void on sight. Offset retune = D030 OPEN (deferred, n=1).
+- **MoF regime ACTIVE (Katayama "decisive action" G7 06-19):** usdjpy 161.7 ABOVE 160 → longs HARD-BLOCKED (only MoF-line short); eurjpy 184.2 + gbpjpy 213.4 in CAUTION bands → cap longs. intervention_watch verified_through 2026-06-28.
+- **ADX-veto NO-ZONES (audusd/usdcad/nzdusd):** strong trends (ADX 33–51) veto the mean-reversion fades; watch for ADX<30 to re-enable floor/top fades. usdcad/audusd long anti-edge; never trend-follow.
+- **Recurring lesson (xauusd W24+W25+W26):** resistance shorts unfilled 3 weeks running in the ADX-44→48 freefall (even "nearer" 4200 missed by 1pt) → W27 PRIMARY moved to FIRST resistance above spot (4120–4160).
+- **xauusd base-risk watch:** GLD +16t INFLOW + COT longs +8.5k into a 4-wk drop = positioning warning; D1 close > 4448 (POC) kills bear thesis.
 - **Recurring lesson (eurusd/gbpusd/nzdusd):** counter-macro dip-buys into strong USD keep getting stopped → all W26 long-fades capped + lower zones + mandatory E0 reclaim.
-- **usdcad/audusd:** strong ADX (>30) starves fades both ways — correctly NO ZONES; re-arm only when ADX cools or extreme appears.
 - **E0 reclaim (D027):** PENDING ledger validation (pin/engulf fallback still counts).
 
 ## Last session
-2026-06-26 — **DB recovered + project cleanup.** `index.db` was badly corrupt (Tree-10/ohlc, not
-just news) → `.recover` into fresh DB (integrity ok), parked corrupt as `index.corrupt_*.db`. news
-re-pulled (10 rows). Calibration refreshed → **Overall DEAD −4.5R / 19% / n=16** (the stale 06-21
-stamp lied "WORKING"). New durability guard `scripts/db_guard.py` (checkpoint→check→backup) wired as
-MANDATORY Step 0b in /weekly + /validate; db.py now busy_timeout+synchronous=NORMAL. weekly_pull.py
-immutability guard added (refuses prior-day overwrite; restored clobbered W25 JPY trio). Logs +
-trade_outcomes.csv un-tracked (gitignored). Removed 7 scratch scripts + docs/ orphan.
+2026-06-28 — **/weekly ALL 11 → W27.** 18 zones across 8 instruments registered PENDING; 3 NO-ZONES (audusd/usdcad/nzdusd, ADX fade-veto). DGS2 rebased 4.09 (PCE), DXY 101.36 13-mo high → majors BEARISH/MED. Stale FX pulls (eurusd 06-23, audusd/nzdusd missing) refreshed via --force --rewrite-immutable to Friday close. W26 portfolio resolved (16 completed, −4.5R, calibration overall DEAD small-n; VETO_ADX flagged "COSTING EDGE" n=4). Calendar W27: UK GDP/Ger CPI Tue, EZ HICP/Bailey/Warsh Wed, NFP Thu 07-02 (pulled fwd), US closed Fri 07-03. MoF regime acute (usdjpy >160 long-block).

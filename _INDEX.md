@@ -103,6 +103,9 @@
 - `wiki/research/source/_INDEX.md` — external paper index
 
 ## Forecasts — EURUSD / GBPUSD / EURGBP
+- `forecasts/weekly/eurusd/2026-W27.md` — BEARISH/MED; SHORT 1.1450–1.1490 (6.5, best) + SHORT 1.1500–1.1545 (6.0). Sell the D1-oversold bounce; no counter (ADX 34.7). DGS2 4.09.
+- `forecasts/weekly/gbpusd/2026-W27.md` — BEARISH/MED, two-sided; SHORT 1.3340–1.3390 (6.0) + COUNTER LONG 1.3140–1.3180 (7.5, the W26 +1.3R fade). COT −70.8k.
+- `forecasts/weekly/eurgbp/2026-W27.md` — NEUTRAL; LONG 0.8595–0.8620 (7.5, best) + SHORT 0.8675–0.8710 (6.5). Range, D1+H4 squeeze ON. W26 mid-range long stopped.
 - `forecasts/weekly/eurusd/2026-W26.md` — BEARISH/MED-HIGH; COUNTER-LONG 1.1420–1.1455 (7.5, MED-LOW); no aligned short qualifies (oversold extreme). W25 dip-buy lost.
 - `forecasts/weekly/gbpusd/2026-W26.md` — BEARISH/MED-HIGH; SHORT 1.3380–1.3415 (5.0) + COUNTER-LONG 1.3140–1.3200 (7.0, MED, 20d-low CCI−232). ADX 19 ranging.
 - `forecasts/weekly/eurgbp/2026-W26.md` — NEUTRAL; SHORT 0.8682–0.8715 (8.0, MED, best) + LONG 0.8625–0.8645 (5.0). Range shifted up (CHoCH), TTM squeeze ON.
@@ -114,6 +117,13 @@
 - `forecasts/weekly/eurgbp/2026-W24.md` — NEUTRAL/range (ADX 13.8); LONG 0.8608–0.8624 (ZC 8.0) + SHORT 0.8664–0.8682 (ZC 7.5), conviction MEDIUM. First eurgbp forecast.
 
 ## Forecasts — D024 pairs
+- `forecasts/weekly/usdchf/2026-W27.md` — BULLISH/MED; LONG 0.7990–0.8020 (6.0, DXY-slope-up macro-aligned breakout-retest). No counter-short (ADX 35).
+- `forecasts/weekly/usdcad/2026-W27.md` — BULLISH/LOW; **NO ZONES** (ADX 51.5 blow-off → fade-short vetoed, long anti-edge, DXY dead; watch-short 1.4280–1.4350).
+- `forecasts/weekly/audusd/2026-W27.md` — BEARISH/LOW; **NO ZONES** (ADX 40.7 vetoes oversold fade; VIX neutral; watch-long 0.6870–0.6900 if ADX<30).
+- `forecasts/weekly/nzdusd/2026-W27.md` — BEARISH/LOW; **NO ZONES** (ADX 33.7 vetoes oversold fade; macro dead; watch-long 0.5600–0.5635). RBNZ 07-08 (W28).
+- `forecasts/weekly/usdjpy/2026-W27.md` — drift-BULLISH/LOW; **COUNTER SHORT 161.90–162.20 only** (5.5, MED-LOW, MoF-line fade). Longs HARD-BLOCKED ≥160.
+- `forecasts/weekly/eurjpy/2026-W27.md` — NEUTRAL; LONG 183.0–183.6 (7.0, best, washout) + SHORT 186.0–186.5 (6.5). Range; MoF caution caps long.
+- `forecasts/weekly/gbpjpy/2026-W27.md` — NEUTRAL; SHORT 215.0–215.6 (7.0, best, dominant) + COUNTER LONG 212.0–212.55 (6.0). Range/squeeze; MoF caution.
 - `forecasts/weekly/audusd/2026-W26.md` — BEARISH/MEDIUM; **NO ZONES** (ADX 31.5 trend starves fades; VIX neutral; watch-short 0.7065–0.7095). AU jobs Thu.
 - `forecasts/weekly/nzdusd/2026-W26.md` — BEARISH(macro-dead)/LOW; LONG 0.5700–0.5730 (6.0, MED-LOW, deep OS floor). W25 long V1b-stopped → lower zone + reclaim.
 - `forecasts/weekly/usdcad/2026-W26.md` — BULLISH/MED-HIGH; **NO ZONES** (RSI 85 blow-off, ADX 41 → short vetoed, long anti-edge; watch-short 1.4180–1.4220). CA CPI Mon.
@@ -131,11 +141,13 @@
 - `forecasts/weekly/{audusd,nzdusd,usdcad,usdchf,usdjpy,eurjpy,gbpjpy}/2026-W24.md` — prior week (BEARISH/NEUTRAL/BULLISH per pair; JPY trio NO ZONES). See git/file history.
 
 ## Forecasts — XAUUSD
+- `forecasts/weekly/xauusd/2026-W27.md` — BEARISH/MED-HIGH; SHORT 4120–4160 (7.5, best, first-resistance fix) + SHORT 4190–4220 (7.0). Both macro legs aligned (real-yield slope↑ steepening + DXY↑), ADX 48. GLD-inflow base-risk warning. NFP Thu 07-02.
 - `forecasts/weekly/xauusd/2026-W26.md` — BEARISH/MED-HIGH; SHORT 4200–4235 (8.5, best, nearer-resistance fix) + SHORT 4300–4340 (7.5). Both macro legs aligned (real-yield↑ + DXY↑). Core PCE Thu.
 - `forecasts/weekly/xauusd/2026-W25.md` — BEARISH/MEDIUM; SHORT 4360–4400 (7.5) + SHORT 4450–4485 (7.0). Spot 4215 (Iran bounce); conviction MEDIUM (real-yield vs safe-haven conflict).
 - `forecasts/weekly/xauusd/2026-W24.md` — BEARISH/MEDIUM-HIGH; 2 SHORT zones ($4367–$4390, $4450–$4485), conviction HIGH. (renamed W23→W24: files now named by trade week, not run week)
 
 ## Daily Validations
+- `forecasts/daily/{all 11}/2026-06-26.md` — **W26 Fri automated validate, 05:54 UTC.** 4 ORDER LIMITS: XAUUSD SHORT ×2 (locked EC 6.0 until 06:39, soft EC now 3.5 held); GBPUSD COUNTER LONG (locked EC 6.0 until 06:39, spot 1.3204 above limit 1.31418); USDCHF PRIMARY LONG NEW (EC 5.0, BUY 0.7973, marginal floor — H1 oversold on pullback). All other zones NO TRADE (far from zones or INVALIDATED). W26 replay fills: WIN_TP1 XAUUSD +2.5R; LOSS_SL ×4 (EURUSD/EURGBP/NZDUSD/USDCHF-SHORT); RUNNING GBPUSD LONG +0.83R + GBPJPY LONG +1.22R. Net closed −1.5R, open +2.05R.
 - `forecasts/daily/{all 10}/2026-06-11.md` — **`/validate all`, ECB + PPI day, V3 HARD BLOCK** (ECB rate decision 12:15 UTC + US PPI 12:30 UTC, both <2h of NY open). 06:11 UTC run: ALL 10 instruments NO TRADE, all zones held PENDING (structure intact, none invalidated), no re-forecast (T1–T5 sub-threshold). 🔎 ECB decision was MISSED in W24 weekly — flagged. Gold $4080 (zones $309–404 OTM). JPY trio = NO ZONES (MoF). EUR pairs: re-validate after 12:45 presser.
 - `forecasts/daily/{xauusd,eurusd,gbpusd,eurgbp}/2026-06-10.md` — **CPI day, V3 HARD BLOCK** (US May CPI 12:30 UTC). 08:06 UTC London run: ALL 4 instruments, ALL zones = NO TRADE, held PENDING, no orders. XAU spot $4162 EC 6.0 (V3 override); EUR 1.1549 EC 2.0; GBP 1.33836 EC 2.0 (in-zone, bounce faded); EURGBP 0.86296 EC 3.0 (above LONG support, D1 osc not extreme).
 - `forecasts/daily/xauusd/2026-06-09.md` — both SHORT zones ORDER LIMIT, EC 6.0/10 (no E0, midpoint). 13:47 UTC NY run: SL $46.45, lots 0.43, limits $4415.66 / $4504.66. VIX fresh.
@@ -152,9 +164,8 @@
 - `scripts/backfill_twelvedata.py` — one-off util (not in weekly pipeline): pull/update OHLC backward from TD
 - `scripts/resample_twelvedata.py` — one-off util (not in weekly pipeline): M15 → H1/H4/D1
 - `scripts/backfill_fred.py` — one-off util (not in weekly pipeline): pull/update FRED macro series
-- `scripts/backup_db.py` — pg_dump-style gzipped SQL dump of index.db → `data/database/backups/`; `--keep N`; restore `gunzip -c <dump> | sqlite3 data/database/index.db`
 - `scripts/db.py` — SQLite helpers: `read_table`/`write_table`/`read_ohlc`/`read_slice`/`sync_slice`/`sync_table`/`last_ohlc_dt`/`last_series_date`/`replace_ohlc_slice` (canonical store access). Connections: WAL + `busy_timeout=30s` + `synchronous=NORMAL` (corruption-hardened, D033)
-- `scripts/db_guard.py` — **MANDATORY durability preflight** (Step 0b at /weekly + /validate): `checkpoint`→`check` (PRAGMA quick_check)→`backup` (consistent `VACUUM INTO` gzip, last 7); non-zero exit on corrupt image halts the command before it writes into a bad store. Supersedes `backup_db.py` for routine guarding (D033, after the 2026-06-26 corruption that lost `news` + crashed every replay)
+- `scripts/db_guard.py` — **MANDATORY durability preflight** (Step 0b at /weekly + /validate): `checkpoint`→`check` (PRAGMA quick_check)→`backup` (consistent `VACUUM INTO` gzip, last 7); non-zero exit on corrupt image halts the command before it writes into a bad store. The canonical backup tool (D033, after the 2026-06-26 corruption that lost `news` + crashed every replay)
 
 ## Scripts — Risk / Portfolio
 - `scripts/fx_exposure.py` — FX currency-leg ledger, ADVISORY (D024): all 10 FX instruments / 8 currency legs; flags shared-leg concentration + suggests cleaner trade (highest EC); no caps, no auto-skip. `--selftest` / `--orders` / `--candidate`.
@@ -207,7 +218,7 @@
   - `market_series` — yahoo DXY + commodities (source/symbol/date/value)
   - `news` — free-RSS headlines (`check_news.py`); `econ_calendar` — Forex Factory releases
     (`check_econ_calendar.py`); `gld_holdings` — daily GLD tonnage
-- `data/database/backups/` — `backup_db.py` gzipped SQL dumps of index.db (gitignored; off-machine copy = DR)
+- `data/database/backups/` — `db_guard.py backup` gzipped `VACUUM INTO` snapshots of index.db (gitignored, last 7; off-machine copy = DR)
 - (removed: `_manifest.json` → last_dt from DB; `_quarantine.csv` bad-tick log + `calibration/summary.json` → derived, regenerate on demand)
 - `data/calibration/summary.json` — optional JSON edge summary (`calibration.py --json`)
 - `data/weekly_pull/{inst}/` — IMMUTABLE weekly pull text files

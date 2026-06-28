@@ -38,7 +38,8 @@ Three durability changes:
 1. **`scripts/db_guard.py`** — `checkpoint`→`check` (PRAGMA quick_check)→`backup` (consistent
    `VACUUM INTO` gzip, last 7). Non-zero exit on a corrupt image. Wired as **MANDATORY Step 0b** in
    /weekly + /validate so a command halts before writing into a bad store. Supersedes the SQL-dump
-   `backup_db.py` (whose newest backup was 10 days stale at the incident) for routine guarding.
+   `backup_db.py` (whose newest backup was 10 days stale at the incident) for routine guarding;
+   `backup_db.py` was removed 2026-06-28 (db_guard is the sole backup tool).
 2. **`db.py` connection hardening** — `busy_timeout=30000` + `synchronous=NORMAL` on top of WAL, so
    concurrent writers (hourly /validate + the frontend reader) wait on a lock instead of racing —
    the likely corruption cause.
@@ -57,14 +58,18 @@ silently-stale calibration mis-reads the edge. Lesson reinforced: never cache a 
 
 ## D032 — Asymmetric 4h anchor lock on confirmed ORDER_LIMITs
 **Status:** ACTIVE.
-**Decision:** A confirmed `ORDER_LIMIT` **freezes its anchor (limit + EC) for 4h** in the
-`zone_ledger`, so the hourly `/validate` re-run stops whipsawing the resting limit. The lock is
-**asymmetric**: a strictly higher EC re-anchors and resets the clock (**UPGRADE**); an equal/lower
-EC, or a *soft* `NO_TRADE` (E0 lapse / EC dipped below floor with no hard gate), is ignored and the
-locked limit is kept (**HOLD**); `INVALIDATED` or `NO_TRADE --hard-block` (V1/V1b/V3/intervention/
-macro-flip) always cancels and clears the lock (**CANCEL**). Lock window is clamped to the 21:00 UTC
-daily expiry. Implemented in `scripts/zone_ledger.py validate` (cols `anchor_set_utc`,
-`anchor_locked_until`; flags `--hard-block`, `--lock-hours`, `--now`).
+**Decision:** An **E0-confirmed** `ORDER_LIMIT` (anchor = confirmation candle CLOSE, passed via
+`--e0`) **freezes its anchor (limit + EC) for 4h** in the `zone_ledger`, so the hourly `/validate`
+re-run stops whipsawing the resting limit. A **no-E0** `ORDER_LIMIT` (anchor = 50% zone midpoint)
+writes the verdict but is **never locked** — it keeps re-deriving every hour, since a midpoint
+anchor is a fallback estimate, not a committed entry, and there is no confirmation signal to commit
+to. The lock is **asymmetric**: a strictly higher EC *E0* ORDER_LIMIT re-anchors and resets the
+clock (**UPGRADE**); an equal/lower EC E0 ORDER_LIMIT, a no-E0 (midpoint) ORDER_LIMIT, or a *soft*
+`NO_TRADE` (E0 lapse / EC dipped below floor with no hard gate), is ignored and the locked limit is
+kept (**HOLD**); `INVALIDATED` or `NO_TRADE --hard-block` (V1/V1b/V3/intervention/macro-flip) always
+cancels and clears the lock (**CANCEL**). Lock window is clamped to the 21:00 UTC daily expiry.
+Implemented in `scripts/zone_ledger.py validate` (cols `anchor_set_utc`, `anchor_locked_until`;
+flags `--e0`, `--hard-block`, `--lock-hours`, `--now`).
 **Rationale:** The entry signal re-derives every hour off the latest closed 1H E0; a single borderline
 candle flipped the anchor between confirmation-close and 50%-midpoint, moving the limit ~25+ pts
 run-to-run (e.g. xauusd 06-22 12:18→13:12→14:15: limit 4223.52→4258.08→4217.59 on E0 appearing /
@@ -78,6 +83,10 @@ locked-vs-churned fills to compare. Procedure wiring lives in `.claude/commands/
 "Save + Update" (operator must paste — file is session-protected).
 **belief_log:**
 - 2026-06-23 — added after the 06-22 hourly churn surfaced the flip-flop; user-requested.
+- 2026-06-26 — **E0-gated the lock** (`--e0` flag): only a confirmation-close anchor locks; a no-E0
+  50%-midpoint ORDER_LIMIT now re-derives hourly instead of committing. Reason: a midpoint anchor is
+  a fallback estimate with no entry signal — locking it pinned a resting order on guessed price for
+  4h. User-requested.
 
 ---
 

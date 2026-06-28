@@ -360,15 +360,17 @@ Write each zone's verdict back to the ledger (one call per validated zone) so th
 bash scripts/pyrun.sh scripts/zone_ledger.py validate \
     --zone-id <instrument>-<week>-<LABEL> --verdict ORDER_LIMIT|NO_TRADE|INVALIDATED \
     [--entry-confluence <R2>] [--limit-price <price on ORDER_LIMIT>] --date <DATE> \
-    [--hard-block]
+    [--e0] [--hard-block]
 ```
+Pass `--e0` whenever the ORDER_LIMIT anchor is a **confirmation candle CLOSE** (E0 present). Omit it when the anchor is the **50% zone midpoint** (no E0) — see the anchor branch at lines 311–312/330.
 
 **Asymmetric anchor lock (D032) — the ledger applies this, you just feed + read it**
-A confirmed `ORDER_LIMIT` locks its anchor (limit + EC) for 4h so the hourly re-run stops whipsawing the resting limit. You always call `validate` with the freshly computed verdict/EC/limit; the ledger decides what to keep:
+Only an **E0-confirmed** `ORDER_LIMIT` (`--e0`) locks its anchor (limit + EC) for 4h so the hourly re-run stops whipsawing the resting limit. A **no-E0 (50%-midpoint)** `ORDER_LIMIT` writes the verdict but is **never locked** — it keeps re-deriving every hour (midpoint anchors are not a committed entry). You always call `validate` with the freshly computed verdict/EC/limit; the ledger decides what to keep:
 
-* ACCEPT — first ORDER_LIMIT (no live lock): the fresh limit is stored, lock set to now+4h (clamped to 21:00 UTC).
-* UPGRADE — a strictly higher EC ORDER_LIMIT while locked: re-anchors to the new limit/EC and resets the 4h clock. (Anchor can only improve.)
-* HOLD — an equal/lower EC ORDER_LIMIT, or a soft `NO_TRADE` (E0 lapsed / EC dipped below floor but no hard gate), while locked: the locked limit/EC/verdict are kept; your fresh numbers are ignored until the lock expires.
+* ACCEPT (E0) — first `--e0` ORDER_LIMIT (no live lock): the fresh limit is stored, lock set to now+4h (clamped to 21:00 UTC).
+* ACCEPT (no-E0) — ORDER_LIMIT without `--e0`: verdict/limit/EC written, **no lock** — re-derives next hour.
+* UPGRADE — a strictly higher EC **E0** ORDER_LIMIT while locked: re-anchors to the new limit/EC and resets the 4h clock. (Anchor can only improve.)
+* HOLD — an equal/lower EC E0 ORDER_LIMIT, a **no-E0 (midpoint)** ORDER_LIMIT, or a soft `NO_TRADE` (E0 lapsed / EC dipped below floor but no hard gate), while locked: the locked limit/EC/verdict are kept; your fresh numbers are ignored until the lock expires.
 * CANCEL — `INVALIDATED`, or `NO_TRADE --hard-block`, always wins: writes the verdict and clears the lock.
 
 You MUST pass `--hard-block` on a NO_TRADE that is a real gate failure — V3 event window, MoF intervention, or a macro-flip re-forecast (use `--verdict INVALIDATED` for a V1/V1b breach) — so the lock is cleared rather than silently held. A plain `NO_TRADE` (no `--hard-block`) is a soft downgrade and is ignored while a lock is live. When in doubt on a hard gate, pass it.

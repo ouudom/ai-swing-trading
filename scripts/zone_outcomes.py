@@ -9,9 +9,12 @@ expire untouched.
 
 Shadow-trade model (simplifications, deliberately documented):
   - Fill   = first 1H bar inside the trade week (Mon 00:00 → Fri 22:00 UTC) whose
-             range crosses the ZONE MIDPOINT. Entry price = midpoint (the
-             constitution's no-E0 anchor). No E0/offset replay — this measures
-             ZONE quality, not entry-timing quality (that's R2's job).
+             range crosses the ZONE NEAR EDGE (top for LONG, bottom for SHORT —
+             the edge price hits first on approach into the zone). Entry price =
+             that edge. No E0/offset replay — this measures ZONE quality, not
+             entry-timing quality (that's R2's job). (Changed from zone-midpoint
+             fill 2026-06-28 — edge fill is the more conservative/realistic limit
+             assumption; breaks numeric comparability with pre-change resolved rows.)
   - Kill   = D1 close beyond invalidation_level (ledger value, else zone far edge)
              before fill → INVALIDATED. D1 close treated as effective at
              bar_date + 22:00 UTC (FX session close).
@@ -106,8 +109,8 @@ def resolve_zone(z: pd.Series, h1: pd.DataFrame, h4: pd.DataFrame, d1: pd.DataFr
                                   "zone_confluence", "conviction"]})
     start, end = week_window(z["week"])
     top, bot = float(z["zone_top"]), float(z["zone_bottom"])
-    mid = (top + bot) / 2
     sign = 1 if z["direction"] == "LONG" else -1
+    entry_px = top if sign > 0 else bot  # near edge: first hit on approach into the zone
     inval = z["invalidation_level"]
     inval = float(inval) if str(inval) not in ("", "nan") else (top if sign < 0 else bot)
 
@@ -137,7 +140,7 @@ def resolve_zone(z: pd.Series, h1: pd.DataFrame, h4: pd.DataFrame, d1: pd.DataFr
         win = win[win["datetime"] < kill_time]
 
     touched = win[(win["low"] <= top) & (win["high"] >= bot)]
-    filled = win[(win["low"] <= mid) & (win["high"] >= mid)]
+    filled = win[(win["low"] <= entry_px) & (win["high"] >= entry_px)]
     out["touched"] = bool(len(touched))
 
     if filled.empty:
@@ -151,7 +154,7 @@ def resolve_zone(z: pd.Series, h1: pd.DataFrame, h4: pd.DataFrame, d1: pd.DataFr
 
     fill_bar = filled.iloc[0]
     fill_time = fill_bar["datetime"]
-    out["fill_time"], out["entry"] = str(fill_time), mid
+    out["fill_time"], out["entry"] = str(fill_time), entry_px
 
     d1_atr = atr14_before(d1, pd.Timestamp(fill_time.date()))
     h4_trade = h4[(h4["high"] - h4["low"]) >= mbr]
@@ -163,23 +166,23 @@ def resolve_zone(z: pd.Series, h1: pd.DataFrame, h4: pd.DataFrame, d1: pd.DataFr
     sl = h4_atr if 0.5 * d1_atr < h4_atr else (0.5 * d1_atr + h4_atr) / 2
     out["sl_dist"] = round(sl, 6)
 
-    stop = mid - sign * sl
-    tp = mid + sign * 2.5 * sl
-    be_trigger = mid + sign * 1.5 * sl
+    stop = entry_px - sign * sl
+    tp = entry_px + sign * 2.5 * sl
+    be_trigger = entry_px + sign * 1.5 * sl
     be_armed = False
     mfe = mae = 0.0
 
     walk = h1[h1["datetime"] >= fill_time]
     for _, bar in walk.iterrows():
         hi, lo = bar["high"], bar["low"]
-        fav = (hi - mid) if sign > 0 else (mid - lo)
-        adv = (mid - lo) if sign > 0 else (hi - mid)
+        fav = (hi - entry_px) if sign > 0 else (entry_px - lo)
+        adv = (entry_px - lo) if sign > 0 else (hi - entry_px)
         mfe, mae = max(mfe, fav / sl), max(mae, adv / sl)
 
         stopped = lo <= stop if sign > 0 else hi >= stop
         hit_tp = hi >= tp if sign > 0 else lo <= tp
         if stopped:  # same-bar ambiguity → stop first (conservative)
-            out["status"] = "BREAKEVEN" if be_armed and stop == mid else "LOSS_SL"
+            out["status"] = "BREAKEVEN" if be_armed and stop == entry_px else "LOSS_SL"
             out["r_result"] = 0.0 if out["status"] == "BREAKEVEN" else -1.0
             out["exit_time"] = str(bar["datetime"])
             break
@@ -189,11 +192,11 @@ def resolve_zone(z: pd.Series, h1: pd.DataFrame, h4: pd.DataFrame, d1: pd.DataFr
             break
         if not be_armed and (hi >= be_trigger if sign > 0 else lo <= be_trigger):
             be_armed = True
-            stop = mid  # armed; effective next bar (this bar's stop already checked)
+            stop = entry_px  # armed; effective next bar (this bar's stop already checked)
     else:
         out["status"] = "RUNNING"
         last_close = walk["close"].iloc[-1]
-        out["r_result"] = round(sign * (last_close - mid) / sl, 2)
+        out["r_result"] = round(sign * (last_close - entry_px) / sl, 2)
 
     out["mfe_r"], out["mae_r"] = round(mfe, 2), round(mae, 2)
     return out

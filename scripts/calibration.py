@@ -1,7 +1,7 @@
 """
 Calibration — edge-performance aggregator + persistent report.
 
-Reads the zone_outcome table (R1/zone quality, fills at midpoint) and the trade_outcome
+Reads the zone_outcome table (R1/zone quality, fills at zone near edge) and the trade_outcome
 table (R2/entry mechanics + gate accuracy, written by trade_outcome.py), then writes a
 sliceable markdown report to wiki/system/core/calibration.md. This is the readout the
 live system needs to KILL dead edges and size up working ones — the resolver's stdout

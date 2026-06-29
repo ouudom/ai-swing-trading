@@ -10,7 +10,7 @@ watch notes + where to look. Hard cap **40 lines.** Prune every session.*
   (`bash scripts/pyrun.sh scripts/trade_outcome.py`; entry-mechanics replay — no hand-logged trades).
 - **Current zones / forecasts** → all 11 on `forecasts/weekly/{inst}/2026-W27.md` (PENDING)
 - **Shadow ledger / calibration** → `zone_ledger`/`zone_outcome` tables, `wiki/system/core/calibration.md`
-- **Latest validations** → `forecasts/daily/{inst}/2026-06-26.md`
+- **Latest validations** → `forecasts/daily/{inst}/2026-06-29.md`
 - **Macro baseline** → `wiki/system/core/macro/yield_environment.md`
 
 ## Current week — W27 LIVE (Mon 06-29 → Fri 07-03). weekly_reforecast_count = 0.
@@ -31,7 +31,7 @@ W27 zones PENDING (read forecasts/weekly for boxes/scores; recompute live number
 
 ## Watch / judgment notes
 - **T6 re-forecast trigger live (D029):** DGS2 drift >0.15% from **4.09** OR DXY slope20 sign-flip → re-forecast USD pairs; counters opposed by a confirmed flip void on sight. Offset retune = D030 OPEN (deferred, n=1).
-- **MoF regime ACTIVE (Katayama "decisive action" G7 06-19):** usdjpy 161.7 ABOVE 160 → longs HARD-BLOCKED (only MoF-line short); eurjpy 184.2 + gbpjpy 213.4 in CAUTION bands → cap longs. intervention_watch verified_through 2026-06-28.
+- **MoF regime ACTIVE (Katayama "decisive action" G7 06-19):** usdjpy 161.7 ABOVE 160 → longs HARD-BLOCKED (only MoF-line short); eurjpy 184.2 + gbpjpy 213.4 in CAUTION bands → cap longs. intervention_watch verified_through 2026-06-29 (refreshed, no escalation).
 - **ADX-veto NO-ZONES (audusd/usdcad/nzdusd):** strong trends (ADX 33–51) veto the mean-reversion fades; watch for ADX<30 to re-enable floor/top fades. usdcad/audusd long anti-edge; never trend-follow.
 - **Recurring lesson (xauusd W24+W25+W26):** resistance shorts unfilled 3 weeks running in the ADX-44→48 freefall (even "nearer" 4200 missed by 1pt) → W27 PRIMARY moved to FIRST resistance above spot (4120–4160).
 - **xauusd base-risk watch:** GLD +16t INFLOW + COT longs +8.5k into a 4-wk drop = positioning warning; D1 close > 4448 (POC) kills bear thesis.
@@ -39,4 +39,4 @@ W27 zones PENDING (read forecasts/weekly for boxes/scores; recompute live number
 - **E0 reclaim (D027):** PENDING ledger validation (pin/engulf fallback still counts).
 
 ## Last session
-2026-06-28 — **/weekly ALL 11 → W27.** 18 zones across 8 instruments registered PENDING; 3 NO-ZONES (audusd/usdcad/nzdusd, ADX fade-veto). DGS2 rebased 4.09 (PCE), DXY 101.36 13-mo high → majors BEARISH/MED. Stale FX pulls (eurusd 06-23, audusd/nzdusd missing) refreshed via --force --rewrite-immutable to Friday close. W26 portfolio resolved (16 completed, −4.5R, calibration overall DEAD small-n; VETO_ADX flagged "COSTING EDGE" n=4). Calendar W27: UK GDP/Ger CPI Tue, EZ HICP/Bailey/Warsh Wed, NFP Thu 07-02 (pulled fwd), US closed Fri 07-03. MoF regime acute (usdjpy >160 long-block).
+2026-06-29 — **/validate ALL 11, W27 day 1.** All 14 zones (8 instruments) ❌ NO TRADE, EC 1.0–4.5 (<5.0 floor) — no zone touched yet this week; generic 1H pattern hits at current spot were not zone-proximate so were discounted rather than anchoring far-off limits. usdjpy long HARD-BLOCKED (spot 161.7 in MoF zone); eurjpy/gbpjpy CAUTION caps. No re-forecast (DGS2 drift +0.10<0.15).

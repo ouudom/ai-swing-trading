@@ -1,19 +1,23 @@
+---
+description: Daily validation on PENDING Trading Zones — Entry Confluence gating, 07:30 UTC pre-London.
+argument-hint: [instrument] [date]
+model: claude-sonnet-4-6
+---
 Run daily validation on PENDING Trading Zones, 07:30 UTC before London open.
 
+> **Model:** runs on Sonnet 4.6 — this command is mechanical (script-run gates + pure-formula
+> SL/offset/lots + programmatic EC). No Opus needed. If a run hits genuinely ambiguous judgment
+> (contradiction protocol, a borderline re-forecast call), flag it for an Opus follow-up rather than
+> forcing the call here.
+
 Arguments: `[instrument] [date]`. Instrument ∈ {xauusd, eurusd, gbpusd, eurgbp, audusd, nzdusd,
-usdcad, usdchf, usdjpy, eurjpy, gbpjpy} (default xauusd). Date YYYY-MM-DD (default today). Validate one instrument per invocation.
-(eurgbp = CROSS: NO VIX-veto, European event blocks, macro-light. audusd: NO VIX-veto + NO DXY
-block — dead/inverted for AUD. nzdusd: macro-light — NO VIX-veto, NO DXY block, NO US2Y gate;
-weakest edges, fewer orders expected; antipodean advisory vs audusd. usdcad = **USD-BASE**: long
-pair = LONG USD — US2Y polarity flipped, VIX>20 favors SHORTs, COT 6C inverted, oil tilt.
-usdchf = **USD-BASE, DXY proxy**: DXY 20d slope = live macro, VIX WASHOUT (no gate/score),
-COT 6S inverted, SNB regime + quarterly decision block. usdjpy = **USD-BASE, JPY-quoted,
-ASYMMETRIC**: pip 0.01/3dp/TICK 650; LONG = drift continuation, SHORT = D1/H4 extremes only,
-H1-only shorts PROHIBITED; DXY 20d slope live, VIX washout; BoJ/MoF = hard block, longs ≥158 cap MEDIUM.
-eurjpy = **CROSS-JPY, macro NONE**: pip 0.01/3dp/TICK 650; symmetric mean-reversion — buy washouts,
-fade extension, never chase; NO VIX/DXY/rate gates; BoJ/MoF + ECB = hard blocks; record-high longs cap MEDIUM.
-gbpjpy = **CROSS-JPY #2, macro NONE**: pip 0.01/3dp/TICK 650; extension-fade, SHORT-dominant; NO calm
-row, NO VIX/DXY/rate gates; COT DISABLED; BoJ/MoF + BoE = hard blocks; short entries avoid 13–15 UTC.)
+usdcad, usdchf, usdjpy, eurjpy, gbpjpy} — **default (no arg) = ALL 11 instruments**, validated in the order listed. Date YYYY-MM-DD (default today). Pass a single instrument to validate just that one.
+Batch run: do Step 0b (DB guard) ONCE up front; space the per-instrument `weekly_pull.py` calls ~8s apart (Twelve Data free tier = 8 req/min).
+
+> Per-pair character / macro / VIX-veto / TICK / intervention rules are defined ONCE in
+> `constitution.md` multi-instrument table + each pair's `confluence_criteria.md`. Step 0 table below
+> + the VETO / macro-flip blocks carry only the command-specific deltas (operative gates + edge
+> thresholds). Don't re-derive a pair's character here.
 
 **The four questions /validate answers, per zone:**
 1. **Is the forecast still valid?** (V1/V1b structure intact, V3 news clear)
@@ -196,48 +200,36 @@ counter-move (gold 2.5% / FX 1.5%), T4 = shock, T5 = cumulative macro drift vs b
   - **Still NO TRADE regardless of flatten** — the pair's OWN central bank deciding today, the JPY-trio
     NO ZONES standing rule, and active MoF intervention. Flatten only relaxes the forward-carry case
     (e.g. a Tue entry that would otherwise carry into Wed FOMC), never the event hour itself.
-- **VETO (VIX>35 fresh, OR VIX 1d spike>3 for FX):**
-  - xauusd → all SHORT zones NO TRADE (safe-haven bid)
-  - eurusd/gbpusd → all LONG zones NO TRADE (risk-off USD bid drives pair down)
-  - **eurgbp (cross) → NO VIX VETO** (risk-off bids EUR over GBP → EURGBP UP, inverted; EG2). VIX spike
-    is instead a weak LONG *tilt* (Z4, 0.5). Only hard veto for eurgbp = D1 ADX>30 trending against the fade.
-  - **audusd → NO VIX VETO** — polarity INVERTED as a *level* regime (VIX>20 → LONG tilt t=6.14,
-    VIX<15 → SHORT tilt t=5.29; spike dead). VIX level scores in R2 E4 instead. Only hard veto for
-    audusd = D1 ADX>30 trending against the fade.
-  - **nzdusd → NO VIX VETO** — same inverted level polarity as AUD, weaker (t≈2.2–2.4); spike dead
-    (t=−1.7). Only hard veto for nzdusd = D1 ADX>30 trending against the fade.
-  - **usdcad (USD-base) → NO VIX VETO** — VIX>20 → SHORT bias (+5.5pp t≈3.9), VIX<15 → LONG bias
-    (fade-the-USD regime, scores in R2 E4). Only hard veto = D1 ADX>30 trending against the fade.
-  - **usdchf (USD-base) → NO VIX VETO, NO VIX SCORE** — haven-vs-haven washout (VIX>20 long t=1.39 /
-    VIX<15 short t=−1.97, incoherent). Hard vetoes: D1 ADX>30 trending against the fade; SNB
-    decision/communication day.
-  - **usdjpy (USD-base) → NO VIX VETO, NO VIX SCORE** — washout like CHF (VIX>20 long t=0.19 /
-    VIX<15 short t=−0.15). Hard vetoes: BoJ decision day / active MoF jawboning; **H1-only short
-    setups** (anti-edge t=−3.3 — shorts need D1/H4 extreme); LONG ≥158 at fresh highs → cap MEDIUM.
-  - **eurjpy (cross-JPY) → NO VIX VETO, NO VIX SCORE** — measured DEAD (E13 t=0.91, spike t=−0.42).
-    Hard vetoes: BoJ decision / active MoF jawboning (slams hit crosses); ECB decision; D1 ADX>30
-    trending against the fade. LONG at fresh record highs during intervention watch → cap MEDIUM.
-  - **gbpjpy (cross-JPY #2) → NO VIX VETO, NO VIX SCORE** — measured DEAD (E13 t=0.89, spike t=−1.81
-    mildly anti). Hard vetoes: BoJ decision / active MoF jawboning (GBPJPY slams = largest); BoE
-    decision; D1 ADX>30 trending against the fade; **SHORT entry inside 13–15 UTC NY open**
-    (anti-edge t=−3.84). LONG at fresh record highs during intervention watch → cap MEDIUM.
-  - FRED VIXCLS freshness guard: latest date < today−1 → suspend veto, log `vix_stale=true`.
-- **Macro flip** — macro series vs baseline (constitution drift table): >0.15% any dir → force re-forecast.
-  eurusd/gbpusd: DXY 1d jump > 0.5 AGAINST a zone → that zone NO TRADE (strongest measured signal).
-  **eurgbp: NO DXY block** (USD index irrelevant); rate-diff drift is weak/informational, not a flip gate.
-  **audusd: NO DXY block** (DXY-jump measured DEAD for AUD, t=−0.85 — context only).
-  **nzdusd: NO DXY block, NO US2Y gate** (both dead for NZD — t=0.24 / −0.7; DGS2 baseline = drift
-  tracking context only).
-  **usdcad: NO DXY block** (dead); US2Y drift vs baseline applies with **FLIPPED polarity** (US2Y
-  rising = WITH a long-USDCAD bias, not against it).
-  **usdchf: NO DXY-jump block** (jump is anti, t=−1.69 — fade it); **DXY 20d SLOPE flip AGAINST a
-  zone = re-check bias** (it's the pair's only live macro, R2 E2); US2Y drift FLIPPED like usdcad.
-  **usdjpy: NO DXY-jump block** (anti, t=−1.32); **DXY 20d SLOPE flip AGAINST a zone = re-check
-  bias** (only live macro, R2 E2); US2Y DEAD — `baseline_dgs2` drift = context only, not a flip gate.
-  **eurjpy: NO macro flip gate of any kind** (cross, macro dead — `baseline_ecb_rate` = context
-  only). Re-forecast triggers are price-driven: T3 counter-move 1.5% + T4 shock only.
-  **gbpjpy: NO macro flip gate of any kind** (cross, macro dead — `baseline_sonia_rate` = context
-  only). Re-forecast triggers are price-driven: T3 counter-move 1.5% + T4 shock only.
+- **VETO** — trigger = VIX>35 fresh, OR VIX 1d spike>3 (FX). Gate per pair (justification/t-stats →
+  constitution VIX-veto row + `confluence_criteria.md`):
+
+  | Pair | VIX veto | VIX score | Other hard vetoes (beyond V1/V1b/V3) |
+  |---|---|---|---|
+  | xauusd | SHORTs NO TRADE | — | — |
+  | eurusd / gbpusd | LONGs NO TRADE | — | — |
+  | eurgbp | NONE (spike = weak LONG tilt Z4 0.5) | tilt only | D1 ADX>30 vs the fade |
+  | audusd | NONE (level INVERTED, scores R2 E4) | level scores | D1 ADX>30 vs the fade |
+  | nzdusd | NONE (level inverted, weaker) | level scores | D1 ADX>30 vs the fade |
+  | usdcad | NONE (VIX>20→SHORT bias, scores R2 E4) | level scores | D1 ADX>30 vs the fade |
+  | usdchf | NONE (washout) | none | D1 ADX>30 vs the fade; SNB decision/communication day |
+  | usdjpy | NONE (washout) | none | BoJ day / active MoF jawboning; **H1-only SHORT setups prohibited** (need D1/H4 extreme); LONG ≥158 at fresh highs → cap MEDIUM |
+  | eurjpy | NONE (washout) | none | BoJ day / MoF jawboning; ECB decision; D1 ADX>30 vs the fade; record-high LONG in intervention watch → cap MEDIUM |
+  | gbpjpy | NONE (washout) | none | BoJ day / MoF jawboning; BoE decision; D1 ADX>30 vs the fade; **SHORT entry inside 13–15 UTC** NY open; record-high LONG in intervention watch → cap MEDIUM |
+
+  FRED VIXCLS freshness guard: latest date < today−1 → suspend veto, log `vix_stale=true`.
+- **Macro flip** — macro series vs baseline (constitution drift table): >0.15% any dir → force
+  re-forecast. DXY/rate gate per pair (deadness justification → constitution macro-direction row):
+
+  | Pair | DXY-jump block | Other macro-flip rule |
+  |---|---|---|
+  | eurusd / gbpusd | DXY 1d jump >0.5 AGAINST a zone → that zone NO TRADE | — |
+  | eurgbp | NONE (no USD leg) | rate-diff drift = weak/informational, not a gate |
+  | audusd | NONE (dead) | — |
+  | nzdusd | NONE (dead) | NO US2Y gate (DGS2 baseline = drift-tracking context only) |
+  | usdcad | NONE (dead) | US2Y drift FLIPPED polarity (US2Y rising = WITH long-USDCAD) |
+  | usdchf | NONE (jump anti — fade it) | DXY 20d SLOPE flip AGAINST a zone = re-check bias (R2 E2); US2Y FLIPPED |
+  | usdjpy | NONE (jump anti) | DXY 20d SLOPE flip AGAINST a zone = re-check bias (R2 E2); US2Y DEAD (context only) |
+  | eurjpy / gbpjpy | NONE (cross, no USD leg) | NO macro-flip gate at all — price-driven only: T3 counter-move 1.5% + T4 shock |
 
 ### Q4 — Entry Confluence (max 10, floor 5.0)
 **Use `wiki/system/{INSTRUMENT}/confluence_criteria.md` R2 — the table differs by instrument.**
@@ -382,7 +374,7 @@ The DB (`data/database/index.db`) is otherwise written live by the pipeline (`db
 ## Multi-Zone Handling
 Validate every PENDING zone for the instrument independently. Multiple ORDER LIMITs allowed if zones
 distinct (each risks $2000; no weekly cap). Same-day fill priority: Primary → Secondary → Counter.
-To validate all instruments, invoke `/validate` once per instrument.
+Default run validates every instrument in sequence; a single-instrument arg restricts to one.
 
 ## FX Currency-Leg Netting — ADVISORY (D022 as amended by D024 — see [[currency_exposure]])
 **Before writing ANY FX ORDER LIMIT**, run the ledger against today's other live FX orders —

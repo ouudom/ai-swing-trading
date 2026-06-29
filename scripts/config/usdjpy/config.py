@@ -3,10 +3,10 @@
 D024 pair #5 — third USD-base pair and FIRST JPY-quoted pair. Long USDJPY = long USD
 (USD_BETA_SIGN=+1). JPY pip plumbing differs from every prior pair:
   - PIP_SIZE = 0.01 (price ~155, quoted to 3dp; 1 big figure = 1.00 = 100 pips).
-  - TICK_MULTIPLIER = 650, STATIC (D024 operator ruling, no live JPY→USD conversion):
-    $/lot per 1.0 price move ≈ 100,000/USDJPY ≈ 100,000/154. The non-JPY formula
-    (TICK=100000) is wrong by ~155×, not a tolerable drift. Sizing error drifts with
-    spot (~±10% over a 140–170 range) — accepted.
+  - TICK_MULTIPLIER = 650, STATIC (D024 operator ruling, historical — no longer used for
+    lot sizing, system is R-multiple only): ≈ 100,000/USDJPY ≈ 100,000/154. The non-JPY
+    value (TICK=100000) would be wrong by ~155× here, not a tolerable drift. Retained only
+    as a PRICE_DP display-precision heuristic.
   - PRICE_DP = 3 — weekly_pull display/rounding (TICK heuristic would give 5dp).
 
 JPY specifics:
@@ -36,7 +36,8 @@ PULL_DIR = "data/weekly_pull/usdjpy"
 # ── JPY pip plumbing (see module docstring) ──
 PIP_SIZE        = 0.01     # 1 pip; big figure = 1.00
 PRICE_DP        = 3        # display/rounding precision
-TICK_MULTIPLIER = 650      # static ≈ 100000/154 — $/lot per 1.0 price move
+TICK_MULTIPLIER = 650      # static ≈ 100000/154; legacy price-scale constant, no longer
+                           # used for lot sizing — retained for PRICE_DP heuristic
 MIN_BAR_RANGE   = 0.03     # 3 pips, JPY scale (vestigial — session filter is time-based)
 
 # Foreign carry leg: BoJ policy rate has NO daily FRED series → carry leg disabled.

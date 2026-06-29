@@ -1,8 +1,9 @@
 """USDCHF instrument config — USD vs Swiss franc. Inherits USD-base defaults from config._fx_usd_base.
 
 D024 pair #4 — second USD-base pair (clone of the usdcad class, no oil leg). Long USDCHF =
-long USD (USD_BETA_SIGN=+1). CHF-quoted pip (~$12.5/pip/lot at 0.80 vs $10 nominal → ~25%
-OVER-sized with the unconverted formula — accepted, D024 operator ruling).
+long USD (USD_BETA_SIGN=+1). CHF-quoted pip value runs ~25% over the nominal $10/pip majors
+convention (historical pip-economics note; system tracks risk in R-multiples only, no live
+$/pip conversion).
 
 CHF specifics:
   - No daily FRED series for the SNB policy rate → RATE_FOREIGN=None.

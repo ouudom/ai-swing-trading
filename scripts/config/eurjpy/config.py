@@ -38,7 +38,8 @@ USD_BETA_SIGN = 0
 # ── JPY pip plumbing (same as usdjpy — quote ccy is JPY) ──
 PIP_SIZE        = 0.01     # 1 pip; big figure = 1.00
 PRICE_DP        = 3        # display/rounding precision
-TICK_MULTIPLIER = 650      # static ≈ 100000/USDJPY(154) — $/lot per 1.0 price move
+TICK_MULTIPLIER = 650      # static ≈ 100000/USDJPY(154); legacy price-scale constant, no
+                           # longer used for lot sizing — retained for PRICE_DP heuristic
                            # (quote ccy = JPY, so pip value depends on USDJPY, NOT EURJPY)
 MIN_BAR_RANGE   = 0.03     # 3 JPY pips (vestigial — session filter is time-based)
 

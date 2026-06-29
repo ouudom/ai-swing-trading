@@ -15,7 +15,7 @@ related: [constitution, confluence_criteria, ../../research/usdchf/signal-result
 ## Engine constants (consumed by pipeline + constitution)
 | Constant | Value | Used by |
 |---|---|---|
-| `TICK_MULTIPLIER` | 100000 — pip is CHF-quoted: true ≈ $12.5/pip/lot at 0.80, formula assumes $10 → **~25% OVER-sized** (risk > $2000; accepted, D024 no-convert) | lot sizing |
+| `TICK_MULTIPLIER` | 100000 — pip is CHF-quoted, no USD conversion applied (accepted, D024 no-convert) | R-distance conversion |
 | pip / `PRICE_DP` | 0.0001 / 5 | thresholds, display |
 | `MIN_BAR_RANGE` | 0.0003 (3 pips) | H4 flatline filter |
 | **V1b threshold** | **0.0004 (4 pips)** past zone, 2 consecutive H4 closes | invalidation |

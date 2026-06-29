@@ -15,7 +15,7 @@ related: [constitution, confluence_criteria, ../../research/usdcad/signal-result
 ## Engine constants (consumed by pipeline + constitution)
 | Constant | Value | Used by |
 |---|---|---|
-| `TICK_MULTIPLIER` | 100000 — pip is CAD-quoted: true ≈ $7.2/pip/lot at 1.38, formula assumes $10 → **~28% UNDER-sized** (risk < $2000; accepted, D024 no-convert) | lot sizing |
+| `TICK_MULTIPLIER` | 100000 — pip is CAD-quoted, no USD conversion applied (accepted, D024 no-convert) | R-distance conversion |
 | pip / `PRICE_DP` | 0.0001 / 5 | thresholds, display |
 | `MIN_BAR_RANGE` | 0.0003 (3 pips) | H4 flatline filter |
 | **V1b threshold** | **0.0005 (5 pips)** past zone, 2 consecutive H4 closes | invalidation |

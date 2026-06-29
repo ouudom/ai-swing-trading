@@ -14,7 +14,7 @@ Per-instrument character/macro/vetoes: **constitution multi-instrument table** +
 `wiki/system/{instrument}/` profile + confluence_criteria. Never apply gold intuition to FX.
 
 Timeframes: Weekly/Daily (bias) → Daily→H4→1H (top-down) → 1H/15M (entry confirmation)
-Risk: $2000/trade. SL = `H4_ATR14` if `0.5×D1_ATR14 < H4_ATR14`, else `avg(0.5×D1_ATR14, H4_ATR14)`.
+Risk tracked in R-multiples only. SL = `H4_ATR14` if `0.5×D1_ATR14 < H4_ATR14`, else `avg(0.5×D1_ATR14, H4_ATR14)`.
 TP: TP1 2.5R (manual close), TP2 3.0R (limit close), BE at +1.5R. Structural TP anchor (compute R).
 
 ## Memory Protocol — Read Every Session
@@ -77,8 +77,6 @@ Before ANY FX order limit: run `scripts/fx_exposure.py` netting ledger (advisory
 ```
 SL:     H4_ATR14 if (0.5×D1_ATR14) < H4_ATR14 else avg(0.5×D1_ATR14, H4_ATR14)
         H4_ATR14 = ATR(14) on trading-day H4 bars only (range >= MIN_BAR_RANGE per pair)
-lots:   max(0.01, floor($2000 / (SL × TICK_MULTIPLIER) × 100) / 100)   ← 0.01-lot step
-        TICK_MULTIPLIER: 100 (xauusd) | 100000 (FX non-JPY) | 650 STATIC (JPY-quoted, D024)
 offset: max( SL/3 , (10 − entry_confluence_score) × 0.2 × SL )   ← OUTWARD beyond anchor
 anchor: confirmation candle CLOSE (E0 present) | 50% zone midpoint (no E0)
 limit:  long anchor − offset | short anchor + offset
@@ -153,7 +151,7 @@ Structured data engine = the `scripts/` pipeline producing the weekly pull text 
 - After creating/updating any file: update `_INDEX.md`. End of every session: update `_HOT.md`.
 - `_HOT.md` — **THIN boot file, hard cap 40 lines.** Contains ONLY: current week, open HUMAN
   decisions, watch/judgment notes, and source-of-truth pointers. **NEVER store a value computable
-  from source** — no live R, SL-hit status, spot, EC, ATR, ADX, V1b status, zone prices, lots, order
+  from source** — no live R, SL-hit status, spot, EC, ATR, ADX, V1b status, zone prices, order
   details. Those live in `forecasts/*` / the pull / the replay tables and are recomputed every run; a
   cached number here will go stale and lie (cf. the 06-15 USDCHF "−0.6R/SL intact" error — R was read
   off `_HOT`/spot, not the bar low that had already hit SL). Would-be R / system P&L → `trade_outcome`

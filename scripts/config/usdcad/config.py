@@ -1,8 +1,9 @@
 """USDCAD instrument config — USD vs loonie. Inherits USD-base defaults from config._fx_usd_base.
 
 D024 pair #3 — FIRST USD-base pair. Long USDCAD = long USD (USD_BETA_SIGN=+1; DXY/US-rate
-polarity flipped vs the USD-quote majors). CAD-quoted pip (~$7.2/pip/lot at 1.38 vs $10 nominal
-→ ~28% UNDER-sized with the unconverted formula — accepted, D024 operator ruling).
+polarity flipped vs the USD-quote majors). CAD-quoted pip value runs ~28% under the nominal
+$10/pip majors convention (historical pip-economics note; system tracks risk in R-multiples
+only, no live $/pip conversion).
 
 CAD specifics:
   - No daily FRED series for the BoC overnight rate (monthly OECD only) → RATE_FOREIGN=None.

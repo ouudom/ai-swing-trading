@@ -15,7 +15,7 @@ related: [constitution, confluence_criteria, ../../research/gbpusd/signal-result
 ## Engine constants (consumed by pipeline + constitution)
 | Constant | Value | Used by |
 |---|---|---|
-| `TICK_MULTIPLIER` | 100000 (std lot = 100k units, $10/pip) | lot sizing |
+| `TICK_MULTIPLIER` | 100000 (units) | R-distance conversion |
 | pip | 0.0001 | thresholds, ATR display |
 | `PRICE_DP` | 5 | price rounding |
 | `MIN_BAR_RANGE` (H4 ATR filter) | 0.0003 (3 pips) | drop weekend/holiday flatline |
@@ -75,14 +75,13 @@ H4 ATR median ≈ 36 pips.
 | T4 — shock (X structured news OR Y VIX 1d jump>5) | as constitution |
 | T5 — US2Y cumulative drift vs `baseline_dgs2` | abs > 0.15% |
 
-## Position sizing quick reference
-Formula: `lots = $2000 / (SL_price_distance × 100000)`, round DOWN to 0.01.
-| SL (pips) | SL price | Lots (raw) | Actual risk |
-|---|---|---|---|
-| 30 | 0.0030 | 0.66 | $1980 |
-| 45 | 0.0045 | 0.44 | $1980 |
-| 60 | 0.0060 | 0.33 | $1980 |
-| 90 | 0.0090 | 0.22 | $1980 |
+## SL reference
+| SL (pips) | SL price |
+|---|---|
+| 30 | 0.0030 |
+| 45 | 0.0045 |
+| 60 | 0.0060 |
+| 90 | 0.0090 |
 Crisis ATR >162 pips → halve to $1000 risk.
 
 ## VIX veto direction (FX — opposite of gold)

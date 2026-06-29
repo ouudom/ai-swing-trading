@@ -29,9 +29,9 @@ ETF_ENABLED       = False
 ETF_TICKER        = None
 ETF_HOLDINGS_CSV  = None
 
-# ── Lot sizing: standard FX lot = 100,000 units → $1.00 price move = $100,000/lot.
-#    lots = floor($2000 / (SL_price_distance × TICK_MULTIPLIER)).
-#    e.g. 80-pip SL (0.0080): $2000 / (0.0080 × 100000) = 2.5 std lots ($10/pip × 2.5 × 80 = $2000). ──
+# ── TICK_MULTIPLIER: legacy price-scale constant (standard FX lot = 100,000 units).
+#    No longer used for lot sizing (system is R-multiple only) — retained as a heuristic
+#    input to PRICE_DP (display decimal precision) in weekly_pull.load_instrument(). ──
 TICK_MULTIPLIER   = 100000
 
 # ── H4 trading-day ATR filter: FX bars move in pips, not $. Drop flatline bars below this range. ──

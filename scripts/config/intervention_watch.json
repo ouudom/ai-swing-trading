@@ -6,8 +6,14 @@
    "intervention_level": 160.0,
    "caution_band": 2.0,
    "regime": "ACTIVE",
-   "verified_through": "2026-06-28",
+   "verified_through": "2026-06-29",
    "jawboning": [
+    {
+     "date": "2026-06-29",
+     "official": "Katayama (FinMin)",
+     "quote": "talks with US Treasury Sec. Bessent reaffirming shared commitment to coordinate in FX markets if necessary",
+     "source": "web search 2026-06-29 (USDJPY ~161.7, near 1986 weak-yen levels)"
+    },
     {
      "date": "2026-06-19",
      "official": "Katayama (FinMin)",
@@ -26,7 +32,7 @@
    "intervention_level": 185.0,
    "caution_band": 3.0,
    "regime": "ACTIVE",
-   "verified_through": "2026-06-28",
+   "verified_through": "2026-06-29",
    "jawboning": [
     {
      "date": "2026-06-19",
@@ -46,7 +52,7 @@
    "intervention_level": 214.0,
    "caution_band": 4.0,
    "regime": "ACTIVE",
-   "verified_through": "2026-06-28",
+   "verified_through": "2026-06-29",
    "jawboning": [
     {
      "date": "2026-06-19",

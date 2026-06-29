@@ -26,8 +26,7 @@ Evidence: [[signal-results]].
 | COT | EUR/JPY XRATE, **DIRECT** read | thin (OI ~21k) — context only, extremes = noise |
 | VP_TICKER | None | no clean futures continuous |
 
-Sizing check: lots = 2000/(SL×650). SL 0.50 (50 pips) → 6.15 lots → risk = $2,000 exact
-at USDJPY 154 (drifts with USDJPY spot ±10%, accepted D024).
+SL 0.50 (50 pips) at USDJPY 154 (JPY pip value drifts with USDJPY spot ±10%, accepted D024).
 
 ## Macro — NONE (first fully price-driven pair)
 1. ECB leg (X9/X10): t = −1.23/−1.31 — mildly ANTI. Non-scoring tilt in weekly pull only.

@@ -71,6 +71,8 @@ def load_instrument(name: str):
     TD_DIR      = Path(cfg.TD_DIR)
     PULL_DIR    = Path(cfg.PULL_DIR)
     FRED_SERIES = cfg.FRED_SERIES
+    # TICK_MULTIPLIER: legacy price-scale constant per instrument, retained only as a
+    # heuristic input to PRICE_DP (display precision) below — no longer used for lot sizing.
     TICK_MULTIPLIER = getattr(cfg, "TICK_MULTIPLIER", 100)
     # Price display/rounding precision: $-scale instruments (gold, TICK<=100) → 2dp;
     # pip-scale FX (TICK>=10000, price ~1.16, ATR ~0.0018) → 5dp or values round to 0.
@@ -136,7 +138,7 @@ SYM_CLEAN = "xauusd"
 TD_DIR    = Path("data/twelvedata/xauusd")
 FRED_DIR  = Path("data/fred")
 PULL_DIR  = Path("data/weekly_pull/xauusd")
-TICK_MULTIPLIER = 100   # $/lot per 1.0 price move (gold). Overridden by load_instrument.
+TICK_MULTIPLIER = 100   # price-scale constant (gold), used only to derive PRICE_DP display precision. Overridden by load_instrument.
 PRICE_DP = 2            # price rounding precision (gold $-scale). FX→5. Overridden by load_instrument.
 
 FRED_SERIES = ["DFII10", "DGS10", "T5YIE", "DFF", "VIXCLS"]
@@ -1130,8 +1132,6 @@ def _compute_and_write(out_path):
     #   if 0.5×D1 < H4 → SL = H4   else → SL = avg(0.5×D1, H4)
     d1_floor = 0.5 * atr_d
     sl_v2 = atr_h4 if d1_floor < atr_h4 else round((d1_floor + atr_h4) / 2, PRICE_DP)
-    lots_raw = round(2000 / (sl_v2 * TICK_MULTIPLIER), 3) if sl_v2 > 0 else 0.0
-    lots_fl  = max(0.01, int(lots_raw * 100) / 100)  # floor to 0.01-lot step, broker min 0.01
 
     adx_regime = ("TRENDING (favor continuation/trend setups; floor 6.0)"      if adx_val > 25  else
                   "TRANSITIONAL (chop risk → /validate floor raised to 6.5)"   if adx_val >= 20 else
@@ -1374,10 +1374,6 @@ ATR(14) Daily:    ${atr_d}
 ATR(14) H4:       ${atr_h4}  (trading days only)
 SL (constitution v2): ${round(sl_v2, PRICE_DP)} = {"H4 ATR (floor — 0.5×D1 " + str(round(d1_floor, PRICE_DP)) + " < H4)" if d1_floor < atr_h4 else "avg(0.5×D1 " + str(round(d1_floor, PRICE_DP)) + ", H4 " + str(atr_h4) + ")"}
 D1 ATR now:       ${atr_d_now} | 20d median: ${atr_d_med} → {"COMPRESSED ✅" if compressed else "EXPANDING ⚠"}
-
-Lot sizing ($2000 risk, SL above):
-  Raw lots:  {lots_raw}
-  Use lots:  {lots_fl}  (floored to 0.01-lot step, min 0.01)
 
 ADX(14) D1:       {adx_val} → {adx_regime}
 EMA 50 D1:        ${ema50} | Price {"ABOVE" if gc > ema50 else "BELOW"}

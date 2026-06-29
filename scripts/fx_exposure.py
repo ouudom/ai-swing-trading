@@ -3,10 +3,11 @@
 
 Generalized from the original 3-instrument / 2-axis cap model to a per-currency-leg
 ledger over all FX instruments (8 currencies). Every pair = +base / −quote leg;
-a SHORT flips the signs. Orders weighted by risk_units = risk_usd / 2000.
+a SHORT flips the signs. Orders are weighted in R-multiples — every order risks 1R
+by default (1R = that trade's SL distance), so risk_units = risk_r (no $ conversion).
 
 OPERATOR DECISION (D024, 2026-06-10): this is a SIGNAL system, not a risk manager.
-No hard $ cap is enforced. When two or more orders load the same currency leg in the
+No hard cap is enforced. When two or more orders load the same currency leg in the
 same direction (e.g. EURUSD short + GBPUSD short = 2× long USD), the ledger FLAGS the
 concentration and SUGGESTS the cleaner trade (highest Entry Confluence). The operator
 decides. Nothing is auto-skipped.
@@ -21,8 +22,8 @@ Soft advisory extras:
 Gold (xauusd) stays OUT of the ledger — USD-priced but real-yield driven.
 
 Usage:
-  bash scripts/pyrun.sh scripts/fx_exposure.py --orders "eurusd:short:2000,gbpusd:short:2000"
-  bash scripts/pyrun.sh scripts/fx_exposure.py --live "eurusd:short:2000" --candidate "gbpusd:short:2000" --new-ec 6.5 --live-ecs "eurusd:7.5"
+  bash scripts/pyrun.sh scripts/fx_exposure.py --orders "eurusd:short:1,gbpusd:short:1"
+  bash scripts/pyrun.sh scripts/fx_exposure.py --live "eurusd:short:1" --candidate "gbpusd:short:1" --new-ec 6.5 --live-ecs "eurusd:7.5"
   bash scripts/pyrun.sh scripts/fx_exposure.py --selftest
 """
 from __future__ import annotations
@@ -30,7 +31,7 @@ import argparse
 import sys
 from dataclasses import dataclass
 
-RISK_UNIT = 2000.0          # $ per risk unit (reporting only — no cap enforced)
+RISK_UNIT = 1.0              # 1R per order (reporting only — no cap enforced)
 EPS = 1e-9
 
 # Per-instrument currency legs for a LONG position (short = negate).
@@ -57,7 +58,7 @@ FX_INSTRUMENTS = set(LEGS)
 class Order:
     instrument: str
     direction: str   # "long" | "short"
-    risk: float      # $ at risk
+    risk: float      # risk in R-multiples (default 1.0 = 1R)
 
     @property
     def dir_sign(self) -> int:
@@ -73,7 +74,7 @@ class Order:
 
 
 def parse_orders(spec: str) -> list[Order]:
-    """'eurusd:long:2000,gbpusd:short' → [Order, ...]. Risk defaults to 2000."""
+    """'eurusd:long:1,gbpusd:short' → [Order, ...]. Risk defaults to 1R."""
     out = []
     for chunk in spec.split(","):
         chunk = chunk.strip()
@@ -161,7 +162,7 @@ def advise(candidate: Order, live: list[Order],
 
 
 def _fmt(orders: list[Order]) -> str:
-    return ", ".join(f"{o.instrument} {o.direction} ${o.risk:.0f}" for o in orders)
+    return ", ".join(f"{o.instrument} {o.direction} {o.risk:.2f}R" for o in orders)
 
 
 def report(orders: list[Order]) -> str:
@@ -170,7 +171,7 @@ def report(orders: list[Order]) -> str:
     note = antipodean_note(orders)
     lines = [f"Orders: {_fmt(orders)}", ""]
     nz = {k: v for k, v in net.items() if abs(v) > EPS}
-    lines.append("Currency legs (risk-units, 1u = $2000):  " +
+    lines.append("Currency legs (risk-units, 1u = 1R):  " +
                  ("  ".join(f"{k}{v:+.2f}" for k, v in nz.items()) or "(flat)"))
     if flags:
         lines.append("")
@@ -244,9 +245,9 @@ def _parse_ecs(spec: str | None) -> dict[str, float]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="FX currency-leg netting ledger — advisory (D024).")
-    ap.add_argument("--orders", help="comma list 'inst:dir:risk' — report net exposure")
-    ap.add_argument("--live", help="existing live FX orders 'inst:dir:risk,...'")
-    ap.add_argument("--candidate", help="prospective order 'inst:dir:risk' — run the advisory")
+    ap.add_argument("--orders", help="comma list 'inst:dir:risk_r' — report net exposure")
+    ap.add_argument("--live", help="existing live FX orders 'inst:dir:risk_r,...'")
+    ap.add_argument("--candidate", help="prospective order 'inst:dir:risk_r' — run the advisory")
     ap.add_argument("--new-ec", type=float, help="candidate Entry Confluence (ranking)")
     ap.add_argument("--live-ecs", help="live orders' EC 'inst:ec,...'")
     ap.add_argument("--selftest", action="store_true")

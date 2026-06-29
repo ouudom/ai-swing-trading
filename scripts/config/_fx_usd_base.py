@@ -11,9 +11,10 @@ quoted FOREIGN/USD:
   - VP_TICKER = None — the futures chart is the pair UPSIDE-DOWN; volume-profile levels do not
     map onto pair price. Disabled rather than misread.
   - QUOTE_CCY is the foreign currency → pip value is quote-CCY denominated. D024 operator
-    ruling: NO live quote→USD conversion; non-JPY pairs keep TICK 100000 (CHF ~25% over /
-    CAD ~28% under accepted); JPY pairs override TICK_MULTIPLIER=650 (static ≈100000/154 —
-    the 100000 formula is wrong by ~155×, not a drift).
+    ruling (historical; TICK_MULTIPLIER no longer drives lot sizing — system is R-multiple
+    only, retained as a PRICE_DP display-precision heuristic): non-JPY pairs keep TICK 100000
+    (CHF ~25% over / CAD ~28% under accepted); JPY pairs override TICK_MULTIPLIER=650
+    (static ≈100000/154 — the 100000 formula is wrong by ~155×, not a drift).
 
 Per-pair modules set: SYMBOL, SYM_CLEAN, DISPLAY_NAME, TD_DIR, PULL_DIR, FOREIGN_CCY,
 RATE_FOREIGN(=None mostly), COT_CONTRACT_NAME, V1B_BUFFER (+ JPY: TICK_MULTIPLIER, PIP_SIZE,

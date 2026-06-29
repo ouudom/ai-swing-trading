@@ -62,15 +62,12 @@ Extensions (TP targets):
 - 127.2% — conservative TP2
 - 161.8% — primary 3R target zone
 
-## Position Sizing Quick Reference
-Formula: `lots = $2000 / (stop_$ × 100)`, round DOWN to 0.01
-
-| Stop $ | Lots (raw) | Lots (rounded) | Actual Risk |
-|---|---|---|---|
-| $30 | 0.667 | 0.66 | $1980 |
-| $40 | 0.500 | 0.50 | $2000 |
-| $50 | 0.400 | 0.40 | $2000 |
-| $57 | 0.351 | 0.35 | $1995 |
-| $75 | 0.267 | 0.26 | $1950 |
-| $100 | 0.200 | 0.20 | $2000 |
-Note: risk per trade = $2000. Crisis ATR >$80 → halve lot size ($1000 risk).
+## Stop Reference
+| Stop $ |
+|---|
+| $30 |
+| $40 |
+| $50 |
+| $57 |
+| $75 |
+| $100 |

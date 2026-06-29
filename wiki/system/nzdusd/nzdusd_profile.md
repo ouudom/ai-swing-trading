@@ -15,7 +15,7 @@ related: [constitution, confluence_criteria, ../../research/nzdusd/signal-result
 ## Engine constants (consumed by pipeline + constitution)
 | Constant | Value | Used by |
 |---|---|---|
-| `TICK_MULTIPLIER` | 100000 (std lot = 100k NZD, $10/pip — USD-quoted, exact) | lot sizing |
+| `TICK_MULTIPLIER` | 100000 (USD-quoted, exact) | R-distance conversion |
 | pip | 0.0001 | thresholds, ATR display |
 | `PRICE_DP` | 5 | price rounding |
 | `MIN_BAR_RANGE` (H4 ATR filter) | 0.0003 (3 pips) | drop flatline bars |

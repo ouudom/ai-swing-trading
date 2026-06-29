@@ -61,9 +61,9 @@ majors' macro weighting were redistributed to structure (Z1 2.5→3.0) + oscilla
 | E5 | **Compression Holds** | **1.0** | D1 ATR<20-med | |
 | | **Total** | **10.0** | | |
 
-**Sizing reminder:** EURGBP lots = `$2000 / (SL_price × 100000)` — USD-sized like the majors, no
-GBP convert (operator decision; see [[eurgbp_profile]]). **Netting:** route every order through
-`scripts/fx_exposure.py` — EURGBP IS the cross axis (see [[currency_exposure]]).
+**R reminder:** EURGBP R is computed in USD like the majors, no GBP convert (operator decision;
+see [[eurgbp_profile]]). **Netting:** route every order through `scripts/fx_exposure.py` — EURGBP
+IS the cross axis (see [[currency_exposure]]).
 
 **Invalidation:** D1 CLOSE beyond the zone in the fade-against direction = dead (became a
 breakout/trend). V1b = 2 consecutive H4 closes >4 pips past zone.

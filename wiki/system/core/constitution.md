@@ -21,7 +21,6 @@ momentum bias). They generalize via each instrument's profile — never hardcode
 
 | Generic rule term | XAUUSD | EURUSD / GBPUSD | EURGBP (cross) | AUDUSD / NZDUSD | USDCAD / USDCHF (USD-base) | USDJPY (USD-base, JPY-quoted) | EURJPY (cross, JPY-quoted) | GBPJPY (cross, JPY-quoted) | Source |
 |---|---|---|---|---|---|---|---|---|---|
-| Lot multiplier | ×100 | ×100000 | ×100000 (USD-sized, no GBP convert — operator) | ×100000 | ×100000 (CAD pip ~28% under / CHF pip ~25% over; accepted) | **×650 STATIC** (≈100000/154; ±10% spot drift accepted) | **×650 STATIC** (pip value tracks USDJPY, not EURJPY) | **×650 STATIC** (pip value tracks USDJPY, not GBPJPY) | `TICK_MULTIPLIER` |
 | H4-ATR flatline filter | $1 | 0.0003 (3 pips) | 0.0002 (2 pips) | 0.0003 (3 pips) | 0.0003 (3 pips) | 0.03 (3 JPY pips; pip=0.01, 3dp) | 0.03 (pip=0.01, 3dp) | 0.05 (pip=0.01, 3dp — highest ATR) | `MIN_BAR_RANGE` |
 | V1b "past zone" threshold | $5 | EUR 5 pips / GBP 6 pips | 4 pips | 4 pips | CAD 5 pips / CHF 4 pips | 0.04 (4 JPY pips) | 0.04 (4 JPY pips) | 0.05 (5 JPY pips) | profile |
 | Macro baseline (frontmatter) | `baseline_dfii10` | `baseline_dgs2` (+ `baseline_policy_diff`) | `baseline_rate_diff` (weak) | `baseline_dgs2` (NZD: context only) | `baseline_dgs2` (**polarity FLIPPED**) | `baseline_dgs2` (**DEAD** — context only) | `baseline_ecb_rate` (context only) | `baseline_sonia_rate` (context only) | snapshot |
@@ -35,15 +34,13 @@ momentum bias). They generalize via each instrument's profile — never hardcode
 > ≈ 2× NZD — fx_exposure flags it, default keep AUD unless NZD EC clearly higher.
 
 All formulas (SL, offset, TP, R) are unit-agnostic across instruments. EURGBP is nominally GBP-quoted
-but — **operator decision** — is sized in USD with the same formula as the majors
-(`lots = $2000/(SL × 100000)`, no GBP→USD conversion; assumes broker settles EURGBP pips in USD).
+but — **operator decision** — is tracked in R-multiples with the same formula as the majors
+(no GBP→USD conversion needed; SL/offset/TP all unit-agnostic in price-distance terms).
 Every EURGBP order routes through the FX netting ledger (`scripts/fx_exposure.py`) — EURGBP IS the
 cross risk-axis (see [[currency_exposure]]).
 
 ## Risk Rules — Non-Negotiable
-- Risk per trade: $2000
-- Max loss per month: $10000
-- Drawdown circuit breaker: account drops 5% from peak → $1000/trade until recovered
+- Risk tracked in R-multiples only (1R = SL distance); no $-denominated position sizing.
 - Never widen a stop after entry. Never move stop against the trade.
 - All entries are **order limits** (buy limit long / sell limit short). No market orders.
 
@@ -73,14 +70,11 @@ D1_ATR14 = ATR(14) on D1 bars
 if (0.5 × D1_ATR14) < H4_ATR14 :  SL = H4_ATR14
 else                           :  SL = avg(0.5 × D1_ATR14, H4_ATR14)
 
-lots = $2000 / (SL × TICK_MULTIPLIER), floored to the 0.01-lot step (broker min 0.01) —
-       lots = max(0.01, floor(raw × 100) / 100). Never integer-floor to whole lots.
-       TICK_MULTIPLIER = 100 (XAUUSD) | 100000 (FX, non-JPY) | 650 (JPY-quoted, static ≈100000/154 — D024)
-       MIN_BAR_RANGE   = $1 (XAUUSD)  | per-pair pips (profile)
+MIN_BAR_RANGE = $1 (XAUUSD) | per-pair pips (profile)
 ```
 **v2 change:** structural pivot removed from the stop formula. Stop is volatility-based:
 H4 ATR is the floor; half-D1 ATR only lifts it when half-D1 exceeds H4. SL is the base unit for
-sizing AND for the order-limit offset.
+the R-multiple (1R) AND for the order-limit offset.
 
 ## Entry — Order Limit with Daily Validation Gate
 Order placement is gated by `/validate` — never placed Sunday without validation. Offset and SL

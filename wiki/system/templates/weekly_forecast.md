@@ -117,7 +117,7 @@ _(USD-base pairs: use the TIME-AT-PRICE block — HTN / value area — instead o
 | TP anchor | $xxxx @ <structural anchor> — indicative TP1 2.5R / TP2 3.0R |
 | Invalidation | D1 close <above/below> $xxxx |
 
-_SL, offset, limit, lots computed at /validate (not frozen here)._
+_SL, offset, limit computed at /validate (not frozen here)._
 
 ## Trading Zone — SECONDARY [n.n/10] | NONE — <reason>
 <same compact table or "NONE — [reason]">
@@ -139,5 +139,5 @@ _If counter: Z2+Z3 score 0; RSI divergence MANDATORY; macro conf LOW/MEDIUM only
 - Zone below 5.0/10 → NONE, never force. Counter needs RSI divergence + macro LOW/MEDIUM.
 - Max 3 zones, ≤1 counter. Zones as boxes `$x–$y`, never single lines.
 - Z1 Structural always mandatory. Never score RSI>70 / COT>200k as a short signal.
-- TP names structural anchor; SL/offset/lots are a /validate concern.
+- TP names structural anchor; SL/offset are a /validate concern.
 - File immutable after Monday open.

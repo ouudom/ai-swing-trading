@@ -23,8 +23,9 @@ ETF_HOLDINGS_CSV = "data/gld_holdings.csv"
 # Volume Profile futures ticker (yfinance)
 VP_TICKER = "GC=F"
 
-# Lot sizing: $2000 / (stop_distance × TICK_MULTIPLIER) = lots
-# $1 move in gold = $100 per standard lot
+# TICK_MULTIPLIER: legacy price-scale constant ($1 move in gold = $100 per standard lot).
+# No longer used for lot sizing (system is R-multiple only) — retained as a PRICE_DP
+# display-precision heuristic in weekly_pull.load_instrument().
 TICK_MULTIPLIER = 100
 
 # H4 "trading-day" ATR filter: drop flatline weekend/holiday bars below this price range.

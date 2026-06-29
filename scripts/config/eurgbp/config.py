@@ -28,13 +28,12 @@ USD_BETA_SIGN = 0
 MIN_BAR_RANGE = 0.0002      # 2 pips (vs 3 for majors) — H4 trading-day ATR filter
 V1B_BUFFER    = 0.0004      # 4 pips past zone, 2 consecutive H4 closes (vs 5/6 for majors)
 
-# ── PIP ECONOMICS — EURGBP is nominally GBP-quoted (1 pip/lot = 10 GBP). ────────
-# OPERATOR DECISION: size in USD with the SAME formula as the majors — NO GBP→USD conversion:
-#   lots = $2000 / (SL_price_distance × 100000)
-# Risk is targeted in USD; broker assumed to settle EURGBP pip value in USD. If a broker instead
-# settles pips in GBP, this under-converts (a "$2000" trade ≈ £2000 ≈ $2670) — revisit then.
+# ── PIP ECONOMICS — EURGBP is nominally GBP-quoted (historical note). ──────────
+# OPERATOR DECISION (historical): treat the same as the majors — NO GBP→USD conversion.
+# System tracks risk in R-multiples only now; no live $/pip or quote→USD conversion is
+# performed anywhere in the pipeline.
 QUOTE_CCY            = "GBP"
-SIZING_FX_CONVERT    = False       # operator: trade USD, no quote→USD conversion
+SIZING_FX_CONVERT    = False       # operator: no quote→USD conversion (legacy flag, unused by sizing — R-multiple only)
 
 # ── Macro: EG2 cross model — ECB vs BoE (NOT US/DXY) ───────────────────────────
 # EURGBP has no USD leg. Direction driver = EUR-vs-GBP rate differential.

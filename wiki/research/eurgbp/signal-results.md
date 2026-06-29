@@ -51,7 +51,6 @@ range-bound cross that snaps back from lows. Short-fade works but thinner (CCI>1
 | D1 ATR14 5y median | 41.1 pips |
 | Best-signal avg drift (5d) | +0.15% to +0.20% = **13–17 pips** |
 | Retail spread (typ) | 1.0–1.5 pip = **6–10% of a 0.18% edge** |
-| Lots @ $2000 risk, ~18-pip SL | ~11 std lots |
 
 Edge/cost ≈ 10× gross. Low absolute vol (≈ half a major's ATR) is offset by EURGBP's tight
 spread — net clears. **Cost does NOT kill it.** (The classic low-range-cross trap is avoided here.)

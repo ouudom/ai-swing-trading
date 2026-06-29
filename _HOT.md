@@ -1,7 +1,7 @@
 # _HOT — Boot State (thin)
 *First file read each session. Pointers + non-derivable judgment only.*
 *RULE: **never store a value that can be computed from source** — no live R, SL-hit status, spot,
-EC, ATR, ADX, V1b status, zone prices, lots. Those live in the replay tables / `forecasts/*` / the
+EC, ATR, ADX, V1b status, zone prices. Those live in the replay tables / `forecasts/*` / the
 pull and must be recomputed, never cached here. This file = current week + open human decisions +
 watch notes + where to look. Hard cap **40 lines.** Prune every session.*
 

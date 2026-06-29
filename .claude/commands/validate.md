@@ -6,7 +6,7 @@ model: claude-sonnet-4-6
 Run daily validation on PENDING Trading Zones, 07:30 UTC before London open.
 
 > **Model:** runs on Sonnet 4.6 — this command is mechanical (script-run gates + pure-formula
-> SL/offset/lots + programmatic EC). No Opus needed. If a run hits genuinely ambiguous judgment
+> SL/offset + programmatic EC). No Opus needed. If a run hits genuinely ambiguous judgment
 > (contradiction protocol, a borderline re-forecast call), flag it for an Opus follow-up rather than
 > forcing the call here.
 
@@ -313,12 +313,6 @@ flag (`⏱ <PAIR> flatten by <HH:MM> UTC pre-<event>`).
 ```python
 d1_floor = 0.5 * d1_atr
 SL = h4_atr if d1_floor < h4_atr else round((d1_floor + h4_atr) / 2, DP)
-# Floor to 0.01-lot step (broker min/step = 0.01). NEVER integer-floor: int(2000 // (SL*100))
-# gives 0 lots for gold every time.
-lots = max(0.01, int(2000 / (SL * TICK_MULTIPLIER) * 100) / 100)
-# NOTE (operator decision): eurgbp uses the SAME USD formula as the majors — NO GBP→USD pip
-# conversion. Risk targeted in USD; broker assumed to settle EURGBP pip value in USD. (EURGBP is
-# nominally GBP-quoted; if your broker settles pips in GBP this under-converts — revisit if so.)
 anchor = confirmation_close if E0_present else round((zone_top + zone_bottom) / 2, DP)
 offset = max(SL/3, (10 - entry_confluence_score) * 0.2 * SL)
 limit_price = anchor - offset if direction == "LONG" else anchor + offset
@@ -331,7 +325,7 @@ in which case expiry = `event_time − 60min` (flatten_time) and any fill is for
 ## Output Format
 **✅ ORDER LIMIT:**
 ```
-[INSTRUMENT] ORDER LIMIT: BUY/SELL [limit_price] | [lots] lots | SL [sl_price] | TP1 2.5R [p] (manual) | TP2 3.0R [p] (limit) | BE @1.5R | expires [21:00 UTC or flatten_time=event−60min]
+[INSTRUMENT] ORDER LIMIT: BUY/SELL [limit_price] | SL [sl_price] | TP1 2.5R [p] (manual) | TP2 3.0R [p] (limit) | BE @1.5R | expires [21:00 UTC or flatten_time=event−60min]
 Entry Confluence: [score]/10 (E0:[✅/❌] E1:[✅/❌] E2:[✅/❌] E3:[✅/❌] E4:[✅/❌] E5:[✅/❌])
 Anchor: [confirmation close / 50% zone] | SL [SL] | offset [offset] | R:R [computed]
 "If price reaches [limit_price], order triggers. Cancel if not hit by 21:00 UTC."
@@ -373,7 +367,7 @@ The DB (`data/database/index.db`) is otherwise written live by the pipeline (`db
 
 ## Multi-Zone Handling
 Validate every PENDING zone for the instrument independently. Multiple ORDER LIMITs allowed if zones
-distinct (each risks $2000; no weekly cap). Same-day fill priority: Primary → Secondary → Counter.
+distinct (each risks 1R; no weekly cap). Same-day fill priority: Primary → Secondary → Counter.
 Default run validates every instrument in sequence; a single-instrument arg restricts to one.
 
 ## FX Currency-Leg Netting — ADVISORY (D022 as amended by D024 — see [[currency_exposure]])
@@ -409,10 +403,10 @@ Layout (N ≥ 1 — one 🟢/🔴 block per ORDER LIMIT):
 ✅ Order limits: <N>
 
 🟢 <PAIR> LONG @<limit>
-   <lots> lots · SL <sl> · TP1 <tp1> · EC <score>/10
+   SL <sl> · TP1 <tp1> · EC <score>/10
 
 🔴 <PAIR> SHORT @<limit>
-   <lots> lots · SL <sl> · TP1 <tp1> · EC <score>/10
+   SL <sl> · TP1 <tp1> · EC <score>/10
 
 ⚠️ Flags
 • <flag>
@@ -433,7 +427,7 @@ Layout (N = 0 — no order blocks; reason on its own line):
 ```
 Rules:
 - Header line + the `Order limits:` count line are always present (✅ if N≥1, 🚫 if N=0).
-- One 🟢 (LONG) / 🔴 (SHORT) block per ORDER LIMIT; line 2 holds lots · SL · TP1 · EC. Skip
+- One 🟢 (LONG) / 🔴 (SHORT) block per ORDER LIMIT; line 2 holds SL · TP1 · EC. Skip
   PENDING / NO-TRADE zones entirely.
 - `N = 0` → omit all order blocks; put the reason on the line directly under the count.
 - `⚠️ Flags` block: one `•` bullet per re-forecast trigger, V1/V1b/V3 INVALIDATION, or CONCENTRATED

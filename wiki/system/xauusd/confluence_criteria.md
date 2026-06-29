@@ -113,8 +113,6 @@ D1_ATR14 = ATR(14) on D1 bars
 
 if (0.5 × D1_ATR14) < H4_ATR14 :  SL = H4_ATR14
 else                           :  SL = avg(0.5 × D1_ATR14, H4_ATR14)
-
-lots = floor($2000 / (SL × 100))
 ```
 Structural pivot is NO LONGER part of the stop formula (v2 change). Stop is pure volatility (H4
 ATR floored, blended with half-D1 ATR only when half-D1 exceeds H4).

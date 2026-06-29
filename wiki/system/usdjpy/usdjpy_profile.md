@@ -26,8 +26,7 @@ NOT the FX fade template — H1 overbought fade is an anti-edge (t=−3.3). Evid
 | VP_TICKER | None | futures chart inverted vs pair |
 | RATE_FOREIGN | None | no daily BoJ FRED series — carry leg skipped |
 
-Sizing check: lots = 2000/(SL×650). SL 0.40 (40 pips) → 7.69 lots; pip ≈ $6.23/lot at
-160.5 → risk ≈ $1,916 (TICK calibrated at 154 → slightly under-sized above 154; fine).
+SL 0.40 (40 pips) at USDJPY 160.5 (JPY pip value calibrated at 154 spot, D024).
 
 ## Macro drivers (empirical, D1)
 1. **DXY 20d slope** — the live macro (long t=2.21 / short 1.73). 3rd pair beyond

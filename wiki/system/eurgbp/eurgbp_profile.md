@@ -15,12 +15,12 @@ related: [constitution, confluence_criteria, currency_exposure, ../../research/e
 > [[currency_exposure]] (netting — EURGBP IS the cross factor, must route through the exposure ledger).
 >
 > **Status: confluence ACTIVE. Onboarding complete — ready for first `/weekly eurgbp`** (no zones
-> published yet). Sizing in USD, no GBP convert (operator).
+> published yet). R-distance computed in USD, no GBP convert (operator).
 
 ## Engine constants (consumed by pipeline + constitution)
 | Constant | Value | Used by |
 |---|---|---|
-| `TICK_MULTIPLIER` | 100000 (std lot = 100k units) | lot sizing (USD, no GBP convert — operator) |
+| `TICK_MULTIPLIER` | 100000 (units) | R-distance conversion (USD, no GBP convert — operator) |
 | pip | 0.0001 | thresholds, ATR display |
 | `PRICE_DP` | 5 | price rounding |
 | `MIN_BAR_RANGE` (H4 ATR filter) | **0.0002 (2 pips)** — tighter, low-vol cross | drop flatline |
@@ -28,15 +28,15 @@ related: [constitution, confluence_criteria, currency_exposure, ../../research/e
 | `QUOTE_CCY` | **GBP** | pip-value conversion |
 | Market hours | Globex Sun 22:00 → Fri 22:00 UTC | session filter |
 
-## Pip economics — sized in USD (operator decision: NO GBP convert)
-EURGBP is nominally GBP-quoted (1 pip/lot = 10 GBP). **Operator decision: size in USD with the
-same formula as the majors** — `lots = $2000 / (SL_price × 100000)`, no GBP→USD conversion.
-| SL (pips) | SL price | Lots (raw) | Risk (USD-targeted) |
-|---|---|---|---|
-| 18 | 0.0018 | 0.61 | ~$2000 |
-| 25 | 0.0025 | 0.44 | ~$2000 |
-| 35 | 0.0035 | 0.31 | ~$2000 |
-| 50 | 0.0050 | 0.22 | ~$2000 |
+## Pip economics — R computed in USD (operator decision: NO GBP convert)
+EURGBP is nominally GBP-quoted (1 pip = 10 GBP per standard unit). **Operator decision: compute R
+in USD with the same convention as the majors** — no GBP→USD conversion.
+| SL (pips) | SL price |
+|---|---|
+| 18 | 0.0018 |
+| 25 | 0.0025 |
+| 35 | 0.0035 |
+| 50 | 0.0050 |
 > Caveat: EURGBP P&L is intrinsically GBP. This assumes the broker settles EURGBP pip value in
 > USD. If it settles in GBP, a "$2000" trade ≈ £2000 ≈ $2670 (~33% over) — revisit if so.
 
@@ -98,9 +98,8 @@ Macro is dead → triggers lean on PRICE + shock, not rate drift.
 | T4 — shock (X structured news OR Y VIX 1d jump>5) | as constitution |
 | T5 — rate-diff cumulative drift | abs > 0.15% (weak — informational) |
 
-## Position sizing quick reference
-`lots = $2000 / (SL_price × 100000)`, round DOWN to 0.01 (same as majors; no GBP convert).
-Crisis ATR >89 pips → halve to $1000 risk.
+## R reference
+R is computed in USD, same convention as the majors (no GBP convert).
 
 ## VIX veto direction — NONE (cross exception)
 Unlike XAUUSD (block SHORTs) and the USD-majors (block LONGs), EURGBP has **no VIX veto** —

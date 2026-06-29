@@ -27,8 +27,8 @@ Evidence: [[signal-results]].
 | COT | **DISABLED** | no CFTC GBP/JPY cross contract exists — first pair with no COT at all |
 | VP_TICKER | None | no clean futures continuous |
 
-Sizing check: lots = 2000/(SL×650). Today: SL = avg(0.5×D1 0.754, H4 0.543) = 0.648
-(65 pips) → 4.74 lots → risk ≈ $2,000 at USDJPY 154 (drifts ±10% with USDJPY, D024).
+Today: SL = avg(0.5×D1 0.754, H4 0.543) = 0.648 (65 pips) at USDJPY 154 (JPY pip value
+drifts ±10% with USDJPY, D024).
 
 ## Macro — NONE (second fully price-driven pair)
 1. SONIA leg (X9/X10): t = 0.58/0.29 — nothing. Non-scoring tilt in weekly pull only.

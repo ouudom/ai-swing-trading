@@ -32,7 +32,7 @@ Two stop types computed per bar:
 
 1. **ATR stop fails 97% of the time** — not protective. Too tight. Structural zone is doing all the work.
 2. **Structural stop survives 36% of the time** (long) vs 3% for ATR — 12× better
-3. Structural stop is wider 79% of the time — lot size adjusts, but stop quality improves dramatically
+3. Structural stop is wider 79% of the time — R-size (1R = SL distance) grows accordingly, but stop quality improves dramatically
 4. The `min()` formula was undersizing stop distance; structural `max()` formula is correct
 
 ## Recommended Formula (updated 2026-05-25, in constitution.md)
@@ -51,7 +51,7 @@ cap: if structural_dist > 3 × H4_ATR14 → skip trade (R:R collapses)
 fallback: avg(0.5 × D1_ATR14, H4_ATR14) if no pivot within 20 bars
 ```
 
-**Why arithmetic-mean of three:** Single-max gave too-wide stops on high-structural setups (lot size shrunk excessively); single-min gave too-tight stops in low-vol regimes. Mean balances volatility (H4 + 0.5×D1) and structure (pivot) — stop never pinned to one extreme. Lot size scales smoothly.
+**Why arithmetic-mean of three:** Single-max gave too-wide stops on high-structural setups (1R grew excessively); single-min gave too-tight stops in low-vol regimes. Mean balances volatility (H4 + 0.5×D1) and structure (pivot) — stop never pinned to one extreme. R-size scales smoothly.
 
 ## Open Questions
 

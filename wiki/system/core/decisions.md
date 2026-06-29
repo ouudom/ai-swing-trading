@@ -239,6 +239,10 @@ Operator rulings:
 **Rationale:** operator wants breadth of signal coverage; risk discretion stays human. JPY
 crosses are carry-trend pairs — mean-reversion template may scan NO-GO; scan decides, a NO-GO
 pair keeps config+data+research but no active confluence.
+> **2026-06-29 update:** Lot sizing (point 2 above) removed project-wide — the system tracks
+> risk in R-multiples only, no $-denominated position sizing or lot output. `TICK_MULTIPLIER`
+> values are retained here as historical record of the per-pair pip-economics ruling, not as a
+> live formula input.
 
 ## D023 — EURGBP added as a tradable CROSS: mean-reversion, macro-light, no VIX-veto, USD-sized
 **Status:** ACTIVE (2026-06-09). See `wiki/system/eurgbp/` + `wiki/research/eurgbp/signal-results.md`.
@@ -260,6 +264,9 @@ and the netting ledger (D022) makes a third correlated instrument safe to add. D
 
 ## D022 — FX risk is per currency-factor, not per instrument; EURUSD+GBPUSD net via leg algebra (Architecture A)
 **Status:** ACTIVE (2026-06-09). See [[currency_exposure]] + constitution "Portfolio Currency-Leg Netting".
+> **2026-06-29 update:** the "$2000 per currency-factor" risk unit below is historical — lot/$
+> sizing was removed project-wide; risk is tracked in R-multiples only. The netting-gate logic
+> (keep best, drop weaker by Entry Confluence) is unaffected and still ACTIVE.
 **Decision:** EURUSD, GBPUSD, EURGBP form a triangle (`EURGBP = EURUSD/GBPUSD`) — two majors share
 the USD leg, so two simultaneous orders concentrate onto ONE factor, never diversify. Risk unit for
 FX becomes **$2000 per currency-factor**. `/validate` runs a netting gate before writing an FX

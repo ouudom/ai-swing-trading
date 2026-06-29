@@ -1,0 +1,188 @@
+
+╔══════════════════════════════════════════════════════╗
+  USDCAD WEEKLY DATA — 2026-06-29 (W27)
+╚══════════════════════════════════════════════════════╝
+
+━━━ MACRO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+US 2Y (DGS2):     4.09% (was 4.2% ~1w ago, Δ -0.11%)
+  → FALLING ⚠  (USD softness, bearish USDCAD)
+  20d slope: +0.0074 %/day  (rising trend)
+  1d drift:  -0.020%
+Fed Funds:        3.63%
+Foreign policy (CA): no daily FRED series — carry leg skipped (dead signal, D021/D024)
+VIX:              18.89
+
+━━━ PRICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+USDCAD:          $1.41866 (was $1.41603, +0.19% ~1w chg)
+DXY (ICE 6-cur):  101.347  (was 101.020,  +0.32% ~1w chg)
+
+━━━ INDICATORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ATR(14) Daily:    $0.00573
+ATR(14) H4:       $0.00221  (trading days only)
+SL (constitution v2): $0.00254 = avg(0.5×D1 0.00286, H4 0.00221)
+D1 ATR now:       $0.00573 | 20d median: $0.00559 → EXPANDING ⚠
+
+Lot sizing ($2000 risk, SL above):
+  Raw lots:  7.874
+  Use lots:  7.87  (floored to 0.01-lot step, min 0.01)
+
+ADX(14) D1:       51.5 → TRENDING (favor continuation/trend setups; floor 6.0)
+EMA 50 D1:        $1.39152 | Price ABOVE
+EMA 200 D1:       $1.38306 | Price ABOVE
+RSI(14) D1:       77.2 (was 75.8 10 bars ago, rising)
+Bollinger(20,2):  upper $1.42846 | mid $1.40319 | lower $1.37792 | %B 0.81 → inside bands
+
+RSI D1 (last 10 bars):
+  2026-06-15: 75.8
+  2026-06-16: 76.1
+  2026-06-17: 83.2
+  2026-06-18: 85.0
+  2026-06-19: 85.9
+  2026-06-22: 85.1
+  2026-06-23: 87.2
+  2026-06-24: 88.1
+  2026-06-25: 80.1
+  2026-06-26: 77.2
+
+MACD(12,26,9) D1 — last 5 bars:
+  Date             MACD   Signal     Hist
+  2026-06-22    0.00966  0.00761  0.00205
+  2026-06-23    0.01032  0.00815  0.00217
+  2026-06-24    0.01092   0.0087  0.00221
+  2026-06-25    0.01099  0.00916  0.00183
+  2026-06-26    0.01082  0.00949  0.00133
+  Histogram POSITIVE (bullish momentum)
+  Cross: MACD above signal (bullish)
+
+━━━ OSCILLATORS (D1 / H4 — Z2 engine inputs, were eyeballed pre-D025) ━━
+  D1:  Stoch %K 88.6/%D 92.5 (OVERBOUGHT) | W%R -17.2 (OVERBOUGHT) | CCI 70.3 (mid)
+        Keltner u1.41661/m1.40524/l1.39387 → ABOVE upper (Keltner-high TAGGED → fade short)
+        Donchian u1.42486/l1.37899 → mid-channel | TTM squeeze OFF
+        PSAR 1.41413 (long) | Supertrend 1.40514 (up)
+  H4:  Stoch %K 18.0/%D 16.9 (OVERSOLD) | W%R -75.3 (mid) | CCI -48.9 (mid)
+        Keltner u1.42444/m1.41959/l1.41474 → inside
+        Donchian u1.42486/l1.41693 → mid-channel | TTM squeeze OFF
+        PSAR 1.4227 (short) | Supertrend 1.4253 (down)
+  EXTREMES: D1 Stoch 88.6 OVERBOUGHT · D1 W%R -17.2 OVERBOUGHT · D1 ABOVE upper · H4 Stoch 18.0 OVERSOLD
+
+━━━ MARKET STRUCTURE (BOS/CHoCH, fractal N=2) ━━━━━━━━━━━
+  D1: state UP | last BOS UP @ 1.40231 (2026-06-17 00:00, 7 bars ago)
+  H4: state DOWN | last CHoCH DOWN @ 1.42163 (2026-06-25 12:00, 8 bars ago)
+
+━━━ ENTRY TRIGGERS (E0, latest closed 1H — reclaim > pin/engulf, D027) ━━
+  latest closed 1H bar: 2026-06-29 01:00:00  (RSI 49, Stoch %K 68)
+  LONG-confirm fired:  pin (bull)
+  SHORT-confirm fired: pin (bear)
+  ✦ = RSI-reclaim is the highest-R E0 gate (backtest); per-pair primary in confluence_criteria. Toward zone dir only.
+
+━━━ VOLUME PROFILE (disabled, 3mo daily) ━━━━━━━━━━━━
+VP disabled for usdcad (no usable futures proxy)
+VP check: zone within ~8 units of POC/VAH/VAL = confluent
+
+━━━ TIME-AT-PRICE (H1 acceptance — VP substitute, NOT volume) ━━
+HTN (most-accepted): 1.39451
+Value area: 1.37956 – 1.41489 (70% of time)
+Use as S/R confluence like a POC/VA — acceptance, not traded volume.
+
+
+━━━ COT — CFTC CANADIAN DOLLAR FUTURES (non-commercial, as of 2026-06-23) ━━━━━━
+Spec Long:      39,515
+Spec Short:     186,979
+Net Position:   -147,464  (spec short CANADIAN DOLLAR = BULLISH USDCAD)  ⚠ INVERTED READ (USD-base pair)
+W/W Change:     -13,842  (DECREASING)
+Note: net-position extremes vs 1y range = crowded = reversal risk (per-instrument threshold)
+
+━━━ ETF FLOWS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fetch failed: ETF flows disabled for usdcad (no equivalent ETF)
+
+━━━ WEEKEND GLOBEX GAP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fri close:   $1.41887  (2026-06-26 20:00:00)
+Sun reopen:  $1.41899  (2026-06-29 00:00:00)
+Gap:         $0.00012  (+0.008%)  → NOISE
+Thresholds: <0.20% NOISE | 0.20–0.50% NOTE | 0.50–1.00% WARNING | >1.00% RE-FORECAST
+
+━━━ NEWS FEED (recent, pair-filtered — context for Section 2) ━━
+  2026-06-26 [FXStreet] Euro holds ground against the US Dollar as traders weigh Middle East tensions and Fed outlook
+  2026-06-26 [FXStreet] WTI Oil weakens as Middle East export recovery tempers supply risk concerns
+  2026-06-26 [FXStreet] Fed’s Kashkari: “I have one rate hike penciled in for 2026”
+  2026-06-26 [FXStreet] Canadian Dollar trims gains as US-Iran tensions and hawkish Fed outlook support US Dollar
+  2026-06-26 [FXStreet] Vietnam: Solid GDP and easing inflation backdrop – DBS
+  2026-06-26 [FXStreet] South Korea: Exports and inflation support rate hike path – DBS
+  2026-06-26 [Investing.com] Dollar set for weekly gain on rate hike bets even as inflationary concerns recede
+  2026-06-26 [FXStreet] Vietnam: Strong growth but rising inflation risks – HSBC
+
+━━━ BASELINES (snapshot for forecast frontmatter) ━━━━
+baseline_dgs2: 4.09
+baseline_dxy:    101.347
+weekend_gap_pct: 0.008
+
+━━━ WEEKLY PIVOTS (prior week OHLC) ━━━━━━━━━━━━━━━━━━
+R3:1.44711  R2:1.43247  R1:1.42439
+PP:1.40975
+S1:1.40167  S2:1.38703  S3:1.37895
+
+━━━ SWING POINTS (Daily, N=5) ━━━━━━━━━━━━━━━━━━━━━━━━
+Highs: $1.39295(2026-01-16) | $1.37244(2026-02-06) | $1.37517(2026-03-03) | $1.39659(2026-03-31) | $1.37141(2026-04-24)
+Lows:  $1.34824(2026-01-30) | $1.35052(2026-02-11) | $1.35257(2026-03-09) | $1.35503(2026-05-01) | $1.3772(2026-05-29)
+
+━━━ SWING POINTS (H4, N=5, trading days) ━━━━━━━━━━━━━
+Highs: $1.39687(2026-06-09) | $1.40231(2026-06-11) | $1.40186(2026-06-16) | $1.41934(2026-06-22) | $1.42486(2026-06-24)
+Lows:  $1.39195(2026-06-09) | $1.39011(2026-06-10) | $1.3951(2026-06-15) | $1.39801(2026-06-16) | $1.41473(2026-06-22)
+
+━━━ FIBONACCI (anchored to last D1 swing high/low) ━━━
+Swing: $1.3772 → $1.37141
+  78.6%:      $1.37596
+  61.8%:      $1.37499  ← golden pocket
+  50.0%:      $1.37431
+  38.2%:      $1.37362
+  Ext 127.2%: $1.36984
+  Ext 161.8%: $1.36783  ← TP extension zone
+
+━━━ DAILY OHLCV — last 15 bars ━━━━━━━━━━━━━━━━━━━━━━━
+               open     high      low    close
+datetime                                      
+2026-06-09  1.39582  1.39687  1.39195  1.39550
+2026-06-10  1.39548  1.39570  1.39011  1.39481
+2026-06-11  1.39478  1.40231  1.39319  1.39729
+2026-06-12  1.39725  1.39977  1.39607  1.39870
+2026-06-15  1.39637  1.39958  1.39510  1.39929
+2026-06-16  1.39926  1.40186  1.39801  1.39968
+2026-06-17  1.39965  1.41224  1.39907  1.41021
+2026-06-18  1.41017  1.41476  1.40952  1.41413
+2026-06-19  1.41416  1.41782  1.41352  1.41632
+2026-06-22  1.41760  1.41934  1.41473  1.41603
+2026-06-23  1.41600  1.42171  1.41571  1.42106
+2026-06-24  1.42103  1.42486  1.42063  1.42358
+2026-06-25  1.42355  1.42479  1.41780  1.42018
+2026-06-26  1.42014  1.42092  1.41693  1.41887
+2026-06-29  1.41899  1.41986  1.41866  1.41866
+
+━━━ H4 OHLCV — last 24 bars (trading days) ━━━━━━━━━━━
+                        open     high      low    close
+datetime                                               
+2026-06-23 04:00:00  1.41657  1.41862  1.41647  1.41768
+2026-06-23 08:00:00  1.41772  1.41913  1.41720  1.41909
+2026-06-23 12:00:00  1.41904  1.42044  1.41679  1.41996
+2026-06-23 16:00:00  1.41998  1.42171  1.41953  1.42076
+2026-06-23 20:00:00  1.42079  1.42146  1.42002  1.42106
+2026-06-24 00:00:00  1.42103  1.42241  1.42063  1.42149
+2026-06-24 04:00:00  1.42146  1.42286  1.42118  1.42281
+2026-06-24 08:00:00  1.42274  1.42387  1.42210  1.42299
+2026-06-24 12:00:00  1.42295  1.42486  1.42239  1.42388
+2026-06-24 16:00:00  1.42388  1.42415  1.42163  1.42327
+2026-06-24 20:00:00  1.42328  1.42365  1.42261  1.42358
+2026-06-25 00:00:00  1.42355  1.42433  1.42278  1.42305
+2026-06-25 04:00:00  1.42309  1.42433  1.42278  1.42328
+2026-06-25 08:00:00  1.42330  1.42479  1.42232  1.42442
+2026-06-25 12:00:00  1.42440  1.42478  1.41909  1.41918
+2026-06-25 16:00:00  1.41923  1.42032  1.41780  1.41968
+2026-06-25 20:00:00  1.41970  1.42042  1.41906  1.42018
+2026-06-26 00:00:00  1.42014  1.42092  1.41930  1.41953
+2026-06-26 04:00:00  1.41951  1.41991  1.41853  1.41973
+2026-06-26 08:00:00  1.41975  1.41994  1.41798  1.41866
+2026-06-26 12:00:00  1.41868  1.42020  1.41693  1.41831
+2026-06-26 16:00:00  1.41833  1.41970  1.41786  1.41788
+2026-06-26 20:00:00  1.41790  1.42001  1.41790  1.41887
+2026-06-29 00:00:00  1.41899  1.41986  1.41866  1.41866
+
+Generated: 2026-06-29 02:22 UTC (09:22 +07 local)

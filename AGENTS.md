@@ -8,8 +8,7 @@ forecasts/validations directly (no DB).
 - **Instruments:** xauusd, eurusd, gbpusd, eurgbp, audusd, nzdusd, usdcad, usdchf, usdjpy,
   eurjpy, gbpjpy — per-pair character/macro/vetoes in the constitution multi-instrument table
 - **Timeframes:** Weekly/Daily bias → Daily→H4→1H top-down → 1H/15M entry confirmation
-- **Risk:** $2000/trade. SL = `H4_ATR14` if `0.5×D1_ATR14 < H4_ATR14`, else `avg(0.5×D1_ATR14, H4_ATR14)`.
-  `lots = max(0.01, floor($2000/(SL × TICK_MULTIPLIER) × 100)/100)` — TICK per pair (100/100000/650)
+- **Risk:** Tracked in R-multiples only. SL = `H4_ATR14` if `0.5×D1_ATR14 < H4_ATR14`, else `avg(0.5×D1_ATR14, H4_ATR14)`.
 - **TP:** TP1 2.5R (manual), TP2 3.0R (limit), BE at +1.5R; TP at structural anchor (compute R)
 
 This project was built for Claude Code and retains full Claude compatibility (`CLAUDE.md`,

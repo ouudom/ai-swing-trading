@@ -58,7 +58,6 @@ limit_expires: YYYY-MM-DD 21:00 UTC
 tp1_price: 0000.00                 # 2.5R manual
 tp2_price: 0000.00                 # 3.0R limit
 be_trigger_r: 1.5
-lots: 0.00
 dfii10_now: 0.000
 dfii10_baseline: 0.000
 dfii10_slope: 0.000
@@ -120,13 +119,12 @@ offset         = max(SL/3, (10 − score) × 0.2 × SL) = $xx.xx
 limit_price    = anchor − offset (long) | anchor + offset (short) = $xxxx.xx
 SL price       = limit ± SL = $xxxx.xx
 TP1 (2.5R)     = $xxxx.xx (manual) | TP2 (3.0R) = $xxxx.xx (limit) | BE @ +1.5R
-lots           = $2000 / ($xx.xx × 100) = x.xx → x.xx lots
 ```
 
 ## Result
 ### ✅ ORDER LIMIT _(score ≥ 5.0)_
 ```
-ORDER LIMIT: BUY/SELL $xxxx.xx | x.xx lots | SL $xxxx.xx | TP1 2.5R $xxxx (manual) | TP2 3.0R $xxxx (limit) | BE @1.5R | expires 21:00 UTC
+ORDER LIMIT: BUY/SELL $xxxx.xx | SL $xxxx.xx | TP1 2.5R $xxxx (manual) | TP2 3.0R $xxxx (limit) | BE @1.5R | expires 21:00 UTC
 Entry Confluence: x.x/10 (E0:✅ E1:✅ E2:✅ E3:✅ E4:✅ E5:✅)
 Anchor: <confirmation close / 50% zone> | SL $xx.xx | offset $xx.xx | R:R x.xx
 "If price reaches $xxxx.xx, order triggers. Cancel if not hit by 21:00 UTC."
@@ -144,5 +142,5 @@ NO TRADE — [hard block / score x.x < 5.0]: <reason>
 - First hard block fail → stop, output NO TRADE/INVALIDATED, note which.
 - No E0 confirmation but score ≥ 5.0 → ORDER LIMIT anchored at 50% zone midpoint.
 - 15M CHoCH must break structure in the zone's direction — against-direction CHoCH does not count.
-- SL/offset/limit/lots recompute daily. TP anchor fixed from weekly. Order expires 21:00 UTC.
+- SL/offset/limit recompute daily. TP anchor fixed from weekly. Order expires 21:00 UTC.
 - Validate every PENDING zone independently.
